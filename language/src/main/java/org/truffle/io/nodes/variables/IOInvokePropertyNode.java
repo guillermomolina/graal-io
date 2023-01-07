@@ -53,6 +53,7 @@ import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.expression.IOInvokeMethodNode;
 import org.truffle.io.nodes.util.IOToTruffleStringNode;
 import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IOSymbols;
 import org.truffle.io.runtime.IOUndefinedNameException;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IOObject;
@@ -69,6 +70,9 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
+        if (nameTS.equals(IOSymbols.PROTO)) {
+            return prototype;
+        }
         Object value = IOObject.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
@@ -84,6 +88,9 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
         IOObject prototype = IOState.get(this).getPrototype(receiver);
+        if (nameTS.equals(IOSymbols.PROTO)) {
+            return prototype;
+        }
         Object value = IOObject.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
@@ -113,6 +120,9 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
+        if (nameTS.equals(IOSymbols.PROTO)) {
+            return prototype;
+        }
         Object value = IOObject.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
