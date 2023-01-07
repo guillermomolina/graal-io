@@ -3,6 +3,10 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -15,6 +19,7 @@ import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.literals.IOMethodLiteralNode;
+import org.truffle.io.nodes.literals.IONilLiteralNode;
 import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;
 import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
 import org.truffle.io.parser.IOLanguageParser.ExpressionContext;
@@ -32,10 +37,6 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
-
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     private IONodeFactory factory;
@@ -116,7 +117,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
     public Node visitEmptyExpression(int startPos, int length) {
         List<IOExpressionNode> body = new ArrayList<>();
-        body.add(factory.createReadSelf());
+        body.add(new IONilLiteralNode());
         final IOExpressionNode result = factory.createBlock(body, startPos, length);
         assert result != null;
         return result;
