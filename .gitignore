@@ -15,3 +15,4 @@ graalvm/
 component/io-component.jar
 language/dependency-reduced-pom.xml
 native/ionative
+tmp/
