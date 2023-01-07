@@ -88,7 +88,6 @@ import org.truffle.io.nodes.variables.IOInvokeRemoteVariableNodeGen;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
 import org.truffle.io.nodes.variables.IOReadLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOReadPropertyNodeGen;
-import org.truffle.io.nodes.variables.IOReadRemoteVariableNodeGen;
 import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOWritePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteRemoteVariableNodeGen;
@@ -298,7 +297,7 @@ public class IONodeFactory {
             final int start = forToken.getStartIndex();
             final int length = bodyNode.getSourceEndIndex() - start;
             IOExpressionNode initialAssignmentNode = createAssignment(counterNode, startValueNode, start, length, true);
-            IOExpressionNode readControlNode = createReadVariable(counterNode);
+            IOExpressionNode readControlNode = createReadLocalVariable(counterNode);
             assert readControlNode != null;
             initialAssignmentNode.addExpressionTag();
             readControlNode.addExpressionTag();
@@ -439,19 +438,35 @@ public class IONodeFactory {
         return result;
     }
 
-    public IOExpressionNode createReadVariable(IOExpressionNode nameNode) {
+    // public IOExpressionNode createReadVariable(IOExpressionNode nameNode) {
+    //     if (nameNode != null) {
+    //         TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
+    //         final IOExpressionNode result;
+    //         final Pair<Integer, Integer> foundSlot = methodScope.find(name);
+    //         if (foundSlot != null) {
+    //             int contextLevel = foundSlot.a;
+    //             int frameSlot = foundSlot.b;
+    //             if (contextLevel == 0) {
+    //                 result = IOReadLocalVariableNodeGen.create(frameSlot);
+    //             } else {
+    //                 result = IOReadRemoteVariableNodeGen.create(contextLevel, frameSlot);
+    //             }
+    //             if (nameNode.hasSource()) {
+    //                 result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
+    //             }
+    //             result.addExpressionTag();
+    //             return result;
+    //         }
+    //     }
+    //     return null;
+    // }
+
+    public IOExpressionNode createReadLocalVariable(IOExpressionNode nameNode) {
         if (nameNode != null) {
             TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
-            final IOExpressionNode result;
-            final Pair<Integer, Integer> foundSlot = methodScope.find(name);
-            if (foundSlot != null) {
-                int contextLevel = foundSlot.a;
-                int frameSlot = foundSlot.b;
-                if (contextLevel == 0) {
-                    result = IOReadLocalVariableNodeGen.create(frameSlot);
-                } else {
-                    result = IOReadRemoteVariableNodeGen.create(contextLevel, frameSlot);
-                }
+            if (methodScope.locals.containsKey(name)) {
+                int frameSlot = methodScope.locals.get(name);
+                final IOExpressionNode result = IOReadLocalVariableNodeGen.create(frameSlot);
                 if (nameNode.hasSource()) {
                     result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
                 }
@@ -462,7 +477,8 @@ public class IONodeFactory {
         return null;
     }
 
-    public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes, Token finalToken) {
+    public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes,
+            Token finalToken) {
         if (nameNode != null) {
             TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
             final IOExpressionNode result;
@@ -471,9 +487,11 @@ public class IONodeFactory {
                 int contextLevel = foundSlot.a;
                 int frameSlot = foundSlot.b;
                 if (contextLevel == 0) {
-                    result = IOInvokeLocalVariableNodeGen.create(frameSlot, argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
+                    result = IOInvokeLocalVariableNodeGen.create(frameSlot,
+                            argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
                 } else {
-                    result = IOInvokeRemoteVariableNodeGen.create(contextLevel, frameSlot, argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
+                    result = IOInvokeRemoteVariableNodeGen.create(contextLevel, frameSlot,
+                            argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
                 }
                 if (nameNode.hasSource()) {
                     final int startPos = nameNode.getSourceCharIndex();
@@ -489,7 +507,7 @@ public class IONodeFactory {
 
     public IOExpressionNode createReadSelf() {
         final IOStringLiteralNode selfNode = new IOStringLiteralNode(IOSymbols.SELF);
-        final IOExpressionNode result = createReadVariable(selfNode);
+        final IOExpressionNode result = createReadLocalVariable(selfNode);
         assert result != null;
         return result;
     }

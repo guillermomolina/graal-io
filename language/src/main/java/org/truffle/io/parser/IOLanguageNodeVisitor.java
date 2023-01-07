@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -37,6 +33,10 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     private IONodeFactory factory;
@@ -271,13 +271,11 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.name, true);
         IOExpressionNode result = null;
         if (receiverNode == null) {
-            result = factory.createReadVariable(identifierNode);
+            result = factory.createReadLocalVariable(identifierNode);
             if(result == null) {
-                receiverNode = factory.createReadSelf();
+                result = new IONilLiteralNode();
             }
-        }
-        if(result == null) {
-            assert receiverNode != null;
+        } else {
             result = factory.createReadProperty(receiverNode, identifierNode);
         }
         assert result != null;
