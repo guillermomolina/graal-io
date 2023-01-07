@@ -49,7 +49,7 @@ public class IOPrototypes {
     public static final IOObject LIST = new IOObject(OBJECT);
     public static final IOObject NUMBER = new IOObject(OBJECT);
     public static final IOObject MESSAGE = new IOObject(OBJECT);
-    public static final IOObject BOOLEAN = new IOObject(OBJECT);
+    public static final IOObject NIL = new IOObject(OBJECT);
     public static final IOObject CALL = new IOObject(OBJECT);
     public static final IOObject CONTEXT = new IOObject(OBJECT);
     public static final IOObject BLOCK = new IOObject(OBJECT);
