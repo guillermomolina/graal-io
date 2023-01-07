@@ -125,13 +125,13 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
     @Override
     public Node visitOperation(final OperationContext ctx) {
-        if(ctx.assignment() != null) {
+        if (ctx.assignment() != null) {
             return visitAssignment(ctx.assignment());
         }
-        if(ctx.sequence() != null) {
+        if (ctx.sequence() != null) {
             return visitSequence(ctx.sequence());
         }
-        if(ctx.op == null) {
+        if (ctx.op == null) {
             throw new ShouldNotBeHereException();
         }
         try {
@@ -152,9 +152,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     @Override
     public Node visitAssignment(final AssignmentContext ctx) {
         IOExpressionNode result = null;
-       if (ctx.assign.getText().equals(":=")) {
+        if (ctx.assign.getText().equals(":=")) {
             IOExpressionNode assignmentReceiver = null;
-            if(ctx.sequence() != null) {
+            if (ctx.sequence() != null) {
                 assignmentReceiver = (IOExpressionNode) visitSequence(ctx.sequence());
                 assert assignmentReceiver != null;
             }
@@ -204,7 +204,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
         final IOExpressionNode expression;
         if (ctx.expression() != null) {
-            expression = (IOExpressionNode) visitExpression(ctx.expression());     
+            expression = (IOExpressionNode) visitExpression(ctx.expression());
         } else {
             expression = (IOExpressionNode) visitEmptyExpression(startPos, length);
         }
@@ -239,7 +239,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         }
         throw new ShouldNotBeHereException();
     }
-    
+
     @Override
     public Node visitMessage(final MessageContext ctx) {
         throw new ShouldNotBeHereException();
@@ -255,11 +255,11 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         IOExpressionNode result = null;
         if (receiverNode == null) {
             result = factory.createInvokeVariable(identifierNode, argumentNodes, ctx.stop);
-            if(result == null) {
+            if (result == null) {
                 receiverNode = factory.createReadSelf();
             }
-        } 
-        if(result == null) {
+        }
+        if (result == null) {
             assert receiverNode != null;
             result = factory.createInvokeProperty(receiverNode, identifierNode, argumentNodes, ctx.stop);
         }
@@ -272,7 +272,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         IOExpressionNode result = null;
         if (receiverNode == null) {
             result = factory.createReadLocalVariable(identifierNode);
-            if(result == null) {
+            if (result == null) {
                 result = new IONilLiteralNode();
             }
         } else {
@@ -291,7 +291,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         List<IOExpressionNode> argumentNodes = new ArrayList<>();
         if (ctx != null) {
             for (final ExpressionContext expressionCtx : ctx.expression()) {
-                IOExpressionNode argumentNode = (IOExpressionNode)visitExpression(expressionCtx);
+                IOExpressionNode argumentNode = (IOExpressionNode) visitExpression(expressionCtx);
                 assert argumentNode != null;
                 argumentNodes.add(argumentNode);
             }
@@ -312,10 +312,10 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
     @Override
     public Node visitIfMessage(IfMessageContext ctx) {
-        if(ctx.ifMessage1() != null) {
+        if (ctx.ifMessage1() != null) {
             throw new NotImplementedException();
         }
-        if(ctx.ifThenElseMessage() != null) {
+        if (ctx.ifThenElseMessage() != null) {
             return visitIfThenElseMessage(ctx.ifThenElseMessage());
         }
         throw new ShouldNotBeHereException();
@@ -346,23 +346,21 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
     // @Override
     // public Node visitForMessage(ForMessageContext ctx) {
-    // factory.startLoopBlock();
-    // IOExpressionNode counterNode = factory.createStringLiteral(ctx.counter,
-    // false);
-    // IOExpressionNode startValueNode = (IOExpressionNode)
-    // visitExpressionList(ctx.startPart);
-    // IOExpressionNode endValueNode = (IOExpressionNode)
-    // visitExpressionList(ctx.endPart);
-    // IOExpressionNode stepValueNode = null;
-    // if (ctx.stepPart != null) {
-    // stepValueNode = (IOExpressionNode) visitExpressionList(ctx.stepPart);
-    // }
-    // IOExpressionNode bodyNode = (IOExpressionNode) visitExpressionList(ctx.body);
-    // IOExpressionNode result = factory.createFor(ctx.FOR().getSymbol(),
-    // counterNode, startValueNode,
-    // endValueNode, stepValueNode, bodyNode);
-    // return factory.finishLoopBlock(result, ctx.start.getStartIndex(),
-    // ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
+    //     factory.startLoopBlock();
+    //     IOExpressionNode counterNode = factory.createStringLiteral(ctx.counter,
+    //             false);
+    //     IOExpressionNode startValueNode = (IOExpressionNode) visitExpressionList(ctx.startPart);
+    //     IOExpressionNode endValueNode = (IOExpressionNode) visitExpressionList(ctx.endPart);
+    //     IOExpressionNode stepValueNode = null;
+    //     if (ctx.stepPart != null) {
+    //         stepValueNode = (IOExpressionNode) visitExpressionList(ctx.stepPart);
+    //     }
+    //     IOExpressionNode bodyNode = (IOExpressionNode) visitExpressionList(ctx.body);
+    //     IOExpressionNode result = factory.createFor(ctx.FOR().getSymbol(),
+    //             counterNode, startValueNode,
+    //             endValueNode, stepValueNode, bodyNode);
+    //     return factory.finishLoopBlock(result, ctx.start.getStartIndex(),
+    //             ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
     // }
 
     @Override
