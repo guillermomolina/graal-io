@@ -1,0 +1,17 @@
+*~
+*.cfg
+*.iml
+target/
+graalvm/
+.settings/
+./.project
+.factorypath
+.classpath
+.idea/
+.antlr/
+.project
+/bin/
+/Coco.jar
+component/io-component.jar
+language/dependency-reduced-pom.xml
+native/ionative

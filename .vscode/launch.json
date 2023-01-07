@@ -1,0 +1,90 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "antlr-debug",
+            "name": "Debug ANTLR4 grammar Current File",
+            "request": "launch",
+            "input": "${file}",
+            "grammar": "language/src/main/antlr4/org/truffle/io/parser/IOLanguage.g4",
+            "startRule": "iolanguage",
+            "printParseTree": true,
+            "visualParseTree": true
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch) CLI",
+            "request": "launch",
+            "mainClass": "org.truffle.io.launcher.IOMain",
+            "projectName": "launcher",
+            "args": ["--log.io.level=FINEST"],
+            "vmArgs": [
+                "-ea", "-Dtruffle.class.path.append=${workspaceFolder}/language/target/iolanguage.jar"
+            ],
+            "stepFilters": {
+                "skipClasses": [
+                    "$JDK",
+                    "junit.*"
+                ],
+                "skipSynthetics": true,
+                "skipStaticInitializers": true,
+                "skipConstructors": false
+            },
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            //"preLaunchTask": "java (build): Build Workspace"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch) Current File",
+            "request": "launch",
+            "mainClass": "org.truffle.io.launcher.IOMain",
+            "projectName": "launcher",
+            "args": [
+                "--log.io.level=FINEST",
+                "${file}"
+            ],
+            "vmArgs": [
+                "-ea", "-Dtruffle.class.path.append=${workspaceFolder}/language/target/iolanguage.jar"
+            ],
+            "stepFilters": {
+                "skipClasses": [
+                    "$JDK",
+                    "junit.*"
+                ],
+                "skipSynthetics": true,
+                "skipStaticInitializers": true,
+                "skipConstructors": false
+            },
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            //"preLaunchTask": "java (build): Build Workspace"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch) Test.io",
+            "request": "launch",
+            "mainClass": "org.truffle.io.launcher.IOMain",
+            "projectName": "launcher",
+            "args": [
+                "--log.io.level=FINEST",
+                "${workspaceFolder}/tmp/Test.io",
+            ],
+            "vmArgs": [
+                "-ea", "-Dtruffle.class.path.append=${workspaceFolder}/language/target/iolanguage.jar"
+            ],
+            "stepFilters": {
+                "skipClasses": [
+                    "$JDK",
+                    "junit.*"
+                ],
+                "skipSynthetics": true,
+                "skipStaticInitializers": true,
+                "skipConstructors": false
+            },
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            //"preLaunchTask": "java (build): Build Workspace"
+        },
+    ]
+}

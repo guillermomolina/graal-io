@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "graalvm",
+            "request": "launch",
+            "name": "Launch io Script",
+            "runtimeExecutable": "${workspaceFolder}/io",
+            "program": "${file}"
+        },
+        {
+            "type": "graalvm",
+            "request": "attach",
+            "name": "GraalVM Attach",
+            "port": 9229
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Debug IO + Attach",
+            "configurations": [
+                "Debug (Launch and Wait) Current File",
+                "GraalVM Attach"
+            ]
+        }
+    ]
+}
