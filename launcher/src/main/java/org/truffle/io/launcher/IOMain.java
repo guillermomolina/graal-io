@@ -43,110 +43,369 @@
  */
 package org.truffle.io.launcher;
 
-import java.io.File;
+import java.io.EOFException;
+import java.io.FileDescriptor;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.util.HashMap;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
+import org.graalvm.launcher.AbstractLanguageLauncher;
+import org.graalvm.options.OptionCategory;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Context.Builder;
 import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.PolyglotException.StackFrame;
 import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.SourceSection;
 
-public final class IOMain {
+import jline.console.UserInterruptException;
 
-    private static final String IO = "io";
+public final class IOMain extends AbstractLanguageLauncher {
 
-    /**
-     * The main entry point.
-     */
-    public static void main(String[] args) throws IOException {
-        Source source;
-        Map<String, String> options = new HashMap<>();
-        String file = null;
-        for (String arg : args) {
-            if (parseOption(options, arg)) {
-                continue;
-            } else {
-                if (file == null) {
-                    file = arg;
+    private static final String LF = System.getProperty("line.separator");
+
+    public static void main(String[] args) {
+        new IOMain().launch(args);
+    }
+
+    private static final String LANGUAGE_ID = "io";
+
+    private final boolean stdinIsInteractive = System.console() != null;
+    private static long startupWallClockTime = -1;
+    private static long startupNanoTime = -1;
+    private ArrayList<String> programArgs = null;
+    private ArrayList<String> origArgs = null;
+    private String commandString = null;
+    private String inputFile = null;
+
+    protected static void setStartupTime() {
+        if (IOMain.startupNanoTime == -1) {
+            IOMain.startupNanoTime = System.nanoTime();
+        }
+        if (IOMain.startupWallClockTime == -1) {
+            IOMain.startupWallClockTime = System.currentTimeMillis();
+        }
+    }
+
+    private void evalNonInteractive(Context context, ConsoleHandler consoleHandler) throws IOException {
+        // We need to setup the terminal even when not running the REPL because code may request
+        // input from the terminal.
+        setupTerminal(consoleHandler);
+
+        Source src;
+        if (commandString != null) {
+            src = Source.newBuilder(getLanguageId(), commandString, "<string>").build();
+        } else {
+            src = Source.newBuilder(getLanguageId(), readAllLines(inputFile), "<internal>").internal(true).build();
+        }
+        context.eval(src);
+    }
+
+    private static String readAllLines(String fileName) throws IOException {
+        // fix line feeds for non unix os
+        StringBuilder outFile = new StringBuilder();
+        for (String line : Files.readAllLines(Paths.get(fileName), Charset.defaultCharset())) {
+            outFile.append(line).append(LF);
+        }
+        return outFile.toString();
+    }
+
+    @Override
+    protected String getLanguageId() {
+        return LANGUAGE_ID;
+    }
+
+    private static void printFileNotFoundException(NoSuchFileException e) {
+        String reason = e.getReason();
+        if (reason == null) {
+            reason = "No such file or directory";
+        }
+        System.err.println(IOMain.class.getCanonicalName() + ": can't open file '" + e.getFile() + "': " + reason);
+    }
+
+    private static void printIoLikeStackTrace(PolyglotException e) {
+        // If we're running through the launcher and an exception escapes to here,
+        // we didn't go through the Python code to print it. That may be because
+        // it's an exception from another language. In this case, we still would
+        // like to print it like a Python exception.
+        ArrayList<String> stack = new ArrayList<>();
+        for (StackFrame frame : e.getPolyglotStackTrace()) {
+            if (frame.isGuestFrame()) {
+                StringBuilder sb = new StringBuilder();
+                SourceSection sourceSection = frame.getSourceLocation();
+                String rootName = frame.getRootName();
+                if (sourceSection != null) {
+                    sb.append("  ");
+                    String path = sourceSection.getSource().getPath();
+                    if (path != null) {
+                        sb.append("File ");
+                    }
+                    sb.append('"');
+                    sb.append(sourceSection.getSource().getName());
+                    sb.append("\", line ");
+                    sb.append(sourceSection.getStartLine());
+                    sb.append(", in ");
+                    sb.append(rootName);
+                    stack.add(sb.toString());
                 }
             }
         }
-
-        if (file == null) {
-            // @formatter:off
-            source = Source.newBuilder(IO, new InputStreamReader(System.in), "<stdin>").build();
-            // @formatter:on
-        } else {
-            source = Source.newBuilder(IO, new File(file)).build();
+        System.err.println("Traceback (most recent call last):");
+        ListIterator<String> listIterator = stack.listIterator(stack.size());
+        while (listIterator.hasPrevious()) {
+            System.err.println(listIterator.previous());
         }
-
-        System.exit(executeSource(source, System.in, System.out, options));
+        System.err.println(e.getMessage());
     }
 
-    private static int executeSource(Source source, InputStream in, PrintStream out, Map<String, String> options) {
-        Context context;
-        PrintStream err = System.err;
-        try {
-            context = Context.newBuilder(IO).in(in).out(out).options(options).build();
-        } catch (IllegalArgumentException e) {
-            err.println(e.getMessage());
-            return 1;
-        }
-        out.println("== running on " + context.getEngine());
+    @Override
+    protected void printHelp(OptionCategory maxCategory) {
+        System.out.println("usage: io [option] ... (-c cmd | file) [arg] ...\n");
+    }
 
-        try {
-            Value result = context.eval(source);
-            // if (context.getBindings(IO).getMember("main") == null) {
-            //     err.println("No function main() defined in IO source file.");
-            //     return 1;
-            // }
-            if (!result.isNull()) {
-                // out.println(result.toString());
-            }
-            return 0;
-        } catch (PolyglotException ex) {
-            if (ex.isInternalError()) {
-                // for internal errors we print the full stack trace
-                ex.printStackTrace();
+    @Override
+    protected List<String> preprocessArguments(List<String> givenArgs, Map<String, String> polyglotOptions) {
+        ArrayList<String> unrecognized = new ArrayList<>();
+        programArgs = new ArrayList<>();
+        origArgs = new ArrayList<>();
+        for (Iterator<String> argumentIterator = givenArgs.iterator(); argumentIterator.hasNext();) {
+            String arg = argumentIterator.next();
+            origArgs.add(arg);
+            if (arg.startsWith("-")) {
+                if (arg.length() == 1) {
+                    // Lone dash should just be skipped
+                    continue;
+                }
             } else {
-                err.println(ex.getMessage());
+                // Not an option, has to be a file name
+                inputFile = arg;
+                programArgs.add(arg);
             }
-            return 1;
+
+            if (inputFile != null || commandString != null) {
+                while (argumentIterator.hasNext()) {
+                    String a = argumentIterator.next();
+                    programArgs.add(a);
+                    origArgs.add(a);
+                }
+                break;
+            }
+        }
+        return unrecognized;
+    }
+
+    @Override
+    protected void launch(Builder contextBuilder) {
+        IOMain.setStartupTime();
+
+        // prevent the use of System.out/err - they are PrintStreams which suppresses exceptions
+        contextBuilder.out(new FileOutputStream(FileDescriptor.out));
+        contextBuilder.err(new FileOutputStream(FileDescriptor.err));
+
+        ConsoleHandler consoleHandler = createConsoleHandler(System.in, System.out);
+        contextBuilder.arguments(getLanguageId(), programArgs.toArray(new String[programArgs.size()]));
+        contextBuilder.in(consoleHandler.createInputStream());
+
+        int rc = 1;
+        try (Context context = contextBuilder.build()) {
+            consoleHandler.setContext(context);
+
+            if (commandString != null || inputFile != null || !stdinIsInteractive) {
+                try {
+                    evalNonInteractive(context, consoleHandler);
+                    rc = 0;
+                } catch (PolyglotException e) {
+                    if (!e.isExit()) {
+                        printIoLikeStackTrace(e);
+                    } else {
+                        rc = e.getExitStatus();
+                    }
+                } catch (NoSuchFileException e) {
+                    printFileNotFoundException(e);
+                }
+            }
+            if (commandString == null && inputFile == null) {
+                rc = readEvalPrint(context, consoleHandler);
+            }
+        } catch (IOException e) {
+            rc = 1;
+            e.printStackTrace();
         } finally {
-            context.close();
+            consoleHandler.setContext(null);
+        }
+        System.exit(rc);
+    }
+
+    private ConsoleHandler createConsoleHandler(InputStream inStream, OutputStream outStream) {
+        if (!stdinIsInteractive) {
+            return new DefaultConsoleHandler(inStream);
+        } else {
+            return new JLineConsoleHandler(inStream, outStream, false);
         }
     }
 
-    private static boolean parseOption(Map<String, String> options, String arg) {
-        if (arg.length() <= 2 || !arg.startsWith("--")) {
-            return false;
-        }
-        int eqIdx = arg.indexOf('=');
-        String key;
-        String value;
-        if (eqIdx < 0) {
-            key = arg.substring(2);
-            value = null;
-        } else {
-            key = arg.substring(2, eqIdx);
-            value = arg.substring(eqIdx + 1);
-        }
+    public int readEvalPrint(Context context, ConsoleHandler consoleHandler) {
+        int lastStatus = 0;
+        try {
+            setupREPL(context, consoleHandler);
 
-        if (value == null) {
-            value = "true";
+            while (true) { // processing inputs
+                consoleHandler.setPrompt("Io> ");
+
+                try {
+                    String input = consoleHandler.readLine();
+                    if (input == null) {
+                        throw new EOFException();
+                    }
+                    if (canSkipFromEval(input)) {
+                        // nothing to parse
+                        continue;
+                    }
+
+                    String continuePrompt = "... ";
+                    StringBuilder sb = new StringBuilder(input).append('\n');
+                    while (true) { // processing subsequent lines while input is incomplete
+                        lastStatus = 0;
+                        try {
+                            context.eval(Source.newBuilder(getLanguageId(), sb.toString(), "<stdin>").interactive(true)
+                                    .buildLiteral());
+                        } catch (PolyglotException e) {
+                            if (e.isIncompleteSource()) {
+                                // read more input until we get an empty line
+                                consoleHandler.setPrompt(continuePrompt);
+                                String additionalInput;
+                                boolean isIncompleteCode = false; // this for cases like empty lines
+                                                                  // in tripplecode, where the
+                                                                  // additional input can be empty,
+                                                                  // but we should still continue
+                                do {
+                                    additionalInput = consoleHandler.readLine();
+                                    sb.append(additionalInput).append('\n');
+                                    try {
+                                        // We try to parse every time, when an additional input is
+                                        // added to find out if there is continuation exception or
+                                        // other error. If there is other error, we have to stop
+                                        // to ask for additional input.
+                                        context.parse(Source.newBuilder(getLanguageId(), sb.toString(), "<stdin>")
+                                                .interactive(true).buildLiteral());
+                                        e = null; // the parsing was ok -> try to eval
+                                                  // the code in outer while loop
+                                        isIncompleteCode = false;
+                                    } catch (PolyglotException pe) {
+                                        if (!pe.isIncompleteSource()) {
+                                            e = pe;
+                                            break;
+                                        } else {
+                                            isIncompleteCode = true;
+                                        }
+                                    }
+                                } while (additionalInput != null && isIncompleteCode);
+                                // Here we can be in these cases:
+                                // The parsing of the code with additional code was ok
+                                // The parsing of the code with additional code thrown an error,
+                                // which is not IncompleteSourceException
+                                if (additionalInput == null) {
+                                    throw new EOFException();
+                                }
+                                if (e == null) {
+                                    // the last source (with additional input) was parsed correctly,
+                                    // so we can execute it.
+                                    continue;
+                                }
+                            }
+                            // process the exception from eval or from the last parsing of the input
+                            // + additional source
+                            if (e.isExit()) {
+                                // usually from quit
+                                throw new ExitException(e.getExitStatus());
+                            } else if (e.isHostException()) {
+                                // we continue the repl even though the system may be broken
+                                lastStatus = 1;
+                                System.out.println(e.getMessage());
+                            } else if (e.isInternalError()) {
+                                System.err.println("An internal error occurred:");
+                                printIoLikeStackTrace(e);
+
+                                // we continue the repl even though the system may be broken
+                                lastStatus = 1;
+                            } else if (e.isGuestException()) {
+                                // drop through to continue REPL and remember last eval was an error
+                                lastStatus = 1;
+                            }
+                        }
+                        break;
+                    }
+                } catch (EOFException e) {
+                    System.out.println();
+                    return lastStatus;
+                } catch (UserInterruptException e) {
+                    // interrupted by ctrl-c
+                }
+            }
+        } catch (ExitException e) {
+            return e.code;
         }
-        int index = key.indexOf('.');
-        String group = key;
-        if (index >= 0) {
-            group = group.substring(0, index);
+    }
+
+    private static boolean canSkipFromEval(String input) {
+        String[] split = input.split("\n");
+        for (String s : split) {
+            if (!s.isEmpty() && !s.startsWith("#") && !s.startsWith("//") && !s.startsWith("/*")) {
+                return false;
+            }
         }
-        options.put(key, value);
         return true;
     }
 
+    private void setupREPL(Context context, ConsoleHandler consoleHandler) {
+        consoleHandler.setupReader(
+                () -> true,
+                () -> 25,
+                (item) -> {
+                },
+                (pos) -> null,
+                (pos, item) -> {
+                },
+                (pos) -> {
+                },
+                () -> {
+                },
+                null);
+
+    }
+
+    private static void setupTerminal(ConsoleHandler consoleHandler) {
+        consoleHandler.setupReader(
+                () -> false,
+                () -> 0,
+                (item) -> {
+                },
+                (pos) -> null,
+                (pos, item) -> {
+                },
+                (pos) -> {
+                },
+                () -> {
+                },
+                null);
+    }
+
+    private static final class ExitException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+        private final int code;
+
+        ExitException(int code) {
+            this.code = code;
+        }
+    }
 }

@@ -78,10 +78,8 @@
               <artifactSet>
                 <excludes>
                   <exclude>junit:junit</exclude>
-                  <exclude>org.graalvm.truffle:truffle-api</exclude>
-                  <exclude>org.graalvm.truffle:truffle-dsl-processor</exclude>
-                  <exclude>org.graalvm.truffle:truffle-tck</exclude>
                   <exclude>org.graalvm:graal-sdk</exclude>
+                  <exclude>org.graalvm:launcher-common</exclude>
                 </excludes>
               </artifactSet>
               <filters>
@@ -115,6 +113,11 @@
     <dependency>
       <groupId>org.graalvm.sdk</groupId>
       <artifactId>graal-sdk</artifactId>
+      <version>${graalvm.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>launcher-common</artifactId>
       <version>${graalvm.version}</version>
     </dependency>
   </dependencies>

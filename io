@@ -84,7 +84,7 @@ if [[ "$GRAALVM_VERSION" != "" ]]; then
     versionCheck "Installed in wrong version of GraalVM. Expected: $VERSION, found $GRAALVM_VERSION"
 else
     LANGUAGE_PATH="$SCRIPT_HOME/language/target/iolanguage.jar"
-    LAUNCHER_PATH="$SCRIPT_HOME/launcher/target/launcher-$IO_VERSION.jar"
+    LAUNCHER_PATH="$SCRIPT_HOME/launcher/target/io-launcher.jar"
     # Check the GraalVM version in JAVA_HOME
     if [[ "$JAVA_HOME" != "" ]]; then
         GRAALVM_VERSION=$(extractGraalVMVersion "$JAVA_HOME"/release)
@@ -92,9 +92,9 @@ else
             versionCheck "Wrong version of GraalVM in \$JAVA_HOME. Expected: $VERSION, found $GRAALVM_VERSION"
         fi
         JAVACMD=${JAVACMD:=$JAVA_HOME/bin/java}
-        if [[ ! -f $LANGUAGE_PATH ]]; then
-            fail "Could not find language on $LANGUAGE_PATH. Did you run mvn package?"
-        fi
+        # if [[ ! -f $LANGUAGE_PATH ]]; then
+        #     fail "Could not find language on $LANGUAGE_PATH. Did you run mvn package?"
+        # fi
         if [[ ! -f $LAUNCHER_PATH ]]; then
             fail "Could not find launcher on $LAUNCHER_PATH. Did you run mvn package?"
         fi
@@ -155,6 +155,7 @@ else
         exit 1
     fi
     GRAAL_SDK_PATH="$HOME/.m2/repository/org/graalvm/sdk/graal-sdk/$VERSION/graal-sdk-$VERSION.jar"
+    GRAAL_LAUNCHER_PATH="$HOME/.m2/repository/org/graalvm/sdk/launcher-common/$VERSION/launcher-common-$VERSION.jar"
     TRUFFLE_API_PATH="$HOME/.m2/repository/org/graalvm/truffle/truffle-api/$VERSION/truffle-api-$VERSION.jar"
-    "$JAVACMD" "${JAVA_ARGS[@]}" -cp "$GRAAL_SDK_PATH":"$LAUNCHER_PATH":"$LANGUAGE_PATH":"$TRUFFLE_API_PATH" "$MAIN_CLASS" "${PROGRAM_ARGS[@]}"
+    "$JAVACMD" "${JAVA_ARGS[@]}" -cp "$GRAAL_SDK_PATH":"$GRAAL_LAUNCHER_PATH":"$LAUNCHER_PATH":"$LANGUAGE_PATH":"$TRUFFLE_API_PATH" "$MAIN_CLASS" "${PROGRAM_ARGS[@]}"
 fi
