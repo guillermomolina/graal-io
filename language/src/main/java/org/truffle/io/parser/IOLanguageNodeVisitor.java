@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -33,12 +29,17 @@ import org.truffle.io.parser.IOLanguageParser.LiteralContext;
 import org.truffle.io.parser.IOLanguageParser.LiteralMessageContext;
 import org.truffle.io.parser.IOLanguageParser.MessageContext;
 import org.truffle.io.parser.IOLanguageParser.MethodMessageContext;
+import org.truffle.io.parser.IOLanguageParser.NumberContext;
 import org.truffle.io.parser.IOLanguageParser.OperationContext;
 import org.truffle.io.parser.IOLanguageParser.PseudoVariableContext;
 import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     private IONodeFactory factory;
@@ -429,13 +430,21 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         if (ctx.str != null) {
             return factory.createStringLiteral(ctx.str, true);
         }
-        if (ctx.num != null) {
-            return factory.createNumericLiteral(ctx.num);
+        if (ctx.number() != null) {
+            return visitNumber(ctx.number());
         }
         if (ctx.pseudoVariable() != null) {
             return visitPseudoVariable(ctx.pseudoVariable());
         }
         throw new ShouldNotBeHereException();
+    }
+
+    @Override
+    public Node visitNumber(NumberContext ctx) {
+        if (ctx.INTEGER() != null) {
+            return factory.createNumericLiteral(ctx.INTEGER().getSymbol());
+        }
+        throw new NotImplementedException();
     }
 
     @Override

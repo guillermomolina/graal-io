@@ -129,10 +129,17 @@ whileMessage:
 //     CLOSE;
 
 literal: 
-    num=NUMBER 
+    number 
     | str=STRING
     | pseudoVariable
     ;
+
+number:
+    INTEGER 
+    | HEXADECIMAL 
+    | OCTAL 
+    | BINARY 
+    | FLOAT;
 
 pseudoVariable: NIL | TRUE | FALSE | SELF | SUPER;
 
@@ -162,13 +169,6 @@ EOL: RN;
 WS: [ \t\u000C]+ -> channel(HIDDEN);
 COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
 LINE_COMMENT: ('//' | '#') ~[\r\n]* -> channel(HIDDEN);
-
-NUMBER:
-    DECIMAL_INTEGER 
-    | HEX_NUMBER 
-    | OCT_NUMBER 
-    | BIN_NUMBER 
-    | FLOAT_NUMBER;
 
 fragment LETTER: [A-Z] | [a-z];
 fragment NON_ZERO_DIGIT: [1-9];
@@ -203,10 +203,10 @@ STRING: MONOQUOTE | TRIQUOTE;
 MONOQUOTE: '"' STRING_CHAR* '"';
 TRIQUOTE: '"""' STRING_CHAR* '"""';
 
-DECIMAL_INTEGER: [1-9] [0-9]*
+INTEGER: [1-9] [0-9]*
                 | '0'+
                 ;
-HEX_NUMBER: '0' [xX] HEX_DIGIT+;
-OCT_NUMBER: '0' [oO] OCT_DIGIT+;
-BIN_NUMBER: '0' [bB] BIN_DIGIT+;
-FLOAT_NUMBER: EXPONENT_OR_POINT_FLOAT;
+HEXADECIMAL: '0' [xX] HEX_DIGIT+;
+OCTAL: '0' [oO] OCT_DIGIT+;
+BINARY: '0' [bB] BIN_DIGIT+;
+FLOAT: EXPONENT_OR_POINT_FLOAT;
