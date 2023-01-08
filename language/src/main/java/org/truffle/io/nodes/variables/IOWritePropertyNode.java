@@ -43,6 +43,12 @@
  */
 package org.truffle.io.nodes.variables;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.util.IOToMemberNode;
+import org.truffle.io.nodes.util.IOToTruffleStringNode;
+import org.truffle.io.runtime.IOUndefinedNameException;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -55,12 +61,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.util.IOToMemberNode;
-import org.truffle.io.nodes.util.IOToTruffleStringNode;
-import org.truffle.io.runtime.IOUndefinedNameException;
-import org.truffle.io.runtime.objects.IOObject;
-
 @NodeInfo(shortName = "getProperty")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
@@ -68,6 +68,14 @@ import org.truffle.io.runtime.objects.IOObject;
 public abstract class IOWritePropertyNode extends IOExpressionNode {
 
     static final int LIBRARY_LIMIT = 3;
+
+    @Specialization(limit = "LIBRARY_LIMIT")
+    protected Object writeIOObject(IOObject receiver, Object name, Object value,
+                    @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
+                    @Cached IOToTruffleStringNode toTruffleStringNode) {
+        objectLibrary.put(receiver, toTruffleStringNode.execute(name), value);
+        return value;
+    }
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
     protected Object writeArray(Object receiver, Object index, Object value,
@@ -79,14 +87,6 @@ public abstract class IOWritePropertyNode extends IOExpressionNode {
             // read was not successful. In IO we only have basic support for errors.
             throw IOUndefinedNameException.undefinedProperty(this, index);
         }
-        return value;
-    }
-
-    @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object writeIOObject(IOObject receiver, Object name, Object value,
-                    @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
-                    @Cached IOToTruffleStringNode toTruffleStringNode) {
-        objectLibrary.put(receiver, toTruffleStringNode.execute(name), value);
         return value;
     }
 
