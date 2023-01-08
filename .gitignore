@@ -14,5 +14,6 @@ graalvm/
 /Coco.jar
 component/io-component.jar
 language/dependency-reduced-pom.xml
+launcher/dependency-reduced-pom.xml
 native/ionative
 tmp/
