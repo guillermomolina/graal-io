@@ -3,9 +3,15 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.IntStream;
+import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
@@ -34,10 +40,6 @@ import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     private IONodeFactory factory;
     private Source source;
@@ -52,7 +54,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         @Override
         public void syntaxError(Recognizer<?, ?> recognizer, Object offendingLiteral, int line, int charPositionInLine,
                 String msg, RecognitionException e) {
-            throwParseError(source, line, charPositionInLine, (Token) offendingLiteral, msg);
+            throwParseError(source, (Token) offendingLiteral, line, charPositionInLine, msg, e);
         }
     }
 
@@ -61,11 +63,37 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         throwParseError(source, token.getLine(), token.getCharPositionInLine(), token, message);
     }
 
+    private static void throwParseError(Source source, Token token, int lineNumber, int charPositionInLine, String message, RecognitionException e) {
+        if (token == null) {
+            LexerNoViableAltException lexerException = (LexerNoViableAltException) e;
+            // int start = lexerException.getStartIndex();
+            // CharSequence line = lineNumber <= source.getLineCount() ? source.getCharacters(lineNumber) : "";
+            // String substring = line.subSequence(0, Math.min(line.length(), start - source.getLineStartOffset(lineNumber) + 1)).toString();
+            // String contents = token == null ? (substring.length() == 0 ? "" : substring.substring(substring.length() - 1)) : token.getText();
+            int lineNr = lineNumber > source.getLineCount() ? source.getLineCount() : lineNumber;
+            if (lexerException.getInputStream().LA(1) == IntStream.EOF) {
+                throw new IOIncompleteSourceException(message, e, lineNr, source);
+            } else {
+                throwParseError(source, lineNr, charPositionInLine, token, message);
+            }
+        } else {
+            // CharSequence line = lineNumber <= source.getLineCount() ? source.getCharacters(lineNumber) : "";
+            // String substring = line.subSequence(0, Math.min(line.length(), token.getCharPositionInLine() + 1)).toString();
+            // String contents = token == null ? (substring.length() == 0 ? "" : substring.substring(substring.length() - 1)) : token.getText();
+            int lineNr = lineNumber > source.getLineCount() ? source.getLineCount() : lineNumber;
+            if (token.getType() == Token.EOF) {
+                throw new IOIncompleteSourceException(message, e, lineNr, source);
+            } else {
+                throwParseError(source, lineNr, charPositionInLine, token, message);
+            }
+        }
+    }
+
     private static void throwParseError(Source source, int line, int charPositionInLine, Token token, String message) {
         int col = charPositionInLine + 1;
         String location = "-- line " + line + " col " + col + ": ";
         int length = token == null ? 1 : Math.max(token.getStopIndex() - token.getStartIndex(), 0);
-        throw new IOParseError(source, line, col, length,
+        throw new IOParseException(source, line, col, length,
                 String.format("Error(s) parsing script:%n" + location + message));
     }
 

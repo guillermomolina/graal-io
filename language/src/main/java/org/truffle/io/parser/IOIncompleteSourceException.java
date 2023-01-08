@@ -1,8 +1,8 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
-/*
- * Copyright (c) 2017, 2022, Oracle and/or its affiliates. All rights reserved.
+ /*
+ * Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,58 +41,83 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
 package org.truffle.io.parser;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.interop.ExceptionType;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+/**
+ * Runtime exception used to indicate incomplete source code during parsing.
+ */
 @ExportLibrary(InteropLibrary.class)
-public class IOParseError extends AbstractTruffleException {
+public class IOIncompleteSourceException extends AbstractTruffleException {
 
-    public static final long serialVersionUID = 1L;
-    private final Source source;
+    private static final long serialVersionUID = 4393080397807767467L;
+
+    private Source source;
     private final int line;
-    private final int column;
-    private final int length;
 
-    public IOParseError(Source source, int line, int column, int length, String message) {
-        super(message);
-        this.source = source;
+    public IOIncompleteSourceException(String message, Throwable cause, int line, Source source) {
+        super(message, cause, UNLIMITED_STACK_TRACE, null);
         this.line = line;
-        this.column = column;
-        this.length = length;
+        this.source = source;
     }
 
-    /**
-     * Note that any subclass of {@link AbstractTruffleException} must always return
-     * <code>true</code> for {@link InteropLibrary#isException(Object)}. That is why it is correct
-     * to export {@link #getExceptionType()} without implementing
-     * {@link InteropLibrary#isException(Object)}.
-     */
+    public IOIncompleteSourceException(String message, Throwable cause, int line) {
+        this(message, cause, line, null);
+    }
+
+    public void setSource(Source source) {
+        this.source = source;
+    }
+
+    @ExportMessage
+    boolean isException() {
+        return true;
+    }
+
+    @ExportMessage
+    RuntimeException throwException() {
+        throw this;
+    }
+
     @ExportMessage
     ExceptionType getExceptionType() {
         return ExceptionType.PARSE_ERROR;
     }
 
     @ExportMessage
+    boolean isExceptionIncompleteSource() {
+        return true;
+    }
+
+    @ExportMessage
+    boolean hasExceptionMessage() {
+        return true;
+    }
+
+    @ExportMessage
+    String getExceptionMessage() {
+        return getMessage();
+    }
+
+    @ExportMessage
     boolean hasSourceLocation() {
-        return source != null;
+        return true;
     }
 
     @ExportMessage(name = "getSourceLocation")
     @TruffleBoundary
-    SourceSection getSourceSection() throws UnsupportedMessageException {
-        if (source == null) {
-            throw UnsupportedMessageException.create();
+    SourceSection getExceptionSourceLocation() {
+        if (line > 0 && line < source.getLineCount()) {
+            return source.createSection(line);
         }
-        return source.createSection(line, column, length);
+        return source.createUnavailableSection();
     }
 }
