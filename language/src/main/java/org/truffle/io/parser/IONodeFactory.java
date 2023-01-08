@@ -156,9 +156,14 @@ public class IONodeFactory {
         this.sourceString = IOSymbols.fromJavaString(source.getCharacters().toString());
     }
 
+    public boolean isAtLobby() {
+        return methodScope.outer == null;
+    }
+
     public void startMethod(Token bodyStartToken) {
         methodScope = new MethodScope(methodScope, bodyStartToken.getStartIndex());
         addSelfParameter();
+        addContextParameter();
     }
 
     public void addFormalParameter(Token nameToken) {
@@ -181,7 +186,10 @@ public class IONodeFactory {
         IOExpressionNode assignment = createAssignment(selfNode, readArg, methodScope.parameterCount, 0, 0, true);
         methodScope.methodNodes.add(assignment);
         methodScope.parameterCount++;
-        // For the context
+    }
+
+    public void addContextParameter() {
+        assert methodScope.parameterCount == 1;
         methodScope.parameterCount++;
     }
 
@@ -409,6 +417,10 @@ public class IONodeFactory {
         if (nameNode == null || valueNode == null) {
             return null;
         }
+        if (isAtLobby() && argumentIndex == null) {
+            // Force create variable in the Lobby object
+            return createWriteProperty(createReadSelf(), nameNode, valueNode, start, length);
+        }
 
         TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
 
@@ -464,6 +476,10 @@ public class IONodeFactory {
     public IOExpressionNode createReadLocalVariable(IOExpressionNode nameNode) {
         if (nameNode != null) {
             TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
+            if (isAtLobby() && !name.equals(IOSymbols.SELF)) {
+                // Force get variable in the Lobby object
+                return createReadProperty(createReadSelf(), nameNode);
+            }
             if (methodScope.locals.containsKey(name)) {
                 int frameSlot = methodScope.locals.get(name);
                 final IOExpressionNode result = IOReadLocalVariableNodeGen.create(frameSlot);
