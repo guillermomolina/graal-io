@@ -7,7 +7,7 @@ printTypes := method(type,
   isInstance(type, 42000000000000000000000000000000000000000) println
   isInstance(type, "42") println
   isInstance(type, true) println
-  isInstance(type, clone) println
+  isInstance(type, Object clone) println
   isInstance(type, getSlot("null")) println
   isInstance(type, null) println
   "" println
@@ -16,7 +16,7 @@ printTypes := method(type,
 number := 42 proto
 string := "42" proto
 boolean := true proto
-object := clone proto
+object := Object clone proto
 f := getSlot("null") proto
 nilProto := null proto
 
