@@ -44,7 +44,6 @@
 package org.truffle.io.runtime.objects;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
 import org.truffle.io.runtime.IOObjectUtil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -57,7 +56,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -210,16 +208,6 @@ public class IOObject extends DynamicObject {
         return !receivers.isMemberExisting(this, member);
     }
 
-    @ExportMessage
-    public final boolean isMemberInvocable(String member,
-                    @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        if(existsMember(member, fromJavaStringNode, objectLibrary)) {
-            throw new NotImplementedException();
-        }
-        return false;
-    }
-
     @ExportLibrary(InteropLibrary.class)
     static final class Keys implements TruffleObject {
 
@@ -277,14 +265,4 @@ public class IOObject extends DynamicObject {
                     @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(this, fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), value);
     }
- 
-    @ExportMessage
-    public final Object invokeMember(String name, Object[] args,
-                    @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnsupportedMessageException, UnknownIdentifierException {
-        throw new NotImplementedException();
-        //Object result = objectLibrary
-        //.execute(this, fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), args);
-        //return exportNode.execute(result);
-    }   
 }
