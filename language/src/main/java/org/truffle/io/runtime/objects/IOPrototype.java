@@ -44,6 +44,8 @@
 package org.truffle.io.runtime.objects;
 
 import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOSymbols;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -52,32 +54,47 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-
+import com.oracle.truffle.api.strings.TruffleString;
 
 @ExportLibrary(InteropLibrary.class)
-public final class IOPrototype implements TruffleObject {
+public final class IOPrototype extends IOObject {
+    public static final TruffleString TYPE = IOSymbols.constant("type");
 
+    public static final IOPrototype OBJECT = new IOPrototype((l, v) -> l.hasMembers(v) || l.isBoolean(v));
+    public static final IOPrototype NUMBER = new IOPrototype(IOSymbols.NUMBER,
+            (l, v) -> l.fitsInLong(v) || v instanceof IOBigNumber);
+    public static final IOPrototype STRING = new IOPrototype(IOSymbols.STRING, (l, v) -> l.isString(v));
+    public static final IOPrototype BLOCK = new IOPrototype(IOSymbols.BLOCK, (l, v) -> l.isExecutable(v));
+    public static final IOPrototype LIST = new IOPrototype(IOSymbols.LIST, (l, v) -> l.hasArrayElements(v));
 
-    public static final IOPrototype NUMBER = new IOPrototype("Number", (l, v) -> l.fitsInLong(v) || v instanceof IOBigNumber);
-    public static final IOPrototype NIL = new IOPrototype("NIL", (l, v) -> l.isNull(v));
-    public static final IOPrototype STRING = new IOPrototype("String", (l, v) -> l.isString(v));
-    public static final IOPrototype BOOLEAN = new IOPrototype("Boolean", (l, v) -> l.isBoolean(v));
-    public static final IOPrototype METHOD = new IOPrototype("Method", (l, v) -> l.isExecutable(v));
-    public static final IOPrototype LIST = new IOPrototype("List", (l, v) -> l.hasArrayElements(v));
-    public static final IOPrototype OBJECT = new IOPrototype("Object", (l, v) -> l.hasMembers(v));
+    @CompilationFinal(dimensions = 1)
+    public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, STRING, BLOCK, LIST, OBJECT };
 
-    @CompilationFinal(dimensions = 1) public static final IOPrototype[] PRECEDENCE = new IOPrototype[]{NIL, NUMBER, STRING, BOOLEAN, METHOD, LIST, OBJECT};
-
-    private final String name;
     private final TypeCheck isInstance;
 
-    private IOPrototype(String name, TypeCheck isInstance) {
-        this.name = name;
+    @DynamicField
+    private Object type;
+
+    private IOPrototype(TypeCheck isInstance) {
         this.isInstance = isInstance;
+        setType(IOSymbols.OBJECT);
+    }
+
+    public IOPrototype(TruffleString type, TypeCheck isInstance) {
+        super();
+        this.isInstance = isInstance;
+        setType(type);
+    }
+
+    public TruffleString getType() {
+        return (TruffleString) IOObjectUtil.getProperty(this, TYPE);
+    }
+
+    public void setType(TruffleString type) {
+        IOObjectUtil.putProperty(this, TYPE, type);
     }
 
     public boolean isInstance(Object value, InteropLibrary interop) {
@@ -103,26 +120,26 @@ public final class IOPrototype implements TruffleObject {
     @ExportMessage(name = "getMetaQualifiedName")
     @ExportMessage(name = "getMetaSimpleName")
     public Object getName() {
-        return name;
+        return getType();
     }
 
     @ExportMessage(name = "toDisplayString")
     Object toDisplayString(boolean allowSideEffects) {
-        return name;
+        return getType();
     }
 
     @Override
     public String toString() {
-        return "IOType[" + name + "]";
+        return "IOType[" + getType() + "]";
     }
 
     @ExportMessage
     static class IsMetaInstance {
 
-         @Specialization(guards = "type == cachedType", limit = "3")
+        @Specialization(guards = "type == cachedType", limit = "3")
         static boolean doCached(IOPrototype type, Object value,
-                        @Cached("type") IOPrototype cachedType,
-                        @CachedLibrary("value") InteropLibrary valueLib) {
+                @Cached("type") IOPrototype cachedType,
+                @CachedLibrary("value") InteropLibrary valueLib) {
             return cachedType.isInstance.check(valueLib, value);
         }
 

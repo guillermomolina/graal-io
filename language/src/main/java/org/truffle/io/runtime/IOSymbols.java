@@ -57,16 +57,11 @@ public final class IOSymbols {
     public static final TruffleString NULL = constant("NULL");
     public static final TruffleString NULL_LC = constant("null");
     public static final TruffleString SELF = constant("self");
-    public static final TruffleString NIL = constant("nil");
-    public static final TruffleString TRUE = constant("true");
-    public static final TruffleString FALSE = constant("false");
-    public static final TruffleString PROTO = constant("proto");
     public static final TruffleString OBJECT = constant("Object");
     public static final TruffleString NUMBER = constant("Number");
-    public static final TruffleString BOOLEAN = constant("Boolean");
     public static final TruffleString STRING = constant("String");
     public static final TruffleString LIST = constant("List");
-    public static final TruffleString METHOD = constant("Method");
+    public static final TruffleString BLOCK = constant("Block");
     public static final TruffleString MESSAGE = constant("Message");
     public static final TruffleString CALL = constant("Call");
 

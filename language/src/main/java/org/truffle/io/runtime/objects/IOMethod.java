@@ -43,8 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.IOPrototypes;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.dsl.Cached;
@@ -71,7 +69,7 @@ public final class IOMethod extends IOObject {
     private final MaterializedFrame context;
 
     public IOMethod(final RootCallTarget callTarget, int numArgs, final MaterializedFrame context) {
-        super(IOPrototypes.METHOD);
+        super(IOPrototype.BLOCK);
         this.callTarget = callTarget;
         this.numArgs = numArgs;
         this.context = context;
@@ -116,16 +114,6 @@ public final class IOMethod extends IOObject {
     @ExportMessage
     boolean isExecutable() {
         return true;
-    }
-
-    @ExportMessage
-    boolean hasMetaObject() {
-        return true;
-    }
-
-    @ExportMessage
-    Object getMetaObject() {
-        return IOPrototype.METHOD;
     }
 
     @ExportMessage

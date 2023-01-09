@@ -41,7 +41,6 @@
  package org.truffle.io.runtime.objects;
 
 import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.runtime.IOPrototypes;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
@@ -52,7 +51,7 @@ public class IOBlock extends IOObject {
     private final MaterializedFrame context;
 
     public IOBlock(final IOExpressionNode blockNode, final MaterializedFrame context) {
-        super(IOPrototypes.BLOCK);
+        super(IOPrototype.BLOCK);
         this.blockNode = blockNode;
         this.context = context;
     }

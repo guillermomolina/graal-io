@@ -42,8 +42,6 @@ package org.truffle.io.runtime.objects;
 
 import java.util.List;
 
-import org.truffle.io.runtime.IOPrototypes;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -55,12 +53,12 @@ public class IOList extends IOObject {
     private Object[] list;
 
     public IOList(int size) {
-        super(IOPrototypes.LIST);
+        super(IOPrototype.LIST);
         this.list = new Object[size];
     }
 
     public IOList(Object[] list) {
-        super(IOPrototypes.LIST);
+        super(IOPrototype.LIST);
         this.list = list;
     }
 
@@ -118,16 +116,6 @@ public class IOList extends IOObject {
             throw InvalidArrayIndexException.create(index);
         }
         list[(int) index] = value;
-    }
-
-    @ExportMessage
-    boolean hasMetaObject() {
-        return true;
-    }
-
-    @ExportMessage
-    Object getMetaObject() {
-        return IOPrototype.LIST;
     }
 
 }

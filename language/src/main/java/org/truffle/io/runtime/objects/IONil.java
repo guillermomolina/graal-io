@@ -43,8 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.IOPrototypes;
-
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -74,7 +72,7 @@ public final class IONil extends IOObject {
      * instance.
      */
     private IONil() {
-        super(IOPrototypes.NIL);
+        super(IOPrototype.OBJECT);
     }
 
     /**
@@ -92,16 +90,6 @@ public final class IONil extends IOObject {
     @ExportMessage
     boolean isNull() {
         return true;
-    }
-
-    @ExportMessage
-    boolean hasMetaObject() {
-        return true;
-    }
-
-    @ExportMessage
-    Object getMetaObject() {
-        return IOPrototype.NIL;
     }
 
     // @ExportMessage

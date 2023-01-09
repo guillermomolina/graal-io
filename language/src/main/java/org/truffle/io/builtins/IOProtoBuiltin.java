@@ -55,8 +55,8 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 /**
  * Built-in function that returns the type of a guest language value.
  */
-@NodeInfo(shortName = "type")
-public abstract class IOTypeBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "proto")
+public abstract class IOProtoBuiltin extends IOBuiltinNode {
 
     /*
      * This returns the IO type for a particular operand value.

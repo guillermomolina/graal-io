@@ -45,8 +45,6 @@ package org.truffle.io.runtime.objects;
 
 import java.math.BigInteger;
 
-import org.truffle.io.runtime.IOPrototypes;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -70,12 +68,12 @@ public final class IOBigNumber extends IOObject implements Comparable<IOBigNumbe
     private final BigInteger value;
 
     public IOBigNumber(BigInteger value) {
-        super(IOPrototypes.NUMBER);
+        super(IOPrototype.NUMBER);
         this.value = value;
     }
 
     public IOBigNumber(long value) {
-        super(IOPrototypes.NUMBER);
+        super(IOPrototype.NUMBER);
         this.value = BigInteger.valueOf(value);
     }
 
@@ -209,16 +207,6 @@ public final class IOBigNumber extends IOObject implements Comparable<IOBigNumbe
         }
     }
     
-    @ExportMessage
-    boolean hasMetaObject() {
-        return true;
-    }
-
-    @ExportMessage
-    Object getMetaObject() {
-        return IOPrototype.NUMBER;
-    }
-
     @ExportMessage
     @TruffleBoundary
     Object toDisplayString(boolean allowSideEffects) {

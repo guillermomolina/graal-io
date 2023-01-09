@@ -51,6 +51,40 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.graalvm.polyglot.Context;
+import org.truffle.io.IOLanguage;
+import org.truffle.io.builtins.IOAddToHostClassPathBuiltinFactory;
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.builtins.IOCloneBuiltinFactory;
+import org.truffle.io.builtins.IODefineFunctionBuiltinFactory;
+import org.truffle.io.builtins.IOEvalBuiltinFactory;
+import org.truffle.io.builtins.IOExitBuiltinFactory;
+import org.truffle.io.builtins.IOGetSizeBuiltinFactory;
+import org.truffle.io.builtins.IOHasSizeBuiltinFactory;
+import org.truffle.io.builtins.IOImportBuiltinFactory;
+import org.truffle.io.builtins.IOIsExecutableBuiltinFactory;
+import org.truffle.io.builtins.IOIsNullBuiltinFactory;
+import org.truffle.io.builtins.IOJavaTypeBuiltinFactory;
+import org.truffle.io.builtins.IONanoTimeBuiltinFactory;
+import org.truffle.io.builtins.IOPrintlnBuiltin;
+import org.truffle.io.builtins.IOPrintlnBuiltinFactory;
+import org.truffle.io.builtins.IOProtoBuiltinFactory;
+import org.truffle.io.builtins.IOReadlnBuiltin;
+import org.truffle.io.builtins.IOReadlnBuiltinFactory;
+import org.truffle.io.builtins.IORegisterShutdownHookBuiltinFactory;
+import org.truffle.io.builtins.IOStackTraceBuiltinFactory;
+import org.truffle.io.builtins.IOWrapPrimitiveBuiltinFactory;
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.nodes.variables.IOReadArgumentNode;
+import org.truffle.io.runtime.objects.IOBigNumber;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -71,40 +105,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.graalvm.polyglot.Context;
-import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.builtins.IOAddToHostClassPathBuiltinFactory;
-import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.builtins.IOCloneBuiltinFactory;
-import org.truffle.io.builtins.IODefineFunctionBuiltinFactory;
-import org.truffle.io.builtins.IOEvalBuiltinFactory;
-import org.truffle.io.builtins.IOExitBuiltinFactory;
-import org.truffle.io.builtins.IOGetSizeBuiltinFactory;
-import org.truffle.io.builtins.IOHasSizeBuiltinFactory;
-import org.truffle.io.builtins.IOImportBuiltinFactory;
-import org.truffle.io.builtins.IOIsExecutableBuiltinFactory;
-import org.truffle.io.builtins.IOIsNullBuiltinFactory;
-import org.truffle.io.builtins.IOJavaTypeBuiltinFactory;
-import org.truffle.io.builtins.IONanoTimeBuiltinFactory;
-import org.truffle.io.builtins.IOPrintlnBuiltin;
-import org.truffle.io.builtins.IOPrintlnBuiltinFactory;
-import org.truffle.io.builtins.IOReadlnBuiltin;
-import org.truffle.io.builtins.IOReadlnBuiltinFactory;
-import org.truffle.io.builtins.IORegisterShutdownHookBuiltinFactory;
-import org.truffle.io.builtins.IOStackTraceBuiltinFactory;
-import org.truffle.io.builtins.IOTypeBuiltinFactory;
-import org.truffle.io.builtins.IOWrapPrimitiveBuiltinFactory;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.nodes.variables.IOReadArgumentNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
 
 /**
  * The run-time state of IO during execution. The context is created by the
@@ -197,13 +197,6 @@ public final class IOState {
      * {@link IOBuiltinNode builtin implementation classes}.
      */
     private void installBuiltins() {
-        IOObjectUtil.putProperty(IOPrototypes.OBJECT, IOSymbols.OBJECT, IOPrototypes.OBJECT);
-        IOObjectUtil.putProperty(IOPrototypes.OBJECT, IOSymbols.NUMBER, IOPrototypes.NUMBER);
-        IOObjectUtil.putProperty(IOPrototypes.OBJECT, IOSymbols.STRING, IOPrototypes.STRING);
-        IOObjectUtil.putProperty(IOPrototypes.OBJECT, IOSymbols.LIST, IOPrototypes.LIST);
-        IOObjectUtil.putProperty(IOPrototypes.OBJECT, IOSymbols.METHOD, IOPrototypes.METHOD);
-        IOObjectUtil.putProperty(IOPrototypes.OBJECT, IOSymbols.MESSAGE, IOPrototypes.MESSAGE);
-
         installBuiltin(IOReadlnBuiltinFactory.getInstance());
         installBuiltin(IOPrintlnBuiltinFactory.getInstance());
         installBuiltin(IONanoTimeBuiltinFactory.getInstance());
@@ -217,7 +210,7 @@ public final class IOState {
         installBuiltin(IOIsExecutableBuiltinFactory.getInstance());
         installBuiltin(IOIsNullBuiltinFactory.getInstance());
         installBuiltin(IOWrapPrimitiveBuiltinFactory.getInstance());
-        installBuiltin(IOTypeBuiltinFactory.getInstance());
+        installBuiltin(IOProtoBuiltinFactory.getInstance());
         installBuiltin(IOJavaTypeBuiltinFactory.getInstance());
         installBuiltin(IOExitBuiltinFactory.getInstance());
         installBuiltin(IORegisterShutdownHookBuiltinFactory.getInstance());
@@ -259,7 +252,7 @@ public final class IOState {
         IORootNode rootNode = new IORootNode(language, new FrameDescriptor(), builtinBodyNode,
                 BUILTIN_SOURCE.createUnavailableSection());
         IOMethod method = createMethod(rootNode.getCallTarget(), argumentCount - 1, null);
-        IOObjectUtil.putProperty(IOPrototypes.OBJECT, IOSymbols.fromJavaString(name), method);
+        IOObjectUtil.putProperty(IOPrototype.OBJECT, IOSymbols.fromJavaString(name), method);
     }
 
 
@@ -280,21 +273,19 @@ public final class IOState {
         if (obj instanceof IOObject) {
             return ((IOObject) obj).getPrototype();
         } else if (obj instanceof String) {
-            return IOPrototypes.STRING;
+            return IOPrototype.STRING;
         } else if (obj instanceof TruffleString) {
-            return IOPrototypes.STRING;
+            return IOPrototype.STRING;
         } else if (obj instanceof IOBigNumber) {
-            return IOPrototypes.NUMBER;
+            return IOPrototype.NUMBER;
         } else if (interop.fitsInLong(obj)) {
-            return IOPrototypes.NUMBER;
+            return IOPrototype.NUMBER;
         } else if (interop.fitsInDouble(obj)) {
-            return IOPrototypes.NUMBER;
+            return IOPrototype.NUMBER;
         } else if (interop.isNull(obj)) {
             return IONil.SINGLETON.getPrototype();
-        } else if (interop.isBoolean(obj)) {
-            return IOPrototypes.NIL;
         } else {
-            throw new NotImplementedException();
+            return IOPrototype.OBJECT;
         }
     }
 
@@ -393,7 +384,7 @@ public final class IOState {
     }
 
     public IOObject cloneObjectPrototype() {
-        return cloneObject(IOPrototypes.OBJECT);
+        return cloneObject(IOPrototype.OBJECT);
     }
 
     public IOList createList(final Object[] data) {

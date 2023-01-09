@@ -40,15 +40,12 @@
  */
  package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.IOPrototypes;
-
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
 public class IOContext extends IOObject {
     private final MaterializedFrame frame;
 
     public IOContext(final MaterializedFrame frame) {
-        super(IOPrototypes.CONTEXT);
         this.frame = frame;
     }
 

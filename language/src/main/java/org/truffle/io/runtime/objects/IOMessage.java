@@ -40,8 +40,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.IOPrototypes;
-
 import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOMessage extends IOObject {
@@ -53,7 +51,6 @@ public class IOMessage extends IOObject {
     final IOMessage next;
 
     public IOMessage(final TruffleString name, final IOList arguments, final IOMessage next) {
-        super(IOPrototypes.MESSAGE);
         this.name = name;
         this.arguments = arguments;
         this.next = next;

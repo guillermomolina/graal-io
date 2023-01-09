@@ -46,6 +46,7 @@ package org.truffle.io.runtime.interop;
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import org.truffle.io.IOLanguage;
+import org.truffle.io.NotImplementedException;
 import org.truffle.io.runtime.objects.IOPrototype;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -138,13 +139,12 @@ public final class IOLanguageView implements TruffleObject {
                      */
                     if (type == IOPrototype.NUMBER) {
                         return longToString(interop.asLong(delegate));
-                    } else if (type == IOPrototype.BOOLEAN) {
-                        return Boolean.toString(interop.asBoolean(delegate));
                     } else if (type == IOPrototype.STRING) {
                         return interop.asString(delegate);
                     } else {
                         /* We use the type name as fallback for any other type */
-                        return type.getName();
+                        throw new NotImplementedException();
+                        //return type.getName();
                     }
                 } catch (UnsupportedMessageException e) {
                     throw shouldNotReachHere(e);
