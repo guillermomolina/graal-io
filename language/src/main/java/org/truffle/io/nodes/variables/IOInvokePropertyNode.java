@@ -100,6 +100,7 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
         TruffleString nameTS = toTruffleStringNode.execute(name);
         Object value = IOObject.getOrDefault(receiver, nameTS, null);
         if (value == null) {
+            value = IOObject.getOrDefault(receiver, nameTS, null);
             throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
         }
         if (value instanceof IOMethod) {

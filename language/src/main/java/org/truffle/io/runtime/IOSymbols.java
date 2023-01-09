@@ -54,6 +54,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 public final class IOSymbols {
 
     public static final TruffleString EMPTY_STRING = constant("");
+    public static final TruffleString UNDERSCORE = constant("_");
     public static final TruffleString NULL = constant("NULL");
     public static final TruffleString NULL_LC = constant("null");
     public static final TruffleString SELF = constant("self");

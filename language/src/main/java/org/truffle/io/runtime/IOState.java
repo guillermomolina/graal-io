@@ -129,6 +129,7 @@ public final class IOState {
     private static final Source BUILTIN_SOURCE = Source.newBuilder(IOLanguage.ID, "", "IO builtin").build();
 
     private final IOObject lobby;
+    private final IOObject protos;
    
     public IOState(IOLanguage language, TruffleLanguage.Env env,
             List<NodeFactory<? extends IOBuiltinNode>> externalBuiltins) {
@@ -138,7 +139,8 @@ public final class IOState {
         this.language = language;
         this.allocationReporter = env.lookup(AllocationReporter.class);
 
-        this.lobby = cloneObject(IOPrototype.LOBBY);
+        this.protos = cloneObject();
+        this.lobby = cloneObject(protos);
         setupLobby();
         installBuiltins();
         for (NodeFactory<? extends IOBuiltinNode> builtin : externalBuiltins) {
@@ -189,7 +191,8 @@ public final class IOState {
     }
 
     private void setupLobby() {
-        IOObject protos = cloneObject(IOPrototype.PROTOS);
+        IOPrototype.OBJECT.setPrototype(lobby);
+
         IOObjectUtil.putProperty(protos, IOSymbols.OBJECT, IOPrototype.OBJECT);
         IOObjectUtil.putProperty(protos, IOSymbols.NUMBER, IOPrototype.NUMBER);
         IOObjectUtil.putProperty(protos, IOSymbols.STRING, IOPrototype.STRING);
@@ -378,20 +381,15 @@ public final class IOState {
         }
     }
 
-    /**
-     * Allocate an empty object. All new objects initially have no properties.
-     * Properties are added when they are first stored, i.e., the store triggers a
-     * shape change of the object.
-     */
+    public IOObject cloneObject() {
+        return cloneObject(IOPrototype.OBJECT);
+    }
+
     public IOObject cloneObject(IOObject prototype) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOObject object = new IOObject(prototype);
         allocationReporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
-    }
-
-    public IOObject cloneObjectPrototype() {
-        return cloneObject(IOPrototype.OBJECT);
     }
 
     public IOList createList(final Object[] data) {

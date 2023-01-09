@@ -57,7 +57,7 @@ public class IOExitTest {
     @Test
     public void testExit() {
         try (Context context = Context.create()) {
-            context.eval("io", "5 exit\n");
+            context.eval("io", "exit(5)\n");
             Assert.fail();
         } catch (PolyglotException pe) {
             Assert.assertTrue(pe.isExit());
@@ -75,7 +75,7 @@ public class IOExitTest {
                                 ")\n" +
                                 "\n" +
                                 "getSlot(\"onShutdown\") registerShutdownHook\n" +
-                                "5 exit\n");
+                                "exit(5)\n");
                 Assert.fail();
             } catch (PolyglotException pe) {
                 Assert.assertTrue(pe.isExit());

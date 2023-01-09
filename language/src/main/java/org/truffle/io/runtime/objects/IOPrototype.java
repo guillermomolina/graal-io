@@ -63,9 +63,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 public final class IOPrototype extends IOObject {
     public static final TruffleString TYPE = IOSymbols.constant("type");
 
-    public static final IOPrototype PROTOS = new IOPrototype(null, IOSymbols.PROTOS, (l, v) -> false);
-    public static final IOPrototype LOBBY = new IOPrototype(PROTOS, IOSymbols.LOBBY, (l, v) -> false);
-    public static final IOPrototype OBJECT = new IOPrototype(LOBBY, IOSymbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
+    public static final IOPrototype OBJECT = new IOPrototype(null, IOSymbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
     public static final IOPrototype NUMBER = new IOPrototype(OBJECT, IOSymbols.NUMBER,
             (l, v) -> l.fitsInLong(v) || v instanceof IOBigNumber);
     public static final IOPrototype STRING = new IOPrototype(OBJECT, IOSymbols.STRING, (l, v) -> l.isString(v));

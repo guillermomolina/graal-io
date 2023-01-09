@@ -43,6 +43,9 @@
  */
 package org.truffle.io.runtime.objects;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.truffle.io.IOLanguage;
 import org.truffle.io.runtime.IOObjectUtil;
 
@@ -94,11 +97,14 @@ public class IOObject extends DynamicObject {
     protected IOObject prototype;
 
     public static Object getOrDefault(IOObject obj, Object key, Object defaultValue) {
-       IOObject object = obj;
-        while (object != null) {
+        List<IOObject> visitedProtos = new ArrayList<IOObject>();
+        IOObject object = obj;
+        while (!visitedProtos.contains(object)) {
+            assert object != null;
             if (IOObjectUtil.hasProperty(object, key)) {
                 return IOObjectUtil.getProperty(object, key);
             }
+            visitedProtos.add(object);
             object = object.getPrototype();
         }
         return defaultValue;

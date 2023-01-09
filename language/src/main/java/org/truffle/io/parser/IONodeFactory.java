@@ -182,7 +182,12 @@ public class IONodeFactory {
     public void addSelfParameter() {
         assert methodScope.parameterCount == 0;
         final IOReadArgumentNode readArg = new IOReadArgumentNode(methodScope.parameterCount);
-        final IOStringLiteralNode selfNode = new IOStringLiteralNode(IOSymbols.SELF);
+        final IOStringLiteralNode selfNode;
+        if (isAtLobby()) {
+            selfNode = new IOStringLiteralNode(IOSymbols.UNDERSCORE);
+        } else {
+            selfNode = new IOStringLiteralNode(IOSymbols.SELF);
+        }
         IOExpressionNode assignment = createAssignment(selfNode, readArg, methodScope.parameterCount, 0, 0, true);
         methodScope.methodNodes.add(assignment);
         methodScope.parameterCount++;
@@ -476,7 +481,7 @@ public class IONodeFactory {
     public IOExpressionNode createReadLocalVariable(IOExpressionNode nameNode) {
         if (nameNode != null) {
             TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
-            if (isAtLobby() && !name.equals(IOSymbols.SELF)) {
+            if (isAtLobby() && !name.equals(IOSymbols.UNDERSCORE)) {
                 // Force get variable in the Lobby object
                 return createReadProperty(createReadSelf(), nameNode);
             }
@@ -522,7 +527,12 @@ public class IONodeFactory {
     }
 
     public IOExpressionNode createReadSelf() {
-        final IOStringLiteralNode selfNode = new IOStringLiteralNode(IOSymbols.SELF);
+        final IOStringLiteralNode selfNode;
+        if (isAtLobby()) {
+            selfNode = new IOStringLiteralNode(IOSymbols.UNDERSCORE);
+        } else {
+            selfNode = new IOStringLiteralNode(IOSymbols.SELF);
+        }
         final IOExpressionNode result = createReadLocalVariable(selfNode);
         assert result != null;
         return result;
