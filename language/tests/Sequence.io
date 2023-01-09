@@ -8,4 +8,4 @@ o3 := Object clone
 o3 m := method(o2)
 
 o3 m m m println
-nil
+

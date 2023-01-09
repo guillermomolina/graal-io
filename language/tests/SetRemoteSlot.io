@@ -8,4 +8,3 @@ m3 := method(
     b println
 )
 m3
-nil

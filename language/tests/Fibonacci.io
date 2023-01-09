@@ -17,5 +17,3 @@ while (i <= 10,
   (i + ": " + fib(i)) println
   i := i + 1
 )
-
-nil

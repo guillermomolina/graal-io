@@ -8,4 +8,3 @@ foo := method(f,
 
 foo(getSlot("add"))
 foo(getSlot("sub"))
-nil

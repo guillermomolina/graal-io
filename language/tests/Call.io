@@ -12,4 +12,3 @@ call(getSlot("ret"), 42) println
 call(getSlot("dub"), 21) println
 call(getSlot("inc"), 41) println
 call(getSlot("dec"), 43) println
-nil

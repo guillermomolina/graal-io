@@ -4,4 +4,4 @@ while (i < 10,
   if(i == 2, continue)
   i println
 )
-nil
+

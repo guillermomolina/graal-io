@@ -26,4 +26,3 @@ printTypes(boolean)
 printTypes(object)
 printTypes(f)
 printTypes(nilProto)
-nil

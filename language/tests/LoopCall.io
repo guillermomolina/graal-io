@@ -16,4 +16,3 @@ while(i < 20,
   i := i + 1
 )
 loop(1000) println  
-nil

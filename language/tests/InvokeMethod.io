@@ -8,4 +8,3 @@ o := clone
 o m := method(3)
 o m println
 
-nil
