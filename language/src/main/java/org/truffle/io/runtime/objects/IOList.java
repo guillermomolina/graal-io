@@ -43,7 +43,6 @@ package org.truffle.io.runtime.objects;
 import java.util.List;
 
 import org.truffle.io.runtime.IOPrototypes;
-import org.truffle.io.runtime.interop.IOType;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -128,7 +127,7 @@ public class IOList extends IOObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return IOType.LIST;
+        return IOPrototype.LIST;
     }
 
 }

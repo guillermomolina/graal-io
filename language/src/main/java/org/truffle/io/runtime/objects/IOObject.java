@@ -47,7 +47,6 @@ import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOSymbols;
-import org.truffle.io.runtime.interop.IOType;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -162,7 +161,7 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return IOType.OBJECT;
+        return IOPrototype.OBJECT;
     }
 
     @ExportMessage

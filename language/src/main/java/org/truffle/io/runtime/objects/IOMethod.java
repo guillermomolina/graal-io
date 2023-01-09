@@ -44,7 +44,6 @@
 package org.truffle.io.runtime.objects;
 
 import org.truffle.io.runtime.IOPrototypes;
-import org.truffle.io.runtime.interop.IOType;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -126,7 +125,7 @@ public final class IOMethod extends IOObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return IOType.METHOD;
+        return IOPrototype.METHOD;
     }
 
     @ExportMessage
