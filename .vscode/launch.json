@@ -17,7 +17,7 @@
             "request": "launch",
             "mainClass": "org.truffle.io.launcher.IOMain",
             "projectName": "launcher",
-            "args": ["--log.io.level=FINEST"],
+            "args": ["-v"],
             "vmArgs": [
                 "-ea", "-Dtruffle.class.path.append=${workspaceFolder}/language/target/iolanguage.jar"
             ],
@@ -30,8 +30,8 @@
                 "skipStaticInitializers": true,
                 "skipConstructors": false
             },
-            "console": "internalConsole",
-            "internalConsoleOptions": "openOnSessionStart",
+            // "console": "internalConsole",
+            // "internalConsoleOptions": "openOnSessionStart",
             //"preLaunchTask": "java (build): Build Workspace"
         },
         {
@@ -41,7 +41,7 @@
             "mainClass": "org.truffle.io.launcher.IOMain",
             "projectName": "launcher",
             "args": [
-                "--log.io.level=FINEST",
+                "-v",
                 "${file}"
             ],
             "vmArgs": [
@@ -84,31 +84,6 @@
             },
             "console": "internalConsole",
             "internalConsoleOptions": "openOnSessionStart",
-            //"preLaunchTask": "java (build): Build Workspace"
-        },
-        {
-            "type": "java",
-            "name": "Debug (Launch) REPL",
-            "request": "launch",
-            "mainClass": "org.truffle.io.launcher.IOMain",
-            "projectName": "launcher",
-            "args": [
-                "-v",
-            ],
-            "vmArgs": [
-                "-ea", "-Dtruffle.class.path.append=${workspaceFolder}/language/target/iolanguage.jar"
-            ],
-            "stepFilters": {
-                "skipClasses": [
-                    "$JDK",
-                    "junit.*"
-                ],
-                "skipSynthetics": true,
-                "skipStaticInitializers": true,
-                "skipConstructors": false
-            },
-            //"console": "internalConsole",
-            //"internalConsoleOptions": "openOnSessionStart",
             //"preLaunchTask": "java (build): Build Workspace"
         }
     ]

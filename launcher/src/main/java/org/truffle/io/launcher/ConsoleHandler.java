@@ -63,23 +63,21 @@ import org.graalvm.polyglot.Context;
  */
 public abstract class ConsoleHandler {
 
-    /**
-     * Read a line of input, newline is <b>NOT</b> included in result.
-     */
-    public final String readLine() {
-        return readLine(true);
-    }
-
-    public abstract String readLine(boolean prompt);
+    public abstract String readLine();
 
     public abstract void setPrompt(String prompt);
+
+    public abstract String getPrompt();
+
+    public abstract int getCurrentLineIndex();
 
     public void setContext(Context context) {
         // ignore by default
     }
 
-    public void setupReader(BooleanSupplier shouldRecord, IntSupplier getSize, Consumer<String> addItem, IntFunction<String> getItem, BiConsumer<Integer, String> setItem, IntConsumer removeItem,
-                    Runnable clear, Function<String, List<String>> completer) {
+    public void setupReader(BooleanSupplier shouldRecord, IntSupplier getSize, Consumer<String> addItem,
+            IntFunction<String> getItem, BiConsumer<Integer, String> setItem, IntConsumer removeItem,
+            Runnable clear, Function<String, List<String>> completer) {
         // ignore by default
     }
 
@@ -95,7 +93,7 @@ public abstract class ConsoleHandler {
                     return -1;
                 } else if (buffer == null) {
                     assert pos == 0;
-                    String line = readLine(false);
+                    String line = readLine();
                     if (line == null) {
                         return -1;
                     }
@@ -122,4 +120,3 @@ public abstract class ConsoleHandler {
         return 25;
     }
 }
-

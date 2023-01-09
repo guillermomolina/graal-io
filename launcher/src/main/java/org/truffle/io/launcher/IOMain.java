@@ -104,7 +104,6 @@ public final class IOMain extends AbstractLanguageLauncher {
     private void evalNonInteractive(Context context, ConsoleHandler consoleHandler) throws IOException {
         // We need to setup the terminal even when not running the REPL because code may request
         // input from the terminal.
-        setupTerminal(consoleHandler);
 
         Source src;
         if (commandString != null) {
@@ -268,17 +267,19 @@ public final class IOMain extends AbstractLanguageLauncher {
 
     private ConsoleHandler createConsoleHandler(InputStream inStream, OutputStream outStream) {
         if (!stdinIsInteractive) {
-            return new DefaultConsoleHandler(inStream);
+            return new DefaultConsoleHandler(inStream, outStream, false);
         } else {
-            return new JLineConsoleHandler(inStream, outStream, false);
+            try {
+                return new JLineConsoleHandler(inStream, outStream, false);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
     public int readEvalPrint(Context context, ConsoleHandler consoleHandler) {
         int lastStatus = 0;
         try {
-            setupREPL(context, consoleHandler);
-
             while (true) { // processing inputs
                 consoleHandler.setPrompt("Io> ");
 
@@ -385,39 +386,6 @@ public final class IOMain extends AbstractLanguageLauncher {
             }
         }
         return true;
-    }
-
-    private void setupREPL(Context context, ConsoleHandler consoleHandler) {
-        consoleHandler.setupReader(
-                () -> true,
-                () -> 25,
-                (item) -> {
-                },
-                (pos) -> null,
-                (pos, item) -> {
-                },
-                (pos) -> {
-                },
-                () -> {
-                },
-                null);
-
-    }
-
-    private static void setupTerminal(ConsoleHandler consoleHandler) {
-        consoleHandler.setupReader(
-                () -> false,
-                () -> 0,
-                (item) -> {
-                },
-                (pos) -> null,
-                (pos, item) -> {
-                },
-                (pos) -> {
-                },
-                () -> {
-                },
-                null);
     }
 
     private static final class ExitException extends RuntimeException {

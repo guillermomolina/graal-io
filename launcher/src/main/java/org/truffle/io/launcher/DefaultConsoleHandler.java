@@ -47,19 +47,35 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 
 public class DefaultConsoleHandler extends ConsoleHandler {
 
+    private final boolean interactive;
     private final BufferedReader in;
+    private final PrintStream out;
+    private String prompt;
+    private int currentLine;
 
-    public DefaultConsoleHandler(InputStream in) {
+    public DefaultConsoleHandler(InputStream in, OutputStream out, boolean interactive) {
         this.in = new BufferedReader(new InputStreamReader(in));
+        this.out = new PrintStream(out);
+        this.interactive = interactive;
     }
 
     @Override
-    public String readLine(boolean showPrompt) {
+    public String readLine() {
         try {
-            return in.readLine();
+            if (prompt != null) {
+                out.print(prompt);
+            }
+            String line = in.readLine();
+            currentLine++;
+            if ((line == null || "".equals(line.trim())) && prompt != null && !interactive) {
+                out.println();
+            }
+            return line;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -67,6 +83,17 @@ public class DefaultConsoleHandler extends ConsoleHandler {
 
     @Override
     public void setPrompt(String prompt) {
+        this.prompt = prompt;
+    }
+
+    @Override
+    public String getPrompt() {
+        return prompt;
+    }
+
+    @Override
+    public int getCurrentLineIndex() {
+        return currentLine;
     }
 }
 

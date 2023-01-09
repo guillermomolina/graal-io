@@ -45,137 +45,61 @@ package org.truffle.io.launcher;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
-import java.util.function.BiConsumer;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntConsumer;
-import java.util.function.IntFunction;
-import java.util.function.IntSupplier;
 
-import org.graalvm.shadowed.org.jline.keymap.KeyMap;
-import org.graalvm.shadowed.org.jline.reader.Binding;
-import org.graalvm.shadowed.org.jline.reader.Candidate;
-import org.graalvm.shadowed.org.jline.reader.Completer;
+import org.graalvm.polyglot.Context;
 import org.graalvm.shadowed.org.jline.reader.EndOfFileException;
 import org.graalvm.shadowed.org.jline.reader.History;
 import org.graalvm.shadowed.org.jline.reader.LineReader;
 import org.graalvm.shadowed.org.jline.reader.LineReaderBuilder;
-import org.graalvm.shadowed.org.jline.reader.Macro;
-import org.graalvm.shadowed.org.jline.reader.ParsedLine;
 import org.graalvm.shadowed.org.jline.reader.UserInterruptException;
 import org.graalvm.shadowed.org.jline.reader.impl.DefaultParser;
+import org.graalvm.shadowed.org.jline.reader.impl.history.DefaultHistory;
 import org.graalvm.shadowed.org.jline.terminal.Terminal;
 import org.graalvm.shadowed.org.jline.terminal.TerminalBuilder;
 
 public class JLineConsoleHandler extends ConsoleHandler {
-    private final boolean noPrompt;
+    private final History history = new DefaultHistory();
+    private final InputStream in;
+    private final OutputStream out;
     private final Terminal terminal;
     private LineReader reader;
-    private History history;
+
+    private final boolean noPrompt;
     private String prompt;
-    private LinkedList<String> lineBuffer = new LinkedList<>();
+    private int currentLine;
 
-    public JLineConsoleHandler(InputStream inStream, OutputStream outStream, boolean noPrompt) {
+    public JLineConsoleHandler(InputStream inStream, OutputStream outStream, boolean noPrompt) throws IOException {
         this.noPrompt = noPrompt;
+        this.in = inStream;
+        this.out = outStream;
+        this.terminal = terminal();
+    }
+
+    @Override
+    public void setContext(Context context) {
+        reader = LineReaderBuilder.builder().terminal(terminal).history(history).parser(new ParserWithCustomDelimiters()).build();
+    }
+
+    @Override
+    public String readLine() {
         try {
-            this.terminal = TerminalBuilder.builder().jna(false).streams(inStream, outStream).system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
-        } catch (IOException ex) {
-            throw new RuntimeException("unexpected error opening console reader", ex);
-        }
-    }
-
-    @Override
-    public void setupReader(BooleanSupplier shouldRecord,
-                    IntSupplier getSize,
-                    Consumer<String> addItem,
-                    IntFunction<String> getItem,
-                    BiConsumer<Integer, String> setItem,
-                    IntConsumer removeItem,
-                    Runnable clear,
-                    Function<String, List<String>> completer) {
-        history = new HistoryImpl(shouldRecord, getSize, addItem, getItem, setItem, removeItem, clear);
-
-        LineReaderBuilder builder = LineReaderBuilder.builder();
-        builder = builder.terminal(terminal).history(history);
-        if (completer != null) {
-            builder.completer(new Completer() {
-                @Override
-                public void complete(LineReader r, ParsedLine pl, List<Candidate> candidates) {
-                    String word = pl.word();
-                    if (word != null) {
-                        List<String> l = completer.apply(word);
-                        for (String value : l) {
-                            candidates.add(new Candidate(value, value, null, null, null, null, false));
-                        }
-                    }
-                }
-            });
-        }
-
-        builder.parser(new DefaultParser() {
-            @Override
-            public boolean isDelimiterChar(CharSequence buffer, int pos) {
-                // Never count a last character of a char sequence as delimiter. The REPL completer
-                // implemented by `rlcompleter.py` adds a trailing whitespace to keywords,
-                // e.g. 'raise '. The default DefaultParser implementation always escaped this
-                // whitespace leading to wrong completions like 'raise\ '.
-                if (pos == buffer.length() - 1) {
-                    return false;
-                }
-                return Character.isWhitespace(buffer.charAt(pos));
+            currentLine++;
+            return reader.readLine(prompt);
+        } catch (UserInterruptException ex) {
+            // interrupted by ctrl-c
+            return "";
+        } catch (EndOfFileException ex) {
+            // interrupted by ctrl-d
+            return null;
+        } catch (Throwable ex) {
+            if (ex.getCause() instanceof InterruptedIOException || ex.getCause() instanceof InterruptedException) {
+                // seen this with ctrl-c
+                return "";
             }
-        });
-
-        reader = builder.build();
-        reader.option(LineReader.Option.DISABLE_EVENT_EXPANSION, true);
-        reader.option(LineReader.Option.INSERT_TAB, true);
-        reader.setVariable(LineReader.COMMENT_BEGIN, "#");
-
-        // numpad bindings
-        KeyMap<Binding> binding = reader.getKeyMaps().get(LineReader.MAIN);
-        binding.bind(new Macro(KeyMap.translate("0")), KeyMap.translate("^[Op"));
-        binding.bind(new Macro(KeyMap.translate(".")), KeyMap.translate("^[On"));
-        binding.bind(new Macro(KeyMap.translate("^M")), KeyMap.translate("^[OM"));
-        binding.bind(new Macro(KeyMap.translate("1")), KeyMap.translate("^[Oq"));
-        binding.bind(new Macro(KeyMap.translate("2")), KeyMap.translate("^[Or"));
-        binding.bind(new Macro(KeyMap.translate("3")), KeyMap.translate("^[Os"));
-        binding.bind(new Macro(KeyMap.translate("4")), KeyMap.translate("^[Ot"));
-        binding.bind(new Macro(KeyMap.translate("5")), KeyMap.translate("^[Ou"));
-        binding.bind(new Macro(KeyMap.translate("6")), KeyMap.translate("^[Ov"));
-        binding.bind(new Macro(KeyMap.translate("7")), KeyMap.translate("^[Ow"));
-        binding.bind(new Macro(KeyMap.translate("8")), KeyMap.translate("^[Ox"));
-        binding.bind(new Macro(KeyMap.translate("9")), KeyMap.translate("^[Oy"));
-        binding.bind(new Macro(KeyMap.translate("+")), KeyMap.translate("^[Ol"));
-        binding.bind(new Macro(KeyMap.translate("-")), KeyMap.translate("^[OS"));
-        binding.bind(new Macro(KeyMap.translate("*")), KeyMap.translate("^[OR"));
-        binding.bind(new Macro(KeyMap.translate("/")), KeyMap.translate("^[OQ"));
-    }
-
-    @Override
-    public String readLine(boolean showPrompt) {
-        if (lineBuffer.isEmpty()) {
-            try {
-                String lines = reader.readLine(showPrompt ? prompt : "");
-                for (String line : lines.split("\n")) {
-                    lineBuffer.add(line);
-                }
-            } catch (UserInterruptException e) {
-                throw e;
-            } catch (EndOfFileException e) {
-                return null;
-            } catch (Exception ex) {
-                throw new RuntimeException(ex);
-            }
+            throw new RuntimeException(ex);
         }
-        return lineBuffer.poll();
     }
 
     @Override
@@ -184,285 +108,63 @@ public class JLineConsoleHandler extends ConsoleHandler {
     }
 
     @Override
-    public int getTerminalHeight() {
-        return terminal.getHeight();
+    public String getPrompt() {
+        return prompt;
+    }
+
+    public void clearHistory() {
+        try {
+            history.purge();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public void addToHistory(String input) {
+        history.add(input);
+    }
+
+    public String[] getHistory() {
+        String[] result = new String[history.size()];
+        for (int i = 0; i < history.size(); i++) {
+            result[i] = history.get(i);
+        }
+        return result;
     }
 
     @Override
-    public int getTerminalWidth() {
-        return terminal.getWidth();
+    public int getCurrentLineIndex() {
+        return currentLine;
     }
 
-    private static class HistoryImpl implements History {
-        private final BooleanSupplier shouldRecord;
-        private final IntSupplier getSize;
-        private final Consumer<String> addItem;
-        private final IntFunction<String> getItem;
-        private final BiConsumer<Integer, String> setItem;
-        private final IntConsumer removeItem;
-        private final Runnable clear;
+    private Terminal terminal() throws IOException {
+        return TerminalBuilder.builder().jna(false).streams(in, out).system(true).signalHandler(Terminal.SignalHandler.SIG_IGN).build();
+    }
 
-        private int index;
+    public class ParserWithCustomDelimiters extends DefaultParser {
 
-        public HistoryImpl(BooleanSupplier shouldRecord, IntSupplier getSize, Consumer<String> addItem, IntFunction<String> getItem, BiConsumer<Integer, String> setItem, IntConsumer removeItem,
-                        Runnable clear) {
-            this.shouldRecord = shouldRecord;
-            this.getSize = getSize;
-            this.addItem = addItem;
-            this.getItem = getItem;
-            this.setItem = setItem;
-            this.removeItem = removeItem;
-            this.clear = clear;
-            index = getSize.getAsInt();
+        private char[] delimiters = {'(', ','};
+
+        public String getDelimiters() {
+            return new String(delimiters);
+        }
+
+        public void setDelimiters(String delimiters) {
+            this.delimiters = delimiters.toCharArray();
         }
 
         @Override
-        public int size() {
-            return getSize.getAsInt();
-        }
-
-        @Override
-        public void resetIndex() {
-            int size = size();
-            index = index > size ? size : index;
-        }
-
-        @Override
-        public int first() {
-            return 0;
-        }
-
-        @Override
-        public int last() {
-            return size() - 1;
-        }
-
-        @Override
-        public boolean previous() {
-            if (index <= 0) {
-                return false;
-            } else {
-                index--;
+        public boolean isDelimiterChar(CharSequence buffer, int pos) {
+            char c = buffer.charAt(pos);
+            if (Character.isWhitespace(c)) {
                 return true;
             }
-        }
-
-        @Override
-        public boolean next() {
-            if (index >= size()) {
-                return false;
-            } else {
-                index++;
-                return true;
-            }
-        }
-
-        @Override
-        public boolean moveTo(int idx) {
-            if (idx >= 0 && idx < size()) {
-                this.index = idx;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean moveToLast() {
-            int lastEntry = size() - 1;
-            if (lastEntry >= 0 && lastEntry != index) {
-                index = lastEntry;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public void moveToEnd() {
-            index = size();
-        }
-
-        @Override
-        public boolean moveToFirst() {
-            if (size() > 0 && index != 0) {
-                index = 0;
-                return true;
-            }
-            return false;
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return size() == 0;
-        }
-
-        @Override
-        public int index() {
-            return index;
-        }
-
-        @Override
-        public String get(int idx) {
-            return getItem.apply(idx);
-        }
-
-        @Override
-        public String current() {
-            if (index < 0 || index >= size()) {
-                return "";
-            }
-            return getItem.apply(index);
-        }
-
-        @Override
-        public void add(String string) {
-            if (shouldRecord.getAsBoolean()) {
-                addItem.accept(string);
-                index = size();
-            }
-        }
-
-        @Override
-        public void add(Instant instnt, String string) {
-            add(string);
-        }
-
-        private void add(int idx, String val) {
-            setItem.accept(idx, val);
-        }
-
-        @Override
-        public void purge() throws IOException {
-            clear.run();
-        }
-
-        @Override
-        public ListIterator<History.Entry> iterator(int i) {
-            return new HistoryIterator(i);
-        }
-
-        private class HistoryIterator implements ListIterator<History.Entry> {
-            private int iterIndex;
-
-            public HistoryIterator(int idx) {
-                this.iterIndex = idx;
-            }
-
-            @Override
-            public boolean hasNext() {
-                int size = HistoryImpl.this.size();
-                return size > 0 && iterIndex < size;
-            }
-
-            @Override
-            public int nextIndex() {
-                return iterIndex;
-            }
-
-            @Override
-            public History.Entry next() {
-                if (!hasNext()) {
-                    throw new NoSuchElementException();
-                }
-                HistoryEntry e = new HistoryEntry(iterIndex++);
-                return e;
-            }
-
-            @Override
-            public boolean hasPrevious() {
-                int size = HistoryImpl.this.size();
-                return size > 0 && iterIndex > 0;
-            }
-
-            @Override
-            public int previousIndex() {
-                return iterIndex - 1;
-            }
-
-            @Override
-            public History.Entry previous() {
-                if (!hasPrevious()) {
-                    throw new NoSuchElementException();
-                }
-                HistoryEntry e = new HistoryEntry(--iterIndex);
-                return e;
-            }
-
-            @Override
-            public void remove() {
-                removeItem.accept(iterIndex);
-                while (iterIndex > HistoryImpl.this.size()) {
-                    iterIndex--;
+            for (char delimiter : delimiters) {
+                if (c == delimiter) {
+                    return true;
                 }
             }
-
-            @Override
-            public void set(History.Entry e) {
-                HistoryImpl.this.add(iterIndex, e.line());
-            }
-
-            @Override
-            public void add(History.Entry e) {
-                HistoryImpl.this.add(size(), e.line());
-            }
-        }
-
-        class HistoryEntry implements Entry {
-            private final int entryIndex;
-
-            public HistoryEntry(int idx) {
-                this.entryIndex = idx;
-            }
-
-            @Override
-            public int index() {
-                return entryIndex;
-            }
-
-            @Override
-            public Instant time() {
-                return Instant.ofEpochMilli(0);
-            }
-
-            @Override
-            public String line() {
-                return HistoryImpl.this.get(entryIndex);
-            }
-
-            @Override
-            public String toString() {
-                return "<HistoryEntry: " + entryIndex + " " + HistoryImpl.this.get(entryIndex) + " >";
-            }
-        }
-
-        @Override
-        public void attach(LineReader reader) {
-
-        }
-
-        @Override
-        public void load() throws IOException {
-
-        }
-
-        @Override
-        public void save() throws IOException {
-
-        }
-
-        @Override
-        public void write(Path path, boolean bln) throws IOException {
-
-        }
-
-        @Override
-        public void append(Path path, boolean bln) throws IOException {
-
-        }
-
-        @Override
-        public void read(Path path, boolean bln) throws IOException {
-
+            return false;
         }
     }
 }
-
