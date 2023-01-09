@@ -67,7 +67,7 @@
             "mainClass": "org.truffle.io.launcher.IOMain",
             "projectName": "launcher",
             "args": [
-                "--log.io.level=FINEST",
+                "-v",
                 "${workspaceFolder}/tmp/Test.io",
             ],
             "vmArgs": [
@@ -93,7 +93,7 @@
             "mainClass": "org.truffle.io.launcher.IOMain",
             "projectName": "launcher",
             "args": [
-                "--log.io.level=FINEST",
+                "-v",
             ],
             "vmArgs": [
                 "-ea", "-Dtruffle.class.path.append=${workspaceFolder}/language/target/iolanguage.jar"

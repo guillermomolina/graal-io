@@ -49,10 +49,12 @@ import java.util.List;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.debug.DebuggerTags;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
@@ -163,4 +165,15 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
     protected void exitContext(IOState context, ExitMode exitMode, int exitCode) {
         context.runShutdownHooks();
     }
+
+    @TruffleBoundary
+    public static TruffleLogger getLogger(Class<?> clazz) {
+        return TruffleLogger.getLogger(ID, clazz);
+    }
+
+    @TruffleBoundary
+    public static TruffleLogger getLogger(String name) {
+        return TruffleLogger.getLogger(ID, name);
+    }
+
 }

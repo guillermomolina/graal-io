@@ -3,6 +3,11 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -37,11 +42,10 @@ import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
+
+    private static final TruffleLogger LOGGER = IOLanguage.getLogger(IOLanguageNodeVisitor.class);
+
     private IONodeFactory factory;
     private Source source;
 
@@ -114,6 +118,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
     @Override
     public Node visitIolanguage(IolanguageContext ctx) {
+        LOGGER.fine("Started visitIolanguage()");
         factory.startMethod(ctx.start);
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
@@ -125,6 +130,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         }
         final IOExpressionNode result = factory.finishMethod(bodyNode, startPos, length);
         assert result != null;
+        LOGGER.fine("Ended visitIolanguage()");
         return result;
     }
 

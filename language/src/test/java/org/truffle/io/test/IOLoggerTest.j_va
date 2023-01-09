@@ -68,8 +68,8 @@ public class IOLoggerTest {
     private static final Source ADD_IO;
     private static final Source MUL_IO;
     static {
-        ADD_IO = Source.newBuilder("io", "function add(a,b) {return a + b;} function main() {return add(1,1);}", "add.io").buildLiteral();
-        MUL_IO = Source.newBuilder("io", "function mul(a,b) {return a * b;} function main() {return mul(1,1);}", "mul.io").buildLiteral();
+        ADD_IO = Source.newBuilder("io", "add := method(a,b, a + b); add(1,1)", "add.io").buildLiteral();
+        MUL_IO = Source.newBuilder("io", "mul := method(a,b, a * b); mul(1,1)", "mul.io").buildLiteral();
     }
 
     private TestHandler testHandler;
@@ -99,44 +99,44 @@ public class IOLoggerTest {
     @Test
     public void testLoggerNoConfig() {
         final Context context = createContext(Collections.emptyMap());
-        executeSlScript(context);
+        executeIOScript(context);
         Assert.assertTrue(functionNames(testHandler.getRecords()).isEmpty());
     }
 
     @Test
-    public void testLoggerSlFunctionLevelFine() {
-        final Context context = createContext(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE"));
-        executeSlScript(context);
+    public void testLoggerIOFunctionLevelFine() {
+        final Context context = createContext(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE"));
+        executeIOScript(context);
         Assert.assertFalse(functionNames(testHandler.getRecords()).isEmpty());
     }
 
     @Test
-    public void testLoggerSlFunctionParentLevelFine() {
+    public void testLoggerIOFunctionParentLevelFine() {
         final Context context = createContext(createLoggingOptions("io", "org.truffle.io.runtime", "FINE"));
-        executeSlScript(context);
+        executeIOScript(context);
         Assert.assertFalse(functionNames(testHandler.getRecords()).isEmpty());
     }
 
     @Test
-    public void testLoggerSlFunctionSiblingLevelFine() {
+    public void testLoggerIOFunctionSiblingLevelFine() {
         final Context context = createContext(createLoggingOptions("io", "org.truffle.io.runtime.IOState", "FINE"));
-        executeSlScript(context);
+        executeIOScript(context);
         Assert.assertTrue(functionNames(testHandler.getRecords()).isEmpty());
     }
 
     @Test
     public void testMultipleContextsExclusiveFineLevel() {
         final TestHandler handler1 = new TestHandler();
-        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler1).build()) {
-            executeSlScript(ctx, ADD_IO, 2);
+        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler1).build()) {
+            executeIOScript(ctx, ADD_IO, 2);
         }
         final TestHandler handler2 = new TestHandler();
-        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler2).build()) {
-            executeSlScript(ctx, MUL_IO, 1);
+        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler2).build()) {
+            executeIOScript(ctx, MUL_IO, 1);
         }
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler3).build()) {
-            executeSlScript(ctx, ADD_IO, 2);
+        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler3).build()) {
+            executeIOScript(ctx, ADD_IO, 2);
         }
         Set<String> functionNames = functionNames(handler1.getRecords());
         Assert.assertTrue(functionNames.contains("add"));
@@ -152,16 +152,16 @@ public class IOLoggerTest {
     @Test
     public void testMultipleContextsExclusiveDifferentLogLevel() {
         final TestHandler handler1 = new TestHandler();
-        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler1).build()) {
-            executeSlScript(ctx, ADD_IO, 2);
+        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler1).build()) {
+            executeIOScript(ctx, ADD_IO, 2);
         }
         final TestHandler handler2 = new TestHandler();
         try (Context ctx = Context.newBuilder("io").logHandler(handler2).build()) {
-            executeSlScript(ctx, MUL_IO, 1);
+            executeIOScript(ctx, MUL_IO, 1);
         }
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler3).build()) {
-            executeSlScript(ctx, ADD_IO, 2);
+        try (Context ctx = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler3).build()) {
+            executeIOScript(ctx, ADD_IO, 2);
         }
         Set<String> functionNames = functionNames(handler1.getRecords());
         Assert.assertTrue(functionNames.contains("add"));
@@ -178,12 +178,12 @@ public class IOLoggerTest {
         final TestHandler handler1 = new TestHandler();
         final TestHandler handler2 = new TestHandler();
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx1 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler1).build()) {
-            try (Context ctx2 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler2).build()) {
-                try (Context ctx3 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler3).build()) {
-                    executeSlScript(ctx1, ADD_IO, 2);
-                    executeSlScript(ctx2, MUL_IO, 1);
-                    executeSlScript(ctx3, ADD_IO, 2);
+        try (Context ctx1 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler1).build()) {
+            try (Context ctx2 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler2).build()) {
+                try (Context ctx3 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler3).build()) {
+                    executeIOScript(ctx1, ADD_IO, 2);
+                    executeIOScript(ctx2, MUL_IO, 1);
+                    executeIOScript(ctx3, ADD_IO, 2);
                 }
             }
         }
@@ -203,12 +203,12 @@ public class IOLoggerTest {
         final TestHandler handler1 = new TestHandler();
         final TestHandler handler2 = new TestHandler();
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx1 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler1).build()) {
-            try (Context ctx2 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.IOFunction", "FINE")).logHandler(handler2).build()) {
+        try (Context ctx1 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler1).build()) {
+            try (Context ctx2 = Context.newBuilder("io").options(createLoggingOptions("io", "org.truffle.io.runtime.objects.IOMethod", "FINE")).logHandler(handler2).build()) {
                 try (Context ctx3 = Context.newBuilder("io").logHandler(handler3).build()) {
-                    executeSlScript(ctx1, ADD_IO, 2);
-                    executeSlScript(ctx2, MUL_IO, 1);
-                    executeSlScript(ctx3, ADD_IO, 2);
+                    executeIOScript(ctx1, ADD_IO, 2);
+                    executeIOScript(ctx2, MUL_IO, 1);
+                    executeIOScript(ctx3, ADD_IO, 2);
                 }
             }
         }
@@ -222,11 +222,11 @@ public class IOLoggerTest {
         Assert.assertTrue(functionNames.isEmpty());
     }
 
-    private static void executeSlScript(final Context context) {
-        executeSlScript(context, ADD_IO, 2);
+    private static void executeIOScript(final Context context) {
+        executeIOScript(context, ADD_IO, 2);
     }
 
-    private static void executeSlScript(final Context context, final Source src, final int expectedResult) {
+    private static void executeIOScript(final Context context, final Source src, final int expectedResult) {
         final Value res = context.eval(src);
         Assert.assertTrue(res.isNumber());
         Assert.assertEquals(expectedResult, res.asInt());
@@ -244,7 +244,7 @@ public class IOLoggerTest {
     }
 
     private static Set<String> functionNames(final List<? extends LogRecord> records) {
-        return records.stream().filter((lr) -> "io.org.truffle.io.runtime.IOFunction".equals(lr.getLoggerName())).map((lr) -> (String) lr.getParameters()[0]).collect(Collectors.toSet());
+        return records.stream().filter((lr) -> "io.org.truffle.io.runtime.objects.IOMethod".equals(lr.getLoggerName())).map((lr) -> (String) lr.getParameters()[0]).collect(Collectors.toSet());
     }
 
     private static final class TestHandler extends Handler {

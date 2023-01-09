@@ -74,6 +74,9 @@ public final class IOMain extends AbstractLanguageLauncher {
 
     private static final String LF = System.getProperty("line.separator");
 
+    public static final String SHORT_HELP = "usage: io [option] ... [-c cmd | file | -] [arg] ...\n" +
+            "Try `io -h' for more information.";
+
     public static void main(String[] args) {
         new IOMain().launch(args);
     }
@@ -87,6 +90,7 @@ public final class IOMain extends AbstractLanguageLauncher {
     private ArrayList<String> origArgs = null;
     private String commandString = null;
     private String inputFile = null;
+    private boolean verboseFlag = false;
 
     protected static void setStartupTime() {
         if (IOMain.startupNanoTime == -1) {
@@ -186,6 +190,18 @@ public final class IOMain extends AbstractLanguageLauncher {
                     // Lone dash should just be skipped
                     continue;
                 }
+                String remainder = arg.substring(1);
+                while (!remainder.isEmpty()) {
+                    char option = remainder.charAt(0);
+                    remainder = remainder.substring(1);
+                    switch (option) {
+                        case 'v':
+                            verboseFlag = true;
+                            break;
+                        default:
+                            throw abort(String.format("Unknown option -%c\n", option) + SHORT_HELP, 2);
+                    }
+                }
             } else {
                 // Not an option, has to be a file name
                 inputFile = arg;
@@ -215,6 +231,10 @@ public final class IOMain extends AbstractLanguageLauncher {
         ConsoleHandler consoleHandler = createConsoleHandler(System.in, System.out);
         contextBuilder.arguments(getLanguageId(), programArgs.toArray(new String[programArgs.size()]));
         contextBuilder.in(consoleHandler.createInputStream());
+
+        if (verboseFlag) {
+            contextBuilder.option("log.io.level", "FINE");
+        }
 
         int rc = 1;
         try (Context context = contextBuilder.build()) {
