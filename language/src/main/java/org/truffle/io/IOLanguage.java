@@ -59,7 +59,6 @@ import com.oracle.truffle.api.debug.DebuggerTags;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.RootNode;
@@ -146,7 +145,8 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
 
     @Override
     protected boolean isVisible(IOState context, Object value) {
-        return !InteropLibrary.getFactory().getUncached(value).isNull(value);
+        // return !InteropLibrary.getFactory().getUncached(value).isNull(value);
+        return true;
     }
 
     private static final LanguageReference<IOLanguage> REFERENCE = LanguageReference.create(IOLanguage.class);
