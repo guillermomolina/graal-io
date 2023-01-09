@@ -40,6 +40,14 @@
  */
 package org.truffle.io.nodes.variables;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.expression.IOInvokeMethodNode;
+import org.truffle.io.nodes.util.IOToTruffleStringNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IOUndefinedNameException;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -48,15 +56,6 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.expression.IOInvokeMethodNode;
-import org.truffle.io.nodes.util.IOToTruffleStringNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.IOSymbols;
-import org.truffle.io.runtime.IOUndefinedNameException;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IOObject;
 
 @NodeChild("recevierNode")
 @NodeChild("nameNode")
@@ -70,9 +69,9 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        if (nameTS.equals(IOSymbols.PROTO)) {
-            return prototype;
-        }
+        // if (nameTS.equals(IOSymbols.PROTO)) {
+        //     return prototype;
+        // }
         Object value = IOObject.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
@@ -88,9 +87,9 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
         IOObject prototype = IOState.get(this).getPrototype(receiver);
-        if (nameTS.equals(IOSymbols.PROTO)) {
-            return prototype;
-        }
+        // if (nameTS.equals(IOSymbols.PROTO)) {
+        //     return prototype;
+        // }
         Object value = IOObject.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
@@ -120,9 +119,9 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        if (nameTS.equals(IOSymbols.PROTO)) {
-            return prototype;
-        }
+        // if (nameTS.equals(IOSymbols.PROTO)) {
+        //     return prototype;
+        // }
         Object value = IOObject.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);

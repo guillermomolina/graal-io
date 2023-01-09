@@ -45,6 +45,9 @@ package org.truffle.io.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.objects.IOPrototype;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -54,8 +57,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-
-import org.truffle.io.IOLanguage;
 
 /**
  * Language views are needed in order to allow tools to have a consistent perspective on primitive
@@ -103,7 +104,7 @@ public final class IOLanguageView implements TruffleObject {
          * IOMethod is already associated with the IOLanguage and therefore the language view will
          * not be used.
          */
-        for (IOType type : IOType.PRECEDENCE) {
+        for (IOPrototype type : IOPrototype.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return true;
             }
@@ -117,7 +118,7 @@ public final class IOLanguageView implements TruffleObject {
         /*
          * We do the same as in hasMetaObject but actually return the type this time.
          */
-        for (IOType type : IOType.PRECEDENCE) {
+        for (IOPrototype type : IOPrototype.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return type;
             }
@@ -128,18 +129,18 @@ public final class IOLanguageView implements TruffleObject {
     @ExportMessage
     @ExplodeLoop
     Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this.delegate") InteropLibrary interop) {
-        for (IOType type : IOType.PRECEDENCE) {
+        for (IOPrototype type : IOPrototype.PRECEDENCE) {
             if (type.isInstance(this.delegate, interop)) {
                 try {
                     /*
                      * The type is a partial evaluation constant here as we use @ExplodeLoop. So
                      * this if-else cascade should fold after partial evaluation.
                      */
-                    if (type == IOType.NUMBER) {
+                    if (type == IOPrototype.NUMBER) {
                         return longToString(interop.asLong(delegate));
-                    } else if (type == IOType.BOOLEAN) {
+                    } else if (type == IOPrototype.BOOLEAN) {
                         return Boolean.toString(interop.asBoolean(delegate));
-                    } else if (type == IOType.STRING) {
+                    } else if (type == IOPrototype.STRING) {
                         return interop.asString(delegate);
                     } else {
                         /* We use the type name as fallback for any other type */

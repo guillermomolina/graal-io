@@ -46,7 +46,6 @@ package org.truffle.io.runtime.objects;
 import java.math.BigInteger;
 
 import org.truffle.io.runtime.IOPrototypes;
-import org.truffle.io.runtime.interop.IOType;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -217,7 +216,7 @@ public final class IOBigNumber extends IOObject implements Comparable<IOBigNumbe
 
     @ExportMessage
     Object getMetaObject() {
-        return IOType.NUMBER;
+        return IOPrototype.NUMBER;
     }
 
     @ExportMessage

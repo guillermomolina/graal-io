@@ -66,7 +66,6 @@ import com.oracle.truffle.api.utilities.TriState;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.interop.IOType;
 
 /**
  * Represents an IO object.
@@ -163,7 +162,7 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return IOType.OBJECT;
+        return IOPrototype.OBJECT;
     }
 
     @ExportMessage

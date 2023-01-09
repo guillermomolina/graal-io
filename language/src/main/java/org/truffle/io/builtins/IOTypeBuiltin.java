@@ -43,14 +43,14 @@
  */
 package org.truffle.io.builtins;
 
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOPrototype;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.runtime.interop.IOType;
-import org.truffle.io.runtime.objects.IONil;
 
 /**
  * Built-in function that returns the type of a guest language value.
@@ -65,7 +65,7 @@ public abstract class IOTypeBuiltin extends IOBuiltinNode {
     @ExplodeLoop
     public Object doDefault(Object operand,
                     @CachedLibrary("operand") InteropLibrary interop) {
-        for (IOType type : IOType.PRECEDENCE) {
+        for (IOPrototype type : IOPrototype.PRECEDENCE) {
             if (type.isInstance(operand, interop)) {
                 return type;
             }

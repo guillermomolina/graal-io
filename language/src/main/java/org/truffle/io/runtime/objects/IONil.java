@@ -43,15 +43,14 @@
  */
 package org.truffle.io.runtime.objects;
 
+import org.truffle.io.runtime.IOPrototypes;
+
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
-
-import org.truffle.io.runtime.IOPrototypes;
-import org.truffle.io.runtime.interop.IOType;
 
 /**
  * The IO type for a {@code nil} (i.e., undefined) value. In Truffle, it is generally discouraged
@@ -102,7 +101,7 @@ public final class IONil extends IOObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return IOType.NIL;
+        return IOPrototype.NIL;
     }
 
     // @ExportMessage
