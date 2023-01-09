@@ -3,11 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -41,6 +36,11 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
@@ -281,28 +281,43 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     }
 
     public Node visitMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
-        if (ctx.GETSLOT() != null) {
+        if (ctx.GET_SLOT() != null) {
             return visitGetSlotMessage(ctx, receiverNode);
         }
-        final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.id, false);
-        assert identifierNode != null;
-        List<IOExpressionNode> argumentNodes = createArgumentsList(ctx.arguments());
-        IOExpressionNode result = null;
-        if (receiverNode == null) {
-            result = factory.createInvokeVariable(identifierNode, argumentNodes, ctx.stop);
-            if (result == null) {
-                receiverNode = factory.createReadSelf();
+        if (ctx.NEW_SLOT() != null) {
+            return visitNewSlotMessage(ctx, receiverNode);
+        }
+        if (ctx.SET_SLOT() != null) {
+            return visitSetSlotMessage(ctx, receiverNode);
+        }
+        if (ctx.UPDATE_SLOT() != null) {
+            return visitUpdateSlotMessage(ctx, receiverNode);
+        }
+        if(ctx.id != null) {
+            final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.id, false);
+            assert identifierNode != null;
+            List<IOExpressionNode> argumentNodes = createArgumentsList(ctx.arguments());
+            IOExpressionNode result = null;
+            if (receiverNode == null) {
+                result = factory.createInvokeVariable(identifierNode, argumentNodes, ctx.stop);
+                if (result == null) {
+                    receiverNode = factory.createReadSelf();
+                }
             }
+            if (result == null) {
+                assert receiverNode != null;
+                result = factory.createInvokeProperty(receiverNode, identifierNode, argumentNodes, ctx.stop);
+            }
+            assert result != null;
+            return result;    
         }
-        if (result == null) {
-            assert receiverNode != null;
-            result = factory.createInvokeProperty(receiverNode, identifierNode, argumentNodes, ctx.stop);
-        }
-        assert result != null;
-        return result;
+        throw new ShouldNotBeHereException();
     }
 
     public Node visitGetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        if(ctx.expression() != null) {
+            throw new NotImplementedException();
+        }
         final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.name, true);
         IOExpressionNode result = null;
         if (receiverNode == null) {
@@ -312,6 +327,34 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
             }
         } else {
             result = factory.createReadProperty(receiverNode, identifierNode);
+        }
+        assert result != null;
+        return result;
+    }
+
+    public Node visitNewSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        throw new NotImplementedException();
+    }
+
+    public Node visitUpdateSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        throw new NotImplementedException();
+    }
+
+    public Node visitSetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        if(ctx.name == null) {
+            throw new NotImplementedException();
+        }
+        IOExpressionNode assignmentName = factory.createStringLiteral(ctx.name, true);
+        assert assignmentName != null;
+        IOExpressionNode expressionNode = (IOExpressionNode) visitExpression(ctx.expression(0));
+        assert expressionNode != null;
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        final IOExpressionNode result;
+        if (receiverNode == null) {
+            result = factory.createAssignment(assignmentName, expressionNode, start, length, false);
+        } else {
+            result = factory.createWriteProperty(receiverNode, assignmentName, expressionNode, start, length);
         }
         assert result != null;
         return result;

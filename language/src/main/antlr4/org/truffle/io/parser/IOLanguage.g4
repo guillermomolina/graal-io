@@ -89,7 +89,10 @@ literalMessage:
     ;
 
 message:
-    GETSLOT OPEN EOL* name=STRING EOL* CLOSE
+    GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
+    | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* expression CLOSE
+    | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* expression CLOSE
+    | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* expression CLOSE
     | id=IDENTIFIER arguments?
     ;
 
@@ -150,17 +153,19 @@ CONTINUE: 'continue';
 ELSE: 'else';
 FALSE: 'false';
 //FOR: 'for';
-GETSLOT: 'getSlot';
+GET_SLOT: 'getSlot';
 IF: 'if';
 LIST: 'list';
 METHOD: 'method';
+NEW_SLOT: 'newSlot';
 NIL: 'nil';
 RETURN: 'return';
 SELF: 'self';
-// SETSLOT: 'setSlot';
+SET_SLOT: 'setSlot';
 SUPER: 'super';
 THEN: 'then';
 TRUE: 'true';
+UPDATE_SLOT: 'updateSlot';
 WHILE: 'while';
 
 LINE_JOINS: '\\' [ \t]* RN -> channel(HIDDEN);
