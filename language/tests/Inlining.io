@@ -11,4 +11,4 @@ result := 0
 while (i < 10000,
     i := i + 1
     result := result + g
-)
+) println

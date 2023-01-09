@@ -4,7 +4,7 @@ m println
 r := method(m + 1)
 r println
 
-o := clone
+o := Object clone
 o m := method(3)
 o m println
 

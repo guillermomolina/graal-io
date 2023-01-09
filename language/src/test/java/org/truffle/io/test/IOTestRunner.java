@@ -331,7 +331,7 @@ public class IOTestRunner extends ParentRunner<TestCase> {
     private static void run(Context context, Path path, PrintWriter out) throws IOException {
         try {
             /* Parse the IO source file. */
-            Source source = Source.newBuilder(IOLanguage.ID, path.toFile()).interactive(true).build();
+            Source source = Source.newBuilder(IOLanguage.ID, path.toFile()).interactive(false).build();
 
             /* Call the main entry point, without any arguments. */
             context.eval(source);

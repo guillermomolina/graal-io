@@ -4,4 +4,4 @@ while (i < 1000,
     break
   )
   i := i + 1 
-)
+) println
