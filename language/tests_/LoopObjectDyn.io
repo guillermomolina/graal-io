@@ -1,22 +1,15 @@
-/*
- * Copyright (c) 2022, Guillermo Adrián Molina. All rights reserved.
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
- * Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
- */
-
-function loop(n, obj, name) {
-  obj[name] = 0;  
-  while (obj[name] < n) {  
-    obj[name] = obj[name] + 1;  
+loop := method(n, obj, name, 
+  obj setSlot(name, 0)
+  while (obj getSlot(name) < n, 
+    obj setSlot(name, obj getSlot(name) + 1)
   )
-  return obj[name];
+  obj getSlot(name)
 )
 
-main := method(
-  i = 0;
-  while (i < 20) {
-    loop(1000, new(), "prop");
-    i = i + 1;
-  }
-  loop(1000, new(), "prop") println  
+i := 0
+while(i < 20,
+  loop(1000, Object clone, "prop")
+  i := i + 1
 )
+loop(1000, Object clone, "prop") println  
+
