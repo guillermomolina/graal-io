@@ -43,12 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOSymbols;
-import org.truffle.io.runtime.interop.IOType;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -68,6 +62,11 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.interop.IOType;
 
 /**
  * Represents an IO object.
@@ -95,8 +94,7 @@ public class IOObject extends DynamicObject {
 //    public static final Shape SHAPE = Shape.newBuilder().layout(IOObject.class).addConstantProperty(IOSymbols.PROTO, null, 0).build();
     public static final Shape SHAPE = Shape.newBuilder().layout(IOObject.class).build();
 
-    @DynamicField
-    private Object prototype;
+    protected IOObject prototype;
 
     public static Object getOrDefault(IOObject obj, Object key, Object defaultValue) {
        IOObject object = obj;
@@ -111,19 +109,22 @@ public class IOObject extends DynamicObject {
 
     public IOObject() {
         super(SHAPE);
+        this.prototype = null;
     }
 
     public IOObject(IOObject prototype) {
         super(SHAPE);
-        setPrototype(prototype);
+        this.prototype = prototype;
     }
 
     public IOObject getPrototype() {
-        return (IOObject)IOObjectUtil.getProperty(this, IOSymbols.PROTO);
+        //return (IOObject)IOObjectUtil.getProperty(this, IOSymbols.PROTO);
+        return prototype;
     }
 
-    public void setPrototype(IOObject prototype) {
-        IOObjectUtil.putProperty(this, IOSymbols.PROTO, prototype);
+    public void setPrototype(final IOObject prototype) {
+        this.prototype = prototype;
+        //IOObjectUtil.putProperty(this, IOSymbols.PROTO, prototype);
     }
 
     @ExportMessage
@@ -168,7 +169,8 @@ public class IOObject extends DynamicObject {
     @ExportMessage
     @TruffleBoundary
     Object toDisplayString(boolean allowSideEffects) {
-        return "Object";
+        String string = String.format("Object_0x%X:", hashCode());
+        return string;
     }
 
     @ExportMessage

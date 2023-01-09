@@ -7,5 +7,3 @@ e("a", "a") println
 e(1==2, 1==2) println  
 e(1==2, 1) println  
 e(getSlot("e"), getSlot("e")) println  
-
-nil
