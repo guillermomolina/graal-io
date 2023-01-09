@@ -133,6 +133,9 @@ public final class IOLanguageView implements TruffleObject {
         for (IOPrototype type : IOPrototype.PRECEDENCE) {
             if (type.isInstance(this.delegate, interop)) {
                 try {
+                    if(interop.isBoolean(delegate)) {
+                        return Boolean.toString(interop.asBoolean(delegate));
+                    }
                     /*
                      * The type is a partial evaluation constant here as we use @ExplodeLoop. So
                      * this if-else cascade should fold after partial evaluation.
@@ -142,8 +145,8 @@ public final class IOLanguageView implements TruffleObject {
                     } else if (type == IOPrototype.STRING) {
                         return interop.asString(delegate);
                     } else {
-                        /* We use the type name as fallback for any other type */
                         throw new NotImplementedException();
+                        /* We use the type name as fallback for any other type */
                         //return type.getName();
                     }
                 } catch (UnsupportedMessageException e) {

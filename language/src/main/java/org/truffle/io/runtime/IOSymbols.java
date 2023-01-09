@@ -64,6 +64,8 @@ public final class IOSymbols {
     public static final TruffleString BLOCK = constant("Block");
     public static final TruffleString MESSAGE = constant("Message");
     public static final TruffleString CALL = constant("Call");
+    public static final TruffleString LOBBY = constant("Lobby");
+    public static final TruffleString PROTOS = constant("Protos");
 
     public static TruffleString constant(String s) {
         return fromJavaString(s);

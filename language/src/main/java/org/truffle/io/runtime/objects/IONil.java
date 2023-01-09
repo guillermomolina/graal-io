@@ -51,18 +51,13 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
 
 /**
- * The IO type for a {@code nil} (i.e., undefined) value. In Truffle, it is generally discouraged
- * to use the Java {@code nil} value to represent the guest language {@code nil} value. It is not
- * possible to specialize on Java {@code nil} (since you cannot ask it for the Java class), and
- * there is always the danger of a spurious {@link NullPointerException}. Representing the guest
- * language {@code nil} as a singleton, as in {@link #SINGLETON this class}, is the recommended
- * practice.
+ * The IO type for a {@code nil} (i.e., undefined) value.
  */
 @ExportLibrary(InteropLibrary.class)
 public final class IONil extends IOObject {
 
     /**
-     * The canonical value to represent {@code nil} in IO.
+     * The canonical value to represent {@code null} in IO.
      */
     public static final IONil SINGLETON = new IONil();
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
@@ -72,7 +67,6 @@ public final class IONil extends IOObject {
      * instance.
      */
     private IONil() {
-        super(IOPrototype.OBJECT);
     }
 
     /**

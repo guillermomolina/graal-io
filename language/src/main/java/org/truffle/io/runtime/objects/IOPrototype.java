@@ -63,12 +63,14 @@ import com.oracle.truffle.api.strings.TruffleString;
 public final class IOPrototype extends IOObject {
     public static final TruffleString TYPE = IOSymbols.constant("type");
 
-    public static final IOPrototype OBJECT = new IOPrototype((l, v) -> l.hasMembers(v) || l.isBoolean(v));
-    public static final IOPrototype NUMBER = new IOPrototype(IOSymbols.NUMBER,
+    public static final IOPrototype PROTOS = new IOPrototype(null, IOSymbols.PROTOS, (l, v) -> false);
+    public static final IOPrototype LOBBY = new IOPrototype(PROTOS, IOSymbols.LOBBY, (l, v) -> false);
+    public static final IOPrototype OBJECT = new IOPrototype(LOBBY, IOSymbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
+    public static final IOPrototype NUMBER = new IOPrototype(OBJECT, IOSymbols.NUMBER,
             (l, v) -> l.fitsInLong(v) || v instanceof IOBigNumber);
-    public static final IOPrototype STRING = new IOPrototype(IOSymbols.STRING, (l, v) -> l.isString(v));
-    public static final IOPrototype BLOCK = new IOPrototype(IOSymbols.BLOCK, (l, v) -> l.isExecutable(v));
-    public static final IOPrototype LIST = new IOPrototype(IOSymbols.LIST, (l, v) -> l.hasArrayElements(v));
+    public static final IOPrototype STRING = new IOPrototype(OBJECT, IOSymbols.STRING, (l, v) -> l.isString(v));
+    public static final IOPrototype BLOCK = new IOPrototype(OBJECT, IOSymbols.BLOCK, (l, v) -> l.isExecutable(v));
+    public static final IOPrototype LIST = new IOPrototype(OBJECT, IOSymbols.LIST, (l, v) -> l.hasArrayElements(v));
 
     @CompilationFinal(dimensions = 1)
     public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, STRING, BLOCK, LIST, OBJECT };
@@ -78,13 +80,8 @@ public final class IOPrototype extends IOObject {
     @DynamicField
     private Object type;
 
-    private IOPrototype(TypeCheck isInstance) {
-        this.isInstance = isInstance;
-        setType(IOSymbols.OBJECT);
-    }
-
-    public IOPrototype(TruffleString type, TypeCheck isInstance) {
-        super();
+    public IOPrototype(IOPrototype prototype, TruffleString type, TypeCheck isInstance) {
+        super(prototype);
         this.isInstance = isInstance;
         setType(type);
     }
