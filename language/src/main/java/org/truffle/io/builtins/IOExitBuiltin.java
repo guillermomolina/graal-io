@@ -44,6 +44,7 @@
 package org.truffle.io.builtins;
 
 import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
 
 import com.oracle.truffle.api.dsl.Specialization;
@@ -54,10 +55,19 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  */
 @NodeInfo(shortName = "exit")
 public abstract class IOExitBuiltin extends IOBuiltinNode {
+    @Specialization
+    public Object exit(Object obj, IOMethod method, long exitCode) {
+        doExit((int) exitCode);
+        return IONil.SINGLETON;
+    }
 
     @Specialization
-    protected Object execute(long exitCode) {
-        IOState.get(this).getEnv().getContext().closeExited(this, (int) exitCode);
+    public Object exit(Object obj, IOMethod method, Object exitCode) {
+        doExit(0);
         return IONil.SINGLETON;
+    }
+
+    private void doExit(int exitCode) {
+        IOState.get(this).getEnv().getContext().closeExited(this, exitCode);
     }
 }
