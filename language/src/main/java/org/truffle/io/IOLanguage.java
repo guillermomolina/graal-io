@@ -46,8 +46,6 @@ package org.truffle.io;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
@@ -68,7 +66,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.builtins.IOBuiltinNode;
 import org.truffle.io.nodes.root.IOEvalRootNode;
-import org.truffle.io.nodes.root.IOUndefinedMethodRootNode;
 import org.truffle.io.parser.IOLanguageNodeVisitor;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.interop.IOLanguageView;
@@ -88,7 +85,6 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
 
     private final Assumption singleContext = Truffle.getRuntime().createAssumption("Single IO context.");
 
-    private final Map<TruffleString, RootCallTarget> undefinedFunctions = new ConcurrentHashMap<>();
 
     public IOLanguage() {
         counter++;
@@ -103,18 +99,6 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
     protected boolean patchContext(IOState context, Env newEnv) {
         context.patchContext(newEnv);
         return true;
-    }
-
-    public RootCallTarget getOrCreateUndefinedFunction(TruffleString name) {
-        RootCallTarget target = undefinedFunctions.get(name);
-        if (target == null) {
-            target = new IOUndefinedMethodRootNode(this, name).getCallTarget();
-            RootCallTarget other = undefinedFunctions.putIfAbsent(name, target);
-            if (other != null) {
-                target = other;
-            }
-        }
-        return target;
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {
