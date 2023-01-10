@@ -1,15 +1,12 @@
-isInstance := method(type, value, type == getSlot("value") proto)
-
-null := method(nil)
-
 printTypes := method(type,
-  isInstance(type, 42) println
-  isInstance(type, 42000000000000000000000000000000000000000) println
-  isInstance(type, "42") println
-  isInstance(type, true) println
-  isInstance(type, Object clone) println
-  isInstance(type, getSlot("null")) println
-  isInstance(type, null) println
+  42 hasProto(type) println
+  42000000000000000000000000000000000000000 hasProto(type) println
+  "42" hasProto(type) println
+  true hasProto(type) println
+  Object clone hasProto(type) println
+  method() hasProto(type) println
+  nil hasProto(type) println
+  list() hasProto(type) println
   "" println
 )
 
@@ -17,12 +14,14 @@ number := 42 proto
 string := "42" proto
 boolean := true proto
 object := Object clone proto
-f := getSlot("null") proto
-nilProto := null proto
+function := method() proto
+nilProto := nil proto
+array := list() proto
 
 printTypes(number)
 printTypes(string)
 printTypes(boolean)
 printTypes(object)
-printTypes(f)
+printTypes(getSlot("function"))
 printTypes(nilProto)
+printTypes(array)

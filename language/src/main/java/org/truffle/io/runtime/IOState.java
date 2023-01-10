@@ -81,6 +81,7 @@ import org.truffle.io.builtins.IODefineFunctionBuiltinFactory;
 import org.truffle.io.builtins.IOEvalBuiltinFactory;
 import org.truffle.io.builtins.IOExitBuiltinFactory;
 import org.truffle.io.builtins.IOGetSizeBuiltinFactory;
+import org.truffle.io.builtins.IOHasProtoBuiltinFactory;
 import org.truffle.io.builtins.IOHasSizeBuiltinFactory;
 import org.truffle.io.builtins.IOImportBuiltinFactory;
 import org.truffle.io.builtins.IOIsExecutableBuiltinFactory;
@@ -213,6 +214,7 @@ public final class IOState {
         installBuiltin(IOEvalBuiltinFactory.getInstance());
         installBuiltin(IOImportBuiltinFactory.getInstance());
         installBuiltin(IOGetSizeBuiltinFactory.getInstance());
+        installBuiltin(IOHasProtoBuiltinFactory.getInstance());
         installBuiltin(IOHasSizeBuiltinFactory.getInstance());
         installBuiltin(IOIsExecutableBuiltinFactory.getInstance());
         installBuiltin(IOIsNullBuiltinFactory.getInstance());
