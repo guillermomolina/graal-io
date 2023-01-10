@@ -328,18 +328,18 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     }
 
     public Node visitSetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
-        final IOExpressionNode assignmentNameNode;
+        final IOExpressionNode nameNode;
         if (ctx.name == null) {
-            assignmentNameNode = (IOExpressionNode) visitExpression(ctx.expression(0));
+            nameNode = (IOExpressionNode) visitExpression(ctx.expression(0));
         } else {
-            assignmentNameNode = factory.createStringLiteral(ctx.name, true);
+            nameNode = factory.createStringLiteral(ctx.name, true);
         }
-        assert assignmentNameNode != null;
+        assert nameNode != null;
         IOExpressionNode valueNode = (IOExpressionNode) visitExpression(ctx.value);
         assert valueNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IOExpressionNode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length);
+        IOExpressionNode result = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length);
         assert result != null;
         return result;
     }

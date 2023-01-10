@@ -30,7 +30,7 @@ matrix:
           env: GRAALVM_VERSION="NONE" IO_BUILD_NATIVE="false"
 
 install:
-    - cd .. && mv iolanguage "simple language" && cd "simple language"
+    - cd .. && mv iolanguage "io language" && cd "io language"
     - |
         if [[ "$GRAALVM_VERSION" != "NONE" ]]; then
           if [[ "$TRAVIS_OS_NAME" == "osx" ]];   then DOWNLOAD_OS_NAME="darwin"; fi

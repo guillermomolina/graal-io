@@ -1,4 +1,4 @@
-# The simple language component for GraalVM
+# The io language component for GraalVM
 
 Truffle languages can be packaged as components which can be installed into
 GraalVM using the [Graal

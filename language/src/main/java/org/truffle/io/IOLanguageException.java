@@ -45,6 +45,8 @@ package org.truffle.io;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.runtime.interop.IOLanguageView;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -52,8 +54,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
-
-import org.truffle.io.runtime.interop.IOLanguageView;
 
 /**
  * IO does not need a sophisticated error checking and reporting mechanism, so all unexpected
@@ -100,7 +100,7 @@ public class IOLanguageException extends AbstractTruffleException {
         for (int i = 0; i < values.length; i++) {
             /*
              * For primitive or foreign values we request a language view so the values are printed
-             * from the perspective of simple language and not another language. Since this is a
+             * from the perspective of io language and not another language. Since this is a
              * rather rarely invoked exceptional method, we can just create the language view for
              * primitive values and then conveniently request the meta-object and display strings.
              * Using the language view for core builtins like the typeOf builtin might not be a good

@@ -45,6 +45,10 @@ package org.truffle.io.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.objects.IOPrototype;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -54,10 +58,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.objects.IOPrototype;
 
 /**
  * Language views are needed in order to allow tools to have a consistent perspective on primitive
@@ -85,7 +85,7 @@ public final class IOLanguageView implements TruffleObject {
 
     /*
      * Language views must always associate with the language they were created for. This allows
-     * tooling to take a primitive or foreign value and create a value of simple language of it.
+     * tooling to take a primitive or foreign value and create a value of io language of it.
      */
     @ExportMessage
     Class<? extends TruffleLanguage<?>> getLanguage() {
@@ -96,12 +96,12 @@ public final class IOLanguageView implements TruffleObject {
     @ExplodeLoop
     boolean hasMetaObject(@CachedLibrary("this.delegate") InteropLibrary interop) {
         /*
-         * We use the isInstance method to find out whether one of the builtin simple language types
+         * We use the isInstance method to find out whether one of the builtin io language types
          * apply. If yes, then we can provide a meta object in getMetaObject. The interop contract
          * requires to be precise.
          *
          * Since language views are only created for primitive values and values of other languages,
-         * values from simple language itself directly implement has/getMetaObject. For example
+         * values from io language itself directly implement has/getMetaObject. For example
          * IOMethod is already associated with the IOLanguage and therefore the language view will
          * not be used.
          */
@@ -186,7 +186,7 @@ public final class IOLanguageView implements TruffleObject {
     /**
      * Returns a language view for primitive or foreign values. Returns the same value for values
      * that are already originating from IO. This is useful to view values from the
-     * perspective of simple language in slow paths, for example, printing values in error messages.
+     * perspective of io language in slow paths, for example, printing values in error messages.
      */
     @TruffleBoundary
     public static Object forValue(Object value) {

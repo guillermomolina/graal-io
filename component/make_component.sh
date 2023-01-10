@@ -70,7 +70,7 @@ touch "$LANGUAGE_PATH/native-image.properties"
 
 mkdir -p "$COMPONENT_DIR/META-INF"
 {
-    echo "Bundle-Name: Simple Language";
+    echo "Bundle-Name: Io language";
     echo "Bundle-Symbolic-Name: org.truffle.io";
     echo "Bundle-Version: $GRAALVM_VERSION";
     echo "Bundle-RequireCapability: org.graalvm; filter:=\"(&(graalvm_version=$GRAALVM_VERSION)(os_arch=amd64))\"";

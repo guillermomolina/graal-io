@@ -52,7 +52,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Basic test of debug-a-lot instrument applied to simple language.
+ * Basic test of debug-a-lot instrument applied to io language.
  */
 public class IODebugALot {
 

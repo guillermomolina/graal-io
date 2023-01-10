@@ -645,7 +645,6 @@ public class IONodeFactory {
         }
 
         final IOExpressionNode result = IOWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
-
         result.setSourceSection(start, length);
         result.addExpressionTag();
 
@@ -660,7 +659,6 @@ public class IONodeFactory {
 
         final IOExpressionNode result = IOInvokePropertyNodeGen.create(receiverNode, identifierNode,
                 argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
-
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
