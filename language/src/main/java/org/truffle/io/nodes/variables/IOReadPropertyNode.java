@@ -46,6 +46,7 @@ package org.truffle.io.nodes.variables;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.util.IOToMemberNode;
 import org.truffle.io.nodes.util.IOToTruffleStringNode;
+import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.IOUndefinedNameException;
 import org.truffle.io.runtime.objects.IOObject;
@@ -83,7 +84,7 @@ public abstract class IOReadPropertyNode extends IOExpressionNode {
             @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObject.getOrDefault(receiver, nameTS, null);
+        Object value = IOObjectUtil.getOrDefault(receiver, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(this, nameTS);
         }
@@ -117,7 +118,7 @@ public abstract class IOReadPropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObject.getOrDefault(prototype, nameTS, null);
+        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(this, nameTS);
         }

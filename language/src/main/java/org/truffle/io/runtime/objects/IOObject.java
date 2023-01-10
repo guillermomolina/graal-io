@@ -43,9 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.truffle.io.IOLanguage;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOSymbols;
@@ -75,34 +72,6 @@ public class IOObject extends DynamicObject {
     public static final Shape SHAPE = Shape.newBuilder().layout(IOObject.class).build();
 
     protected IOObject prototype;
-
-    public static Object getOrDefault(IOObject obj, Object key, Object defaultValue) {
-        List<IOObject> visitedProtos = new ArrayList<IOObject>();
-        IOObject object = obj;
-        while (!visitedProtos.contains(object)) {
-            assert object != null;
-            if (IOObjectUtil.hasProperty(object, key)) {
-                return IOObjectUtil.getProperty(object, key);
-            }
-            visitedProtos.add(object);
-            object = object.getPrototype();
-        }
-        return defaultValue;
-    }
-
-    public static boolean hasPrototype(IOObject obj, Object prototype) {
-        List<IOObject> visitedProtos = new ArrayList<IOObject>();
-        IOObject object = obj;
-        while (!visitedProtos.contains(object)) {
-            assert object != null;
-            if (object == prototype) {
-                return true;
-            }
-            visitedProtos.add(object);
-            object = object.getPrototype();
-        }
-        return false;
-    }
 
     public IOObject() {
         super(SHAPE);
@@ -181,7 +150,7 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     boolean isMetaInstance(Object prototype, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        return IOObject.hasPrototype(this, prototype);
+        return IOObjectUtil.hasPrototype(this, prototype);
     }
 
     @ExportMessage
@@ -259,7 +228,7 @@ public class IOObject extends DynamicObject {
     Object readMember(String name,
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
-        Object result = IOObject.getOrDefault(this,
+        Object result = IOObjectUtil.getOrDefault(this,
                 (Object) fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), null);
         if (result == null) {
             /* Property does not exist. */

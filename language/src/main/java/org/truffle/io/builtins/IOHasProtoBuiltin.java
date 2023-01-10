@@ -45,6 +45,7 @@ package org.truffle.io.builtins;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IOObject;
@@ -66,24 +67,24 @@ public abstract class IOHasProtoBuiltin extends IOBuiltinNode {
     @Specialization
     public boolean hasProtoLong(long value, IOMethod method, IOObject prototype) {
         IOObject numberProto = IOState.get(this).getPrototype(value);
-        return IOObject.hasPrototype(numberProto, prototype);
+        return IOObjectUtil.hasPrototype(numberProto, prototype);
     }
 
     @Specialization
     public boolean hasProtoBoolean(boolean value, IOMethod method, IOObject prototype) {
         IOObject booleanProto = IOState.get(this).getPrototype(value);
-        return IOObject.hasPrototype(booleanProto, prototype);
+        return IOObjectUtil.hasPrototype(booleanProto, prototype);
     }
 
     @Specialization
     public boolean hasProtoIOObject(IOObject value, IOMethod method, IOObject prototype) {
-        return IOObject.hasPrototype(value, prototype);
+        return IOObjectUtil.hasPrototype(value, prototype);
     }
 
     @Specialization
     public boolean hasProtoObject(Object value, IOMethod method, IOObject prototype) {
         IOObject objectProto = IOState.get(this).getPrototype(value);
-        return IOObject.hasPrototype(objectProto, prototype);
+        return IOObjectUtil.hasPrototype(objectProto, prototype);
     }
 
     @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = {"hasProtoLong", "hasProtoBoolean", "hasProtoObject", "hasProtoIOObject"})
