@@ -43,10 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOSymbols;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -59,6 +55,10 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOSymbols;
+
 @ExportLibrary(InteropLibrary.class)
 public final class IOPrototype extends IOObject {
     public static final TruffleString TYPE = IOSymbols.constant("type");
@@ -66,12 +66,12 @@ public final class IOPrototype extends IOObject {
     public static final IOPrototype OBJECT = new IOPrototype(null, IOSymbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
     public static final IOPrototype NUMBER = new IOPrototype(OBJECT, IOSymbols.NUMBER,
             (l, v) -> l.fitsInLong(v) || v instanceof IOBigNumber);
-    public static final IOPrototype STRING = new IOPrototype(OBJECT, IOSymbols.STRING, (l, v) -> l.isString(v));
+    public static final IOPrototype SEQUENCE = new IOPrototype(OBJECT, IOSymbols.SEQUENCE, (l, v) -> l.isString(v));
     public static final IOPrototype BLOCK = new IOPrototype(OBJECT, IOSymbols.BLOCK, (l, v) -> l.isExecutable(v));
     public static final IOPrototype LIST = new IOPrototype(OBJECT, IOSymbols.LIST, (l, v) -> l.hasArrayElements(v));
 
     @CompilationFinal(dimensions = 1)
-    public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, STRING, BLOCK, LIST, OBJECT };
+    public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, OBJECT };
 
     private final TypeCheck isInstance;
 

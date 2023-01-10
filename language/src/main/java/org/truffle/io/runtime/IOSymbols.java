@@ -43,13 +43,13 @@
  */
 package org.truffle.io.runtime;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.root.IOEvalRootNode;
-import org.truffle.io.nodes.root.IOFunctionRootNode;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.root.IOEvalRootNode;
+import org.truffle.io.nodes.root.IOFunctionRootNode;
 
 public final class IOSymbols {
 
@@ -60,7 +60,7 @@ public final class IOSymbols {
     public static final TruffleString SELF = constant("self");
     public static final TruffleString OBJECT = constant("Object");
     public static final TruffleString NUMBER = constant("Number");
-    public static final TruffleString STRING = constant("String");
+    public static final TruffleString SEQUENCE = constant("Sequence");
     public static final TruffleString LIST = constant("List");
     public static final TruffleString BLOCK = constant("Block");
     public static final TruffleString MESSAGE = constant("Message");
