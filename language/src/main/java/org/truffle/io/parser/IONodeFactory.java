@@ -49,9 +49,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
+import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.arithmetic.IOAddNodeGen;
 import org.truffle.io.nodes.arithmetic.IODivNodeGen;
 import org.truffle.io.nodes.arithmetic.IOMulNodeGen;
@@ -92,12 +99,6 @@ import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOWritePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.IOSymbols;
-
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class IONodeFactory {
 
@@ -173,9 +174,10 @@ public class IONodeFactory {
         int start = nameToken.getStartIndex();
         int length = nameToken.getText().length();
         readArg.setSourceSection(start, length);
-        IOExpressionNode assignment = createAssignment(createStringLiteral(nameToken, false), readArg,
+        IOExpressionNode assignmentNode = createWriteVariable(createStringLiteral(nameToken, false), readArg,
                 methodScope.parameterCount, start, length, true);
-        methodScope.methodNodes.add(assignment);
+        assert assignmentNode != null;
+        methodScope.methodNodes.add(assignmentNode);
         methodScope.parameterCount++;
     }
 
@@ -188,8 +190,9 @@ public class IONodeFactory {
         } else {
             selfNode = new IOStringLiteralNode(IOSymbols.SELF);
         }
-        IOExpressionNode assignment = createAssignment(selfNode, readArg, methodScope.parameterCount, 0, 0, true);
-        methodScope.methodNodes.add(assignment);
+        IOExpressionNode assignmentNode = createWriteVariable(selfNode, readArg, methodScope.parameterCount, 0, 0, true);
+        assert assignmentNode != null;
+        methodScope.methodNodes.add(assignmentNode);
         methodScope.parameterCount++;
     }
 
@@ -303,13 +306,14 @@ public class IONodeFactory {
         return whileNode;
     }
 
-    public IOExpressionNode createFor(Token forToken, IOExpressionNode counterNode, IOExpressionNode startValueNode,
+    public IOExpressionNode createFor(Token forToken, IOStringLiteralNode counterNode, IOExpressionNode startValueNode,
             IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode bodyNode) {
         IOForNode forNode = null;
         if (counterNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
             final int start = forToken.getStartIndex();
             final int length = bodyNode.getSourceEndIndex() - start;
-            IOExpressionNode initialAssignmentNode = createAssignment(counterNode, startValueNode, start, length, true);
+            IOExpressionNode initialAssignmentNode = createWriteVariable(counterNode, startValueNode, start, length, true);
+            assert initialAssignmentNode != null;
             IOExpressionNode readControlNode = createReadLocalVariable(counterNode);
             assert readControlNode != null;
             initialAssignmentNode.addExpressionTag();
@@ -412,19 +416,20 @@ public class IONodeFactory {
         return result;
     }
 
-    public IOExpressionNode createAssignment(IOExpressionNode nameNode, IOExpressionNode valueNode, int start,
+    public IOExpressionNode createWriteVariable(IOExpressionNode nameNode, IOExpressionNode valueNode, int start,
             int length, boolean forceLocal) {
-        return createAssignment(nameNode, valueNode, null, start, length, forceLocal);
+        return createWriteVariable(nameNode, valueNode, null, start, length, forceLocal);
     }
 
-    public IOExpressionNode createAssignment(IOExpressionNode nameNode, IOExpressionNode valueNode,
+    public IOExpressionNode createWriteVariable(IOExpressionNode nameNode, IOExpressionNode valueNode,
             Integer argumentIndex, int start, int length, boolean forceLocal) {
         if (nameNode == null || valueNode == null) {
             return null;
         }
         if (isAtLobby() && argumentIndex == null) {
             // Force create variable in the Lobby object
-            return createWriteProperty(createReadSelf(), nameNode, valueNode, start, length);
+            return null;
+           // return createWriteProperty(createReadSelf(), nameNode, valueNode, start, length);
         }
 
         TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
@@ -478,24 +483,29 @@ public class IONodeFactory {
     //     return null;
     // }
 
-    public IOExpressionNode createReadLocalVariable(IOExpressionNode nameNode) {
-        if (nameNode != null) {
-            TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
-            if (isAtLobby() && !name.equals(IOSymbols.UNDERSCORE)) {
-                // Force get variable in the Lobby object
-                return createReadProperty(createReadSelf(), nameNode);
+    public IOExpressionNode createReadLocalVariable(IOStringLiteralNode nameNode) {
+        assert nameNode != null;
+        TruffleString name = nameNode.executeGeneric(null);
+        if (methodScope.locals.containsKey(name)) {
+            int frameSlot = methodScope.locals.get(name);
+            final IOExpressionNode result = IOReadLocalVariableNodeGen.create(frameSlot);
+            if (nameNode.hasSource()) {
+                result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
             }
-            if (methodScope.locals.containsKey(name)) {
-                int frameSlot = methodScope.locals.get(name);
-                final IOExpressionNode result = IOReadLocalVariableNodeGen.create(frameSlot);
-                if (nameNode.hasSource()) {
-                    result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
-                }
-                result.addExpressionTag();
-                return result;
-            }
+            result.addExpressionTag();
+            return result;
         }
         return null;
+    }
+
+    public IOExpressionNode createReadLocalVariable(IOExpressionNode nameNode) {
+        if(isAtLobby()) {
+            return null;
+        }
+        if(nameNode instanceof IOStringLiteralNode) {
+            return createReadLocalVariable((IOStringLiteralNode) nameNode);
+        }
+        throw new NotImplementedException();
     }
 
     public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes,

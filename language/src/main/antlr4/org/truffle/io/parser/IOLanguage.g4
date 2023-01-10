@@ -90,9 +90,9 @@ literalMessage:
 
 message:
     GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
-    | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* expression CLOSE
-    | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* expression CLOSE
-    | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* expression CLOSE
+    | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
+    | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
+    | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | id=IDENTIFIER arguments?
     ;
 

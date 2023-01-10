@@ -186,23 +186,28 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
     @Override
     public Node visitAssignment(final AssignmentContext ctx) {
-        IOExpressionNode result = null;
         if (ctx.assign.getText().equals(":=")) {
-            IOExpressionNode assignmentReceiver = null;
+            IOExpressionNode receiverNode = null;
             if (ctx.sequence() != null) {
-                assignmentReceiver = (IOExpressionNode) visitSequence(ctx.sequence());
-                assert assignmentReceiver != null;
+                receiverNode = (IOExpressionNode) visitSequence(ctx.sequence());
+                assert receiverNode != null;
             }
-            IOExpressionNode assignmentName = factory.createStringLiteral(ctx.name, false);
-            assert assignmentName != null;
+            IOExpressionNode assignmentNameNode = factory.createStringLiteral(ctx.name, false);
+            assert assignmentNameNode != null;
             IOExpressionNode expressionNode = (IOExpressionNode) visitOperation(ctx.operation());
             assert expressionNode != null;
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
-            if (assignmentReceiver == null) {
-                result = factory.createAssignment(assignmentName, expressionNode, start, length, false);
-            } else {
-                result = factory.createWriteProperty(assignmentReceiver, assignmentName, expressionNode, start, length);
+            IOExpressionNode result = null;
+            if (receiverNode == null) {
+                result = factory.createWriteVariable(assignmentNameNode, expressionNode, start, length, false);
+                if (result == null) {
+                    receiverNode = factory.createReadSelf();
+                }
+            } 
+            if(result == null) {
+                assert receiverNode != null;
+                result = factory.createWriteProperty(receiverNode, assignmentNameNode, expressionNode, start, length);
             }
             assert result != null;
             return result;
@@ -315,17 +320,22 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     }
 
     public Node visitGetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        final IOExpressionNode identifierNode;
         if(ctx.name == null) {
-            throw new NotImplementedException();
+            identifierNode = (IOExpressionNode)visitExpression(ctx.expression(0));
+        } else {
+            identifierNode = factory.createStringLiteral(ctx.name, true);
         }
-        final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.name, true);
+        assert identifierNode != null;
         IOExpressionNode result = null;
         if (receiverNode == null) {
             result = factory.createReadLocalVariable(identifierNode);
             if (result == null) {
-                result = new IONilLiteralNode();
+                receiverNode = factory.createReadSelf();
             }
-        } else {
+        } 
+        if (result == null) {
+            assert receiverNode != null;
             result = factory.createReadProperty(receiverNode, identifierNode);
         }
         assert result != null;
@@ -341,19 +351,26 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     }
 
     public Node visitSetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        final IOExpressionNode assignmentName;
         if(ctx.name == null) {
-            throw new NotImplementedException();
+            assignmentName = (IOExpressionNode) visitExpression(ctx.expression(0));
+        } else {
+            assignmentName = factory.createStringLiteral(ctx.name, true);
         }
-        IOExpressionNode assignmentName = factory.createStringLiteral(ctx.name, true);
         assert assignmentName != null;
-        IOExpressionNode expressionNode = (IOExpressionNode) visitExpression(ctx.expression(0));
+        IOExpressionNode expressionNode = (IOExpressionNode) visitExpression(ctx.value);
         assert expressionNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        final IOExpressionNode result;
+        IOExpressionNode result = null;
         if (receiverNode == null) {
-            result = factory.createAssignment(assignmentName, expressionNode, start, length, false);
-        } else {
+            result = factory.createWriteVariable(assignmentName, expressionNode, start, length, false);
+            if(result == null) {
+                receiverNode = factory.createReadSelf();
+            }
+        } 
+        if(result == null) {
+            assert receiverNode != null;
             result = factory.createWriteProperty(receiverNode, assignmentName, expressionNode, start, length);
         }
         assert result != null;
