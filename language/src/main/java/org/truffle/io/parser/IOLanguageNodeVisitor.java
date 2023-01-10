@@ -291,7 +291,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
             return visitUpdateSlotMessage(ctx, receiverNode);
         }
         if (ctx.id != null) {
-
             final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.id, false);
             assert identifierNode != null;
             List<IOExpressionNode> argumentNodes = createArgumentsList(ctx.arguments());
@@ -306,24 +305,16 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     }
 
     public Node visitGetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
-        final IOExpressionNode identifierNode;
+        final IOExpressionNode nameNode;
         if (ctx.name == null) {
-            identifierNode = (IOExpressionNode) visitExpression(ctx.expression(0));
+            nameNode = (IOExpressionNode) visitExpression(ctx.expression(0));
         } else {
-            identifierNode = factory.createStringLiteral(ctx.name, true);
+            nameNode = factory.createStringLiteral(ctx.name, true);
         }
-        assert identifierNode != null;
-        IOExpressionNode result = null;
-        if (receiverNode == null) {
-            result = factory.createReadLocalVariable(identifierNode);
-            if (result == null) {
-                receiverNode = factory.createReadSelf();
-            }
-        }
-        if (result == null) {
-            assert receiverNode != null;
-            result = factory.createReadProperty(receiverNode, identifierNode);
-        }
+        assert nameNode != null;
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        IOExpressionNode result = factory.createReadSlot(receiverNode, nameNode, start, length);
         assert result != null;
         return result;
     }

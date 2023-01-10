@@ -498,7 +498,7 @@ public class IONodeFactory {
         return null;
     }
 
-    public IOExpressionNode createReadLocalVariable(IOExpressionNode nameNode) {
+    public IOExpressionNode createReadLocalVariable(IOExpressionNode nameNode, int startPos, int length) {
         if (isAtLobby()) {
             return null;
         }
@@ -593,41 +593,48 @@ public class IONodeFactory {
         return result;
     }
 
-    public IOExpressionNode createListLiteral(List<IOExpressionNode> elementNodes, int start, int length) {
+    public IOExpressionNode createListLiteral(List<IOExpressionNode> elementNodes, int startPos, int length) {
         final IOExpressionNode result = new IOListLiteralNode(
                 elementNodes.toArray(new IOExpressionNode[elementNodes.size()]));
-        result.setSourceSection(start, length);
+        result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IOExpressionNode createParenExpression(IOExpressionNode expressionNode, int start, int length) {
+    public IOExpressionNode createParenExpression(IOExpressionNode expressionNode, int startPos, int length) {
         if (expressionNode == null) {
             return null;
         }
 
         final IOParenExpressionNode result = new IOParenExpressionNode(expressionNode);
-        result.setSourceSection(start, length);
+        result.setSourceSection(startPos, length);
         return result;
     }
 
-    public IOExpressionNode createReadProperty(IOExpressionNode receiverNode, IOExpressionNode nameNode) {
+    public IOExpressionNode createReadProperty(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos, int length) {
         if (receiverNode == null || nameNode == null) {
             return null;
         }
 
         final IOExpressionNode result = IOReadPropertyNodeGen.create(receiverNode, nameNode);
-
-        int startPos;
-        if (receiverNode.hasSource()) {
-            startPos = receiverNode.getSourceCharIndex();
-        } else {
-            startPos = nameNode.getSourceCharIndex();
-        }
-        final int endPos = nameNode.getSourceEndIndex();
-        result.setSourceSection(startPos, endPos - startPos);
+        result.setSourceSection(startPos, length);
         result.addExpressionTag();
+        return result;
+    }
 
+    public IOExpressionNode createReadSlot(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos, int length) {
+        IOExpressionNode result = null;
+        if (receiverNode == null) {
+            result = createReadLocalVariable(nameNode, startPos, length);
+            if (result == null) {
+                receiverNode = createReadSelf();
+            }
+        }
+        if (result == null) {
+            assert receiverNode != null;
+            result = createReadProperty(receiverNode, nameNode, startPos, length);
+        }
+        assert result != null;
         return result;
     }
 
