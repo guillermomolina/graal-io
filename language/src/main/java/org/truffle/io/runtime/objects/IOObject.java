@@ -132,8 +132,10 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     @TruffleBoundary
-    Object toDisplayString(boolean allowSideEffects) {
+    Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         String string = String.format("Object_0x%X:", hashCode());
+        // TruffleString tuffleString = IOObjectUtil.toString(this, 1);
+        // String string = TruffleString.ToJavaStringNode.getUncached().execute(tuffleString);
         return string;
     }
 
