@@ -45,13 +45,13 @@ package org.truffle.io.builtins;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.runtime.objects.IOMethod;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.runtime.objects.IOMethod;
 
 /**
  * Built-in function that returns true if the given operand is of a given meta-object. Meta-objects
@@ -61,7 +61,7 @@ import org.truffle.io.runtime.objects.IOMethod;
 public abstract class IOHasProtoBuiltin extends IOBuiltinNode {
 
     @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")
-    public Object doDefault(Object metaObject, IOMethod method, Object value,
+    public boolean hasProtoLong(long value, IOMethod method, Object metaObject,
                     @CachedLibrary("metaObject") InteropLibrary metaLib) {
         try {
             return metaLib.isMetaInstance(metaObject, value);
@@ -70,4 +70,29 @@ public abstract class IOHasProtoBuiltin extends IOBuiltinNode {
         }
     }
 
+    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")
+    public boolean hasProtoLong(boolean value, IOMethod method, Object metaObject,
+                    @CachedLibrary("metaObject") InteropLibrary metaLib) {
+        try {
+            return metaLib.isMetaInstance(metaObject, value);
+        } catch (UnsupportedMessageException e) {
+            throw shouldNotReachHere(e);
+        }
+    }
+
+    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")
+    public boolean hasProtoMetaObject(Object value, IOMethod method, Object metaObject,
+                    @CachedLibrary("metaObject") InteropLibrary metaLib) {
+        try {
+            return metaLib.isMetaInstance(metaObject, value);
+        } catch (UnsupportedMessageException e) {
+            throw shouldNotReachHere(e);
+        }
+    }
+
+    @Specialization
+    public boolean hasProto(Object value, IOMethod method, Object metaObject) {
+        return false;
+    }
+   
 }
