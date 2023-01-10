@@ -43,10 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOSymbols;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -65,6 +61,10 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOSymbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOObject extends DynamicObject {
@@ -133,9 +133,7 @@ public class IOObject extends DynamicObject {
     @ExportMessage
     @TruffleBoundary
     Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        String string = String.format("Object_0x%X:", hashCode());
-        // TruffleString tuffleString = IOObjectUtil.toString(this, 1);
-        // String string = TruffleString.ToJavaStringNode.getUncached().execute(tuffleString);
+        String string = String.format("Object_0x%X: %s", hashCode(), IOObjectUtil.toString(this));
         return string;
     }
 
