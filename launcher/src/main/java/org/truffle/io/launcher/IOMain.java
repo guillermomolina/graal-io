@@ -243,12 +243,12 @@ public final class IOMain extends AbstractLanguageLauncher {
                 try {
                     evalNonInteractive(context, consoleHandler);
                     rc = 0;
-                } catch (PolyglotException e) {
+                /*} catch (PolyglotException e) {
                     if (!e.isExit()) {
                         printIoLikeStackTrace(e);
                     } else {
                         rc = e.getExitStatus();
-                    }
+                    } */
                 } catch (NoSuchFileException e) {
                     printFileNotFoundException(e);
                 }
