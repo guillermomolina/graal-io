@@ -508,8 +508,7 @@ public class IONodeFactory {
         throw new NotImplementedException();
     }
 
-    public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes,
-            Token finalToken) {
+    public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes, int startPos, int length) {
         if (nameNode != null) {
             TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
             final IOExpressionNode result;
@@ -524,11 +523,7 @@ public class IONodeFactory {
                     result = IOInvokeRemoteVariableNodeGen.create(contextLevel, frameSlot,
                             argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
                 }
-                if (nameNode.hasSource()) {
-                    final int startPos = nameNode.getSourceCharIndex();
-                    final int endPos = finalToken.getStartIndex() + finalToken.getText().length();
-                    result.setSourceSection(startPos, endPos - startPos + 1);
-                }
+                result.setSourceSection(startPos, length);
                 result.addExpressionTag();
                 return result;
             }
@@ -651,7 +646,7 @@ public class IONodeFactory {
     }
 
     public IOExpressionNode createInvokeProperty(IOExpressionNode receiverNode, IOExpressionNode identifierNode,
-            List<IOExpressionNode> argumentNodes, Token finalToken) {
+            List<IOExpressionNode> argumentNodes, int startPos, int length) {
         if (identifierNode == null || containsNull(argumentNodes)) {
             return null;
         }
@@ -659,26 +654,40 @@ public class IONodeFactory {
         final IOExpressionNode result = IOInvokePropertyNodeGen.create(receiverNode, identifierNode,
                 argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
 
-        final int startPos = identifierNode.getSourceCharIndex();
-        final int endPos = finalToken.getStartIndex() + finalToken.getText().length();
-        result.setSourceSection(startPos, endPos - startPos);
+        result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
         return result;
     }
 
-    public IOExpressionNode createWriteSlot(IOExpressionNode receiverNode, IOExpressionNode assignmentNameNode,
-            IOExpressionNode valueNode, int start, int length) {
+    public IOExpressionNode createInvokeSlot(IOExpressionNode receiverNode, IOExpressionNode identifierNode,
+            List<IOExpressionNode> argumentNodes, int startPos, int length) {
         IOExpressionNode result = null;
         if (receiverNode == null) {
-            result = createWriteVariable(assignmentNameNode, valueNode, start, length, false);
+            result = createInvokeVariable(identifierNode, argumentNodes, startPos, length);
             if (result == null) {
                 receiverNode = createReadSelf();
             }
         }
         if (result == null) {
             assert receiverNode != null;
-            result = createWriteProperty(receiverNode, assignmentNameNode, valueNode, start, length);
+            result = createInvokeProperty(receiverNode, identifierNode, argumentNodes, startPos, length);
+        }
+        return result;
+    }
+
+    public IOExpressionNode createWriteSlot(IOExpressionNode receiverNode, IOExpressionNode assignmentNameNode,
+            IOExpressionNode valueNode, int startPos, int length) {
+        IOExpressionNode result = null;
+        if (receiverNode == null) {
+            result = createWriteVariable(assignmentNameNode, valueNode, startPos, length, false);
+            if (result == null) {
+                receiverNode = createReadSelf();
+            }
+        }
+        if (result == null) {
+            assert receiverNode != null;
+            result = createWriteProperty(receiverNode, assignmentNameNode, valueNode, startPos, length);
         }
         assert result != null;
         return result;

@@ -199,7 +199,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
             assert valueNode != null;
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
-            IOExpressionNode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length);
+            IOExpressionNode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start,
+                    length);
             assert result != null;
             return result;
         }
@@ -290,20 +291,14 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
             return visitUpdateSlotMessage(ctx, receiverNode);
         }
         if (ctx.id != null) {
+
             final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.id, false);
             assert identifierNode != null;
             List<IOExpressionNode> argumentNodes = createArgumentsList(ctx.arguments());
-            IOExpressionNode result = null;
-            if (receiverNode == null) {
-                result = factory.createInvokeVariable(identifierNode, argumentNodes, ctx.stop);
-                if (result == null) {
-                    receiverNode = factory.createReadSelf();
-                }
-            }
-            if (result == null) {
-                assert receiverNode != null;
-                result = factory.createInvokeProperty(receiverNode, identifierNode, argumentNodes, ctx.stop);
-            }
+            int start = ctx.start.getStartIndex();
+            int length = ctx.stop.getStopIndex() - start + 1;
+            IOExpressionNode result = factory.createInvokeSlot(receiverNode, identifierNode, argumentNodes, start,
+                    length);
             assert result != null;
             return result;
         }
