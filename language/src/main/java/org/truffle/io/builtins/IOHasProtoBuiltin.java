@@ -45,8 +45,11 @@ package org.truffle.io.builtins;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IOObject;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -60,27 +63,31 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "hasProto")
 public abstract class IOHasProtoBuiltin extends IOBuiltinNode {
 
-    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")
-    public boolean hasProtoLong(long value, IOMethod method, Object metaObject,
-                    @CachedLibrary("metaObject") InteropLibrary metaLib) {
-        try {
-            return metaLib.isMetaInstance(metaObject, value);
-        } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
-        }
+    @Specialization
+    public boolean hasProtoLong(long value, IOMethod method, IOObject prototype) {
+        IOObject numberProto = IOState.get(this).getPrototype(value);
+        return IOObject.hasPrototype(numberProto, prototype);
     }
 
-    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")
-    public boolean hasProtoLong(boolean value, IOMethod method, Object metaObject,
-                    @CachedLibrary("metaObject") InteropLibrary metaLib) {
-        try {
-            return metaLib.isMetaInstance(metaObject, value);
-        } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
-        }
+    @Specialization
+    public boolean hasProtoBoolean(boolean value, IOMethod method, IOObject prototype) {
+        IOObject booleanProto = IOState.get(this).getPrototype(value);
+        return IOObject.hasPrototype(booleanProto, prototype);
     }
 
-    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")
+    @Specialization
+    public boolean hasProtoIOObject(IOObject value, IOMethod method, IOObject prototype) {
+        return IOObject.hasPrototype(value, prototype);
+    }
+
+    @Specialization
+    public boolean hasProtoObject(Object value, IOMethod method, IOObject prototype) {
+        IOObject objectProto = IOState.get(this).getPrototype(value);
+        return IOObject.hasPrototype(objectProto, prototype);
+    }
+
+    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = {"hasProtoLong", "hasProtoBoolean", "hasProtoObject", "hasProtoIOObject"})
+    @TruffleBoundary
     public boolean hasProtoMetaObject(Object value, IOMethod method, Object metaObject,
                     @CachedLibrary("metaObject") InteropLibrary metaLib) {
         try {
@@ -94,5 +101,4 @@ public abstract class IOHasProtoBuiltin extends IOBuiltinNode {
     public boolean hasProto(Object value, IOMethod method, Object metaObject) {
         return false;
     }
-   
 }

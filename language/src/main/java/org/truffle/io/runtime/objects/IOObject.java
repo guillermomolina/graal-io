@@ -48,6 +48,7 @@ import java.util.List;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOSymbols;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -68,30 +69,9 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
 
-/**
- * Represents an IO object.
- *
- * This class defines operations that can be performed on IO Objects. While we could define all
- * these operations as individual AST nodes, we opted to define those operations by using
- * {@link com.oracle.truffle.api.library.Library a Truffle library}, or more concretely the
- * {@link InteropLibrary}. This has several advantages, but the primary one is that it allows IO
- * objects to be used in the interoperability message protocol, i.e. It allows other languages and
- * tooio to operate on IO objects without necessarily knowing they are IO objects.
- *
- * IO Objects are essentially instances of {@link DynamicObject} (objects whose members can be
- * dynamically added and removed). We also annotate the class with {@link ExportLibrary} with value
- * {@link InteropLibrary InteropLibrary.class}. This essentially ensures that the build system and
- * runtime know that this class specifies the interop messages (i.e. operations) that IO can do on
- * {@link IOObject} instances.
- *
- * @see ExportLibrary
- * @see ExportMessage
- * @see InteropLibrary
- */
 @ExportLibrary(InteropLibrary.class)
 public class IOObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
-//    public static final Shape SHAPE = Shape.newBuilder().layout(IOObject.class).addConstantProperty(IOSymbols.PROTO, null, 0).build();
     public static final Shape SHAPE = Shape.newBuilder().layout(IOObject.class).build();
 
     protected IOObject prototype;
@@ -110,6 +90,20 @@ public class IOObject extends DynamicObject {
         return defaultValue;
     }
 
+    public static boolean hasPrototype(IOObject obj, Object prototype) {
+        List<IOObject> visitedProtos = new ArrayList<IOObject>();
+        IOObject object = obj;
+        while (!visitedProtos.contains(object)) {
+            assert object != null;
+            if (object == prototype) {
+                return true;
+            }
+            visitedProtos.add(object);
+            object = object.getPrototype();
+        }
+        return false;
+    }
+
     public IOObject() {
         super(SHAPE);
         this.prototype = IOPrototype.OBJECT;
@@ -121,13 +115,11 @@ public class IOObject extends DynamicObject {
     }
 
     public IOObject getPrototype() {
-        //return (IOObject)IOObjectUtil.getProperty(this, IOSymbols.PROTO);
         return prototype;
     }
 
     public void setPrototype(final IOObject prototype) {
         this.prototype = prototype;
-        //IOObjectUtil.putProperty(this, IOSymbols.PROTO, prototype);
     }
 
     @ExportMessage
@@ -177,14 +169,30 @@ public class IOObject extends DynamicObject {
     }
 
     @ExportMessage
+    boolean isMetaObject() {
+        return true;
+    }
+
+    @ExportMessage(name = "getMetaQualifiedName")
+    @ExportMessage(name = "getMetaSimpleName")
+    public Object getName() {
+        return IOSymbols.OBJECT;
+    }
+
+    @ExportMessage
+    boolean isMetaInstance(Object prototype, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+        return IOObject.hasPrototype(this, prototype);
+    }
+
+    @ExportMessage
     boolean hasMembers() {
         return true;
     }
 
     @ExportMessage
     void removeMember(String member,
-                    @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
+            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
         TruffleString memberTS = fromJavaStringNode.execute(member, IOLanguage.STRING_ENCODING);
         if (objectLibrary.containsKey(this, memberTS)) {
             objectLibrary.removeKey(this, memberTS);
@@ -195,7 +203,7 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     Object getMembers(boolean includeInternal,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         return new Keys(objectLibrary.getKeyArray(this));
     }
 
@@ -203,14 +211,14 @@ public class IOObject extends DynamicObject {
     @ExportMessage(name = "isMemberModifiable")
     @ExportMessage(name = "isMemberRemovable")
     boolean existsMember(String member,
-                    @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
+            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         return objectLibrary.containsKey(this, fromJavaStringNode.execute(member, IOLanguage.STRING_ENCODING));
     }
 
     @ExportMessage
     boolean isMemberInsertable(String member,
-                    @CachedLibrary("this") InteropLibrary receivers) {
+            @CachedLibrary("this") InteropLibrary receivers) {
         return !receivers.isMemberExisting(this, member);
     }
 
@@ -247,14 +255,12 @@ public class IOObject extends DynamicObject {
         }
     }
 
-    /**
-     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for reading properties.
-     */
     @ExportMessage
     Object readMember(String name,
-                    @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
-        Object result = IOObject.getOrDefault(this, (Object)fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), null);
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
+            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
+        Object result = IOObject.getOrDefault(this,
+                (Object) fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), null);
         if (result == null) {
             /* Property does not exist. */
             throw UnknownIdentifierException.create(name);
@@ -262,13 +268,10 @@ public class IOObject extends DynamicObject {
         return result;
     }
 
-    /**
-     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for writing properties.
-     */
     @ExportMessage
     void writeMember(String name, Object value,
-                    @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
+            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(this, fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), value);
     }
 }
