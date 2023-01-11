@@ -50,49 +50,24 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
 
-/**
- * The IO type for a {@code nil} (i.e., undefined) value.
- */
 @ExportLibrary(InteropLibrary.class)
 public final class IONil extends IOObject {
 
-    /**
-     * The canonical value to represent {@code null} in IO.
-     */
     public static final IONil SINGLETON = new IONil();
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
-    /**
-     * Disallow instantiation from outside to ensure that the {@link #SINGLETON} is the only
-     * instance.
-     */
-    private IONil() {
+     private IONil() {
     }
 
-    /**
-     * This method is, e.g., called when using the {@code nil} value in a string concatenation. So
-     * changing it has an effect on IO programs.
-     */
     @Override
     public String toString() {
         return "nil";
     }
 
-    /**
-     * {@link IONil} values are interpreted as null values by other languages.
-     */
     @ExportMessage
     boolean isNull() {
         return true;
     }
-
-    // @ExportMessage
-    // protected static TriState isIdenticalOrUndefined(IONil receiver, Object other) {
-    //     /*
-    //      * IONil values are identical to other IONil values.
-    //      */
-    //     return TriState.valueOf(IONil.SINGLETON == other);
-    // }
 
     @ExportMessage
     static final class IsIdenticalOrUndefined {
@@ -109,9 +84,6 @@ public final class IONil extends IOObject {
 
     @ExportMessage
     static int identityHashCode(IONil receiver) {
-        /*
-         * We do not use 0, as we want consistency with System.identityHashCode(receiver).
-         */
         return IDENTITY_HASH;
     }
 
