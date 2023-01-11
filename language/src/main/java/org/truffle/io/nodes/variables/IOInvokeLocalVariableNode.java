@@ -40,16 +40,16 @@
  */
 package org.truffle.io.nodes.variables;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.expression.IOInvokeNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOInvokable;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.expression.IOInvokeNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOInvokable;
 
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "argumentNodes", type = IOExpressionNode[].class)

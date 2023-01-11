@@ -40,15 +40,6 @@
  */
 package org.truffle.io.nodes.variables;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.expression.IOInvokeNode;
 import org.truffle.io.nodes.util.IOToTruffleStringNode;
@@ -57,6 +48,15 @@ import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.IOUndefinedNameException;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOObject;
+
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeChild("recevierNode")
 @NodeChild("nameNode")
@@ -126,8 +126,7 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
     }
 
     protected final Object invoke(VirtualFrame frame, final IOInvokable invokable, final Object receiver) {
-        final IOInvokeNode invokeNode = new IOInvokeNode((IOInvokable) invokable, frame.getObject(0),
-        getArgumentNodes());
+        final IOInvokeNode invokeNode = new IOInvokeNode(invokable, receiver, getArgumentNodes());;
         Object result = invokeNode.executeGeneric(frame);
         return result;
     }
