@@ -3,6 +3,11 @@ package org.truffle.io.runtime;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -11,11 +16,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
 
 public final class IOObjectUtil {
     private static int TO_STRING_MAX_DEPTH = 1;
@@ -86,7 +86,7 @@ public final class IOObjectUtil {
             }
             String spaces = "  ";
             spaces = spaces.repeat(depth + 1);
-            sb.append(":\n");
+            sb.append("\n");
             sb.append(spaces);
             for (long i = 0; i < keyCount; i++) {
                 if (i > 0) {
