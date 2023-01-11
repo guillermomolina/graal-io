@@ -49,6 +49,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -94,12 +100,6 @@ import org.truffle.io.nodes.variables.IOWritePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.IOSymbols;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 public class IONodeFactory {
 
     static class MethodScope {
@@ -107,6 +107,7 @@ public class IONodeFactory {
         protected int methodBodyStartPos; // includes parameter list
         protected int parameterCount;
         protected FrameDescriptor.Builder frameDescriptorBuilder;
+        protected final List<TruffleString> parameters;
         protected final Map<TruffleString, Integer> locals;
         protected boolean inLoop;
 
@@ -115,6 +116,7 @@ public class IONodeFactory {
         MethodScope(final MethodScope outer, int methodBodyStartPos) {
             this.outer = outer;
             this.methodBodyStartPos = methodBodyStartPos;
+            this.parameters = new ArrayList<>();
             this.parameterCount = 0;
             this.frameDescriptorBuilder = FrameDescriptor.newBuilder();
             this.methodNodes = new ArrayList<>();
@@ -174,8 +176,10 @@ public class IONodeFactory {
         int start = nameToken.getStartIndex();
         int length = nameToken.getText().length();
         readArg.setSourceSection(start, length);
-        IOExpressionNode assignmentNode = createWriteVariable(createStringLiteral(nameToken, false), readArg,
-                methodScope.parameterCount, start, length, true);
+        IOStringLiteralNode nameNode = createStringLiteral(nameToken, false);
+        methodScope.parameters.add(nameNode.getValue());
+        IOExpressionNode assignmentNode = createWriteVariable(nameNode, readArg, methodScope.parameterCount, start,
+                length, true);
         assert assignmentNode != null;
         methodScope.methodNodes.add(assignmentNode);
         methodScope.parameterCount++;
@@ -207,17 +211,18 @@ public class IONodeFactory {
         if (bodyNode != null) {
             methodScope.methodNodes.add(bodyNode);
             final int bodyEndPos = bodyNode.getSourceEndIndex();
-            final SourceSection methodSrc = source.createSection(startPos, length);
+            int methodBodyLength = bodyEndPos - methodScope.methodBodyStartPos;
+            final SourceSection methodSrc = source.createSection(methodScope.methodBodyStartPos, methodBodyLength);
             final IOExpressionNode methodBlock = createBlock(methodScope.methodNodes, methodScope.parameterCount,
-                    methodScope.methodBodyStartPos,
-                    bodyEndPos - methodScope.methodBodyStartPos);
+                    methodScope.methodBodyStartPos, methodBodyLength);
             final IOMethodBodyNode methodBodyNode = new IOMethodBodyNode(methodBlock);
             methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
             final IORootNode rootNode = new IORootNode(language, methodScope.frameDescriptorBuilder.build(),
                     methodBodyNode,
                     methodSrc);
-            methodLiteralNode = new IOMethodLiteralNode(rootNode, methodScope.parameterCount - 2);
-            methodLiteralNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
+            TruffleString[] parameters = methodScope.parameters.toArray(new TruffleString[methodScope.parameters.size()]);
+            methodLiteralNode = new IOMethodLiteralNode(rootNode, parameters);
+            methodLiteralNode.setSourceSection(startPos, length);
         }
 
         methodScope = methodScope.outer;
@@ -508,7 +513,8 @@ public class IONodeFactory {
         throw new NotImplementedException();
     }
 
-    public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes, int startPos, int length) {
+    public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes,
+            int startPos, int length) {
         if (nameNode != null) {
             TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
             final IOExpressionNode result;
@@ -543,7 +549,7 @@ public class IONodeFactory {
         return result;
     }
 
-    public IOExpressionNode createStringLiteral(Token literalToken, boolean removeQuotes) {
+    public IOStringLiteralNode createStringLiteral(Token literalToken, boolean removeQuotes) {
         final IOStringLiteralNode result = new IOStringLiteralNode(asTruffleString(literalToken, removeQuotes));
         srcFromToken(result, literalToken);
         result.addExpressionTag();
@@ -611,7 +617,8 @@ public class IONodeFactory {
         return result;
     }
 
-    public IOExpressionNode createReadProperty(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos, int length) {
+    public IOExpressionNode createReadProperty(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos,
+            int length) {
         if (receiverNode == null || nameNode == null) {
             return null;
         }
@@ -622,7 +629,8 @@ public class IONodeFactory {
         return result;
     }
 
-    public IOExpressionNode createReadSlot(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos, int length) {
+    public IOExpressionNode createReadSlot(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos,
+            int length) {
         IOExpressionNode result = null;
         if (receiverNode == null) {
             result = createReadLocalVariable(nameNode, startPos, length);

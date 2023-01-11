@@ -12,10 +12,16 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOObject;
 
 public final class IOObjectUtil {
+    private static int TO_STRING_MAX_DEPTH = 1;
+    private static int TO_STRING_MAX_ELEMENTS = 10;
+    private static boolean TO_STRING_INCLUDE_ARRAY_LENGTH = false;
+
     private IOObjectUtil() {
     }
 
@@ -59,78 +65,34 @@ public final class IOObjectUtil {
         return false;
     }
 
-    /*public static TruffleString toString(IOObject object, int depth) {
-        TruffleStringBuilder sb = TruffleStringBuilder.create(TruffleString.Encoding.UTF_8);
-        CompilerAsserts.neverPartOfCompilation();
-        try {
-    
-            InteropLibrary objInterop = InteropLibrary.getFactory().getUncached(object);
-            assert objInterop.hasMembers(object);
-            Object keys = objInterop.getMembers(object);
-            InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
-            long keyCount = keysInterop.getArraySize(keys);
-            if (keyCount == 0) {
-                return IOSymbols.constant("{}");
-            } else if (depth >= 3) {
-                return IOSymbols.constant("{...}");
-            }
-            Trufflesb.append('{');
-            for (long i = 0; i < keyCount; i++) {
-                if (i > 0) {
-                    Trufflesb.append(',');
-                    ;
-                    if (i >= 10) {
-                        String str = "...";
-                        TruffleStringBuilder.AppendJavaStringUTF16Node.getUncached().execute(sb, str, 0, str.length());
-                        break;
-                    }
-                }
-                String stringKey = null;
-                try {
-                    Object key = keysInterop.readArrayElement(keys, i);
-                    assert InteropLibrary.getUncached().isString(key);
-                    stringKey = (String) key;
-                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-                    stringKey = "<UNKNOWN>";
-                }
-                //Object value = objInterop.readMember(object, stringKey);
-                TruffleStringBuilder.AppendJavaStringUTF16Node.getUncached().execute(sb, stringKey, 0,
-                        stringKey.length());
-                String str = ", ";
-                TruffleStringBuilder.AppendJavaStringUTF16Node.getUncached().execute(sb, str, 0, str.length());
-                //Strings.builderAppend(sb, toDisplayStringInner(value, allowSideEffects, format, depth, object));
-            }
-            Trufflesb.append('}');
-        } catch (UnsupportedMessageException e) {
-        }
-        return TruffleStringBuilder.ToStringNode.getUncached().execute(sb);
-    }*/
-
     public static String toString(IOObject object) {
         return toString(object, 0);
     }
 
     public static String toString(IOObject object, int depth) {
-        StringBuilder sb = new StringBuilder();
+        if (object instanceof IOList) {
+            return toString((IOList) object, depth);
+        }
         CompilerAsserts.neverPartOfCompilation();
+        StringBuilder sb = new StringBuilder();
         try {
-
             InteropLibrary objInterop = InteropLibrary.getFactory().getUncached(object);
             assert objInterop.hasMembers(object);
             Object keys = objInterop.getMembers(object);
             InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
             long keyCount = keysInterop.getArraySize(keys);
-            if (keyCount == 0) {
-                return "{}";
-            } else if (depth >= 1) {
-                return "{...}";
+            if (keyCount == 0 || depth >= TO_STRING_MAX_DEPTH) {
+                return "";
             }
-            sb.append('{');
+            String spaces = "  ";
+            spaces = spaces.repeat(depth + 1);
+            sb.append(":\n");
+            sb.append(spaces);
             for (long i = 0; i < keyCount; i++) {
                 if (i > 0) {
-                    sb.append(',');
-                    ;
-                    if (i >= 10) {
+                    sb.append("\n");
+                    sb.append(spaces);
+                    if (i >= TO_STRING_MAX_ELEMENTS) {
                         sb.append("...");
                         break;
                     }
@@ -144,7 +106,7 @@ public final class IOObjectUtil {
                     stringKey = "<UNKNOWN>";
                 }
                 sb.append(stringKey);
-                sb.append(": ");
+                sb.append(" = ");
                 Object value = null;
                 try {
                     value = objInterop.readMember(object, stringKey);
@@ -153,7 +115,45 @@ public final class IOObjectUtil {
                 }
                 sb.append(toStringInner(value, depth + 1));
             }
-            sb.append('}');
+        } catch (UnsupportedMessageException e) {
+        }
+        return sb.toString();
+    }
+
+    public static String toString(IOList object, int depth) {
+        CompilerAsserts.neverPartOfCompilation();
+        StringBuilder sb = new StringBuilder();
+        try {
+            InteropLibrary interop = InteropLibrary.getFactory().getUncached(object);
+            assert interop.hasArrayElements(object);
+            long size = interop.getArraySize(object);
+            if (size == 0) {
+                return "";
+            } else if (depth >= TO_STRING_MAX_DEPTH) {
+                return String.format("<%d>", size);
+            }
+            boolean topLevel = depth == 0;
+            if (topLevel && size >= 2 && TO_STRING_INCLUDE_ARRAY_LENGTH) {
+                sb.append('<');
+                sb.append(size);
+                sb.append('>');
+            }
+            for (long i = 0; i < size; i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                    if (i >= TO_STRING_MAX_ELEMENTS) {
+                        sb.append("...");
+                        break;
+                    }
+                }
+                Object value = null;
+                try {
+                    value = interop.readArrayElement(object, i);
+                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
+                    value = "<UNKNOWN>";
+                }
+                sb.append(toStringInner(value, depth + 1));
+            }
         } catch (UnsupportedMessageException e) {
         }
         return sb.toString();
@@ -161,19 +161,25 @@ public final class IOObjectUtil {
 
     public static String toStringInner(Object value, int depth) {
         CompilerAsserts.neverPartOfCompilation();
-        if (value instanceof IOObject) {
-            return toString((IOObject) value, depth);
+        if (value == IONil.SINGLETON) {
+            return "nil";
         }
-        if (value instanceof IOObject) {
-            return toString((IOObject) value, depth);
-        }
-        if (value instanceof TruffleString) {
-            try {
-                return InteropLibrary.getUncached().asString(value);
-            } catch (UnsupportedMessageException e) {
-                return "<UNKNOWN>";
+        try {
+            String asString =  InteropLibrary.getUncached().asString(value);
+            if (value instanceof TruffleString) {
+                return String.format("\"%s\"", asString);
             }
+            return asString;
+        } catch (UnsupportedMessageException e) {}
+        if (value instanceof IOMethod) {
+            return ((IOMethod)value).toString(depth);
         }
-        throw new NotImplementedException();
+        if (value instanceof IOList) {
+            return ((IOList)value).toString(depth);
+        }
+        if (value instanceof IOObject) {
+            return ((IOObject)value).toString(depth);
+        }
+        return value.toString();
     }
 }

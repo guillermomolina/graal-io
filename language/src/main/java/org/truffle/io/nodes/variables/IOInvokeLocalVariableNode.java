@@ -47,9 +47,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.expression.IOInvokeMethodNode;
+import org.truffle.io.nodes.expression.IOInvokeNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IOInvokable;
 
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "argumentNodes", type = IOExpressionNode[].class)
@@ -79,10 +79,10 @@ public abstract class IOInvokeLocalVariableNode extends IOExpressionNode {
         } else {
             value = frame.getObject(getSlot());
         }
-        if (value instanceof IOMethod) {
-            final IOInvokeMethodNode invokeMethodNode = new IOInvokeMethodNode((IOMethod) value, frame.getObject(0),
+        if (value instanceof IOInvokable) {
+            final IOInvokeNode invokeNode = new IOInvokeNode((IOInvokable) value, frame.getObject(0),
                     getArgumentNodes());
-            value = invokeMethodNode.executeGeneric(frame);
+            value = invokeNode.executeGeneric(frame);
         }
         return value;
     }

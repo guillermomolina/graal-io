@@ -130,11 +130,19 @@ public class IOObject extends DynamicObject {
         return getPrototype();
     }
 
+    public String toString() {
+        return toString(0);
+    }
+
+    public String toString(int depth) {
+        String string = String.format("Object_0x%X%s", hashCode(), IOObjectUtil.toString(this, depth));
+        return string;
+    }
+
     @ExportMessage
     @TruffleBoundary
-    Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        String string = String.format("Object_0x%X: %s", hashCode(), IOObjectUtil.toString(this));
-        return string;
+    Object toDisplayString(boolean allowSideEffects) {
+        return toString();
     }
 
     @ExportMessage

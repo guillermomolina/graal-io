@@ -43,10 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOSymbols;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -58,6 +54,10 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOSymbols;
 
 @ExportLibrary(InteropLibrary.class)
 public final class IOPrototype extends IOObject {
@@ -115,7 +115,8 @@ public final class IOPrototype extends IOObject {
 
     @ExportMessage(name = "toDisplayString")
     Object toDisplayString(boolean allowSideEffects) {
-        return getType();
+        String string = String.format("%s_0x%X: %s", getType(), hashCode(), IOObjectUtil.toString(this));
+        return string;
     }
 
     @Override

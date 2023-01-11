@@ -55,8 +55,9 @@ import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.expression.IOInvokeMethodNode;
+import org.truffle.io.nodes.expression.IOInvokeNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOMethod;
 
 @NodeField(name = "contextLevel", type = int.class)
@@ -96,10 +97,10 @@ public abstract class IOInvokeRemoteVariableNode extends IOExpressionNode {
         } else {
             value = ctx.getObject(getSlot());
         }
-        if (value instanceof IOMethod) {
-            final IOInvokeMethodNode invokeMethodNode = new IOInvokeMethodNode((IOMethod) value, frame.getObject(0),
+        if (value instanceof IOInvokable) {
+            final IOInvokeNode invokeNode = new IOInvokeNode((IOInvokable) value, frame.getObject(0),
                     getArgumentNodes());
-            value = invokeMethodNode.executeGeneric(frame);
+            value = invokeNode.executeGeneric(frame);
         }
         return value;
     }

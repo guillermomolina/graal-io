@@ -1,12 +1,15 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ */
+/*
+ * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
  *
  * Subject to the condition set forth below, permission is hereby granted to any
  * person obtaining a copy of this software, associated documentation and/or
- * list (collectively the "Software"), free of charge and under any and all
+ * data (collectively the "Software"), free of charge and under any and all
  * copyright rights in the Software, and any and all patent rights owned or
  * freely licensable by each licensor hereunder covering either (i) the
  * unmodified Software as contributed to or provided by such licensor, or (ii)
@@ -40,93 +43,36 @@
  */
 package org.truffle.io.runtime.objects;
 
-import java.util.List;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-
-import org.truffle.io.runtime.IOObjectUtil;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @ExportLibrary(InteropLibrary.class)
-public class IOList extends IOObject {
-    private Object[] list;
+public final class IOFunction extends IOInvokable {
 
-    public IOList(int size) {
-        super(IOPrototype.LIST);
-        this.list = new Object[size];
+    private final TruffleString name;
+
+    public IOFunction(final RootCallTarget callTarget, final TruffleString name) {
+        super(IOPrototype.BLOCK, callTarget);
+        this.name = name;
     }
 
-    public IOList(Object[] list) {
-        super(IOPrototype.LIST);
-        this.list = list;
-    }
-
-    public static IOList create(Object[] list) {
-        return new IOList(list);
-    }
-
-    @TruffleBoundary
-    public static IOList create(List<? extends Object> list) {
-        return new IOList(list.toArray(new Object[0]));
-    }
- 
-    public String toString() {
-        return toString(0);
+    public TruffleString getFunctionName() {
+        return name;
     }
 
     public String toString(int depth) {
-        String string = String.format("list(%s)", IOObjectUtil.toString(this, depth));
+        String string = "function(..)";
         return string;
     }
 
     @ExportMessage
     @TruffleBoundary
-    Object toDisplayString(boolean allowSideEffects) {
-        return toString();
-    }
-   
-    @ExportMessage
-    boolean hasArrayElements() {
-        return true;
-    }
-
-    @ExportMessage
-    Object readArrayElement(long index) throws InvalidArrayIndexException {
-        if (!isArrayElementReadable(index)) {
-            throw InvalidArrayIndexException.create(index);
-        }
-        return list[(int) index];
-    }
-
-    @ExportMessage
-    boolean isArrayElementReadable(long index) {
-        return index >= 0 && index < list.length;
-    }
-
-    @ExportMessage
-    boolean isArrayElementModifiable(long index) {
-        return index >= 0 && index < list.length;
-    }
-
-    @ExportMessage
-    boolean isArrayElementInsertable(long index) {
-        return false;
-    }
-
-    @ExportMessage
-    long getArraySize() {
-        return list.length;
-    }
-
-    @ExportMessage
-    public void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
-        if (!isArrayElementReadable(index)) {
-            throw InvalidArrayIndexException.create(index);
-        }
-        list[(int) index] = value;
+    static int identityHashCode(IOFunction receiver) {
+        return System.identityHashCode(receiver);
     }
 
 }

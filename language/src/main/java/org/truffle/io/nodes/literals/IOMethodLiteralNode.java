@@ -43,18 +43,19 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOMethod;
-
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOMethod;
 
 /**
  * Constant literal for a {@link IOMethod method} value, created when a method name occurs as
@@ -66,13 +67,13 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public final class IOMethodLiteralNode extends IOExpressionNode {
 
     @Child private IORootNode value;
-    private final int argCount;
+    private final TruffleString[] parameters;
 
     @CompilationFinal private IOMethod cachedMethod;
 
-    public IOMethodLiteralNode(final IORootNode value, int argCount) {
+    public IOMethodLiteralNode(final IORootNode value, TruffleString[] parameters) {
         this.value = value;
-        this.argCount = argCount;
+        this.parameters = parameters;
     }
 
     @Override
@@ -87,7 +88,7 @@ public final class IOMethodLiteralNode extends IOExpressionNode {
                 /* We are about to change a @CompilationFinal field. */
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 /* First execution of the node: lookup the method in the method registry. */
-                this.cachedMethod = method = IOState.get(this).createMethod(value.getCallTarget(), argCount, frame.materialize());
+                this.cachedMethod = method = IOState.get(this).createMethod(value.getCallTarget(), parameters, frame.materialize());
             }
         } else {
             /*
@@ -99,7 +100,7 @@ public final class IOMethodLiteralNode extends IOExpressionNode {
             }
             // in the multi-context case we are not allowed to store
             // IOMethod objects in the AST. Instead we always perform the lookup in the hash map.
-            method = IOState.get(this).createMethod(value.getCallTarget(), argCount, frame.materialize());
+            method = IOState.get(this).createMethod(value.getCallTarget(), parameters, frame.materialize());
         }
         return method;
     }

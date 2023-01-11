@@ -45,60 +45,106 @@ package org.truffle.io.runtime.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.ReportPolymorphism;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
-public final class IOMethod extends IOInvokable {
+public abstract class IOInvokable extends IOObject {
+
+    public static final int INLINE_CACHE_SIZE = 2;
 
     /** The current implementation of this method. */
-    private final TruffleString[] parameters;
-    private final MaterializedFrame context;
-
-    public IOMethod(final RootCallTarget callTarget, final TruffleString[] parameters, final MaterializedFrame context) {
-        super(IOPrototype.BLOCK, callTarget);
-        this.parameters = parameters;
-        this.context = context;
+    private final RootCallTarget callTarget;
+    
+    public IOInvokable(IOObject prototype, final RootCallTarget callTarget) {
+        super(prototype);
+        this.callTarget = callTarget;
     }
 
-    @Override
+    public RootCallTarget getCallTarget() {
+        return callTarget;
+    }
+
     public boolean hasContext() {
-        return context != null;
+        return false;
     }
     
-    public MaterializedFrame getContext() {
-        return context;
-    }
-    
-    public Object getOuterContext() {
-        return getContext().getArguments()[1];
-    }
-    
-    public int getNumArgs() {
-        return parameters.length;
+    public String toString() {
+        return toString(0);
     }
 
-    public TruffleString[] getParameters() {
-        return parameters;
-    }
-
-    public String toString(int depth) {
-        String string = "method(";
-        if(depth == 0) {
-            string += getSourceLocation().getCharacters().toString();
-        } else {
-            string += "...";
-        }
-        string += ")";
-        return string;
+    public abstract String toString(int depth);
+    
+    @ExportMessage
+    @TruffleBoundary
+    Object toDisplayString(boolean allowSideEffects) {
+        return toString();
     }
 
     @ExportMessage
     @TruffleBoundary
-    static int identityHashCode(IOMethod receiver) {
+    SourceSection getSourceLocation() {
+        return getCallTarget().getRootNode().getSourceSection();
+    }
+
+    @ExportMessage
+    boolean hasSourceLocation() {
+        return true;
+    }
+
+    @ExportMessage
+    boolean isExecutable() {
+        return true;
+    }
+
+    @ExportMessage
+    static final class IsIdenticalOrUndefined {
+        @Specialization
+        static TriState doIOInvokable(IOInvokable receiver, IOInvokable other) {
+            return receiver == other ? TriState.TRUE : TriState.FALSE;
+        }
+
+        @Fallback
+        static TriState doOther(IOInvokable receiver, Object other) {
+            return TriState.UNDEFINED;
+        }
+    }
+
+    @ExportMessage
+    @TruffleBoundary
+    static int identityHashCode(IOInvokable receiver) {
         return System.identityHashCode(receiver);
     }
+
+    @ReportPolymorphism
+    @ExportMessage
+    abstract static class Execute {
+
+        @Specialization(limit = "INLINE_CACHE_SIZE", //
+                guards = "method.getCallTarget() == cachedTarget")
+        protected static Object doDirect(IOInvokable method, Object[] arguments,
+                @Cached("method.getCallTarget()") RootCallTarget cachedTarget,
+                @Cached("create(cachedTarget)") DirectCallNode callNode) {
+
+            /* Inline cache hit, we are safe to execute the cached call target. */
+            Object returnValue = callNode.call(arguments);
+            return returnValue;
+        }
+
+        @Specialization(replaces = "doDirect")
+        protected static Object doIndirect(IOInvokable method, Object[] arguments,
+                @Cached IndirectCallNode callNode) {
+            return callNode.call(method.getCallTarget(), arguments);
+        }
+    }
+
 }

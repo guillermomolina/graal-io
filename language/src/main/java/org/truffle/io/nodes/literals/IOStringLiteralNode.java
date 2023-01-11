@@ -65,4 +65,8 @@ public final class IOStringLiteralNode extends IOExpressionNode {
     public TruffleString executeGeneric(VirtualFrame frame) {
         return value;
     }
-}
+
+    public TruffleString getValue(){
+        return value;
+    }
+ }
