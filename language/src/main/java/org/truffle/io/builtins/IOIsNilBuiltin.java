@@ -52,8 +52,8 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * Built-in function that queries if the foreign object is a null value. See
  * <link>Messages.IS_NULL</link>.
  */
-@NodeInfo(shortName = "isNull")
-public abstract class IOIsNullBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "isNil")
+public abstract class IOIsNilBuiltin extends IOBuiltinNode {
 
     @Specialization(limit = "3")
     public boolean isNull(Object obj, @CachedLibrary("obj") InteropLibrary values) {

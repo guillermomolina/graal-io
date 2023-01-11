@@ -43,13 +43,37 @@
  */
 package org.truffle.io.runtime;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.graalvm.polyglot.Context;
+import org.truffle.io.IOLanguage;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.builtins.IOCloneBuiltinFactory;
+import org.truffle.io.builtins.IOExitBuiltinFactory;
+import org.truffle.io.builtins.IOHasProtoBuiltinFactory;
+import org.truffle.io.builtins.IOIsActivatableBuiltinFactory;
+import org.truffle.io.builtins.IOIsNilBuiltinFactory;
+import org.truffle.io.builtins.IOPrintlnBuiltin;
+import org.truffle.io.builtins.IOPrintlnBuiltinFactory;
+import org.truffle.io.builtins.IOProtoBuiltinFactory;
+import org.truffle.io.builtins.IOReadlnBuiltin;
+import org.truffle.io.builtins.IORegisterShutdownHookBuiltinFactory;
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.nodes.variables.IOReadArgumentNode;
+import org.truffle.io.runtime.objects.IOBigNumber;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -71,42 +95,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.graalvm.polyglot.Context;
-import org.truffle.io.IOLanguage;
-import org.truffle.io.builtins.IOAddToHostClassPathBuiltinFactory;
-import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.builtins.IOCloneBuiltinFactory;
-import org.truffle.io.builtins.IODefineFunctionBuiltinFactory;
-import org.truffle.io.builtins.IOEvalBuiltinFactory;
-import org.truffle.io.builtins.IOExitBuiltinFactory;
-import org.truffle.io.builtins.IOGetSizeBuiltinFactory;
-import org.truffle.io.builtins.IOHasProtoBuiltinFactory;
-import org.truffle.io.builtins.IOHasSizeBuiltinFactory;
-import org.truffle.io.builtins.IOImportBuiltinFactory;
-import org.truffle.io.builtins.IOIsExecutableBuiltinFactory;
-import org.truffle.io.builtins.IOIsNullBuiltinFactory;
-import org.truffle.io.builtins.IOJavaTypeBuiltinFactory;
-import org.truffle.io.builtins.IONanoTimeBuiltinFactory;
-import org.truffle.io.builtins.IOPrintlnBuiltin;
-import org.truffle.io.builtins.IOPrintlnBuiltinFactory;
-import org.truffle.io.builtins.IOProtoBuiltinFactory;
-import org.truffle.io.builtins.IOReadlnBuiltin;
-import org.truffle.io.builtins.IOReadlnBuiltinFactory;
-import org.truffle.io.builtins.IORegisterShutdownHookBuiltinFactory;
-import org.truffle.io.builtins.IOStackTraceBuiltinFactory;
-import org.truffle.io.builtins.IOWrapPrimitiveBuiltinFactory;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.nodes.variables.IOReadArgumentNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-import org.truffle.io.runtime.objects.IOPrototype;
 
 /**
  * The run-time state of IO during execution. The context is created by the
@@ -206,24 +194,24 @@ public final class IOState {
     }
 
     private void installBuiltins() {
-        installBuiltin(IOReadlnBuiltinFactory.getInstance());
+        // installBuiltin(IOReadlnBuiltinFactory.getInstance());
         installBuiltin(IOPrintlnBuiltinFactory.getInstance());
-        installBuiltin(IONanoTimeBuiltinFactory.getInstance());
-        installBuiltin(IODefineFunctionBuiltinFactory.getInstance());
-        installBuiltin(IOStackTraceBuiltinFactory.getInstance());
+        // installBuiltin(IONanoTimeBuiltinFactory.getInstance());
+        // installBuiltin(IODefineFunctionBuiltinFactory.getInstance());
+        // installBuiltin(IOStackTraceBuiltinFactory.getInstance());
         installBuiltin(IOCloneBuiltinFactory.getInstance());
-        installBuiltin(IOEvalBuiltinFactory.getInstance());
-        installBuiltin(IOImportBuiltinFactory.getInstance());
-        installBuiltin(IOGetSizeBuiltinFactory.getInstance());
+        // installBuiltin(IOEvalBuiltinFactory.getInstance());
+        // installBuiltin(IOImportBuiltinFactory.getInstance());
+        // installBuiltin(IOGetSizeBuiltinFactory.getInstance());
         installBuiltin(IOHasProtoBuiltinFactory.getInstance());
-        installBuiltin(IOHasSizeBuiltinFactory.getInstance());
-        installBuiltin(IOIsExecutableBuiltinFactory.getInstance());
-        installBuiltin(IOIsNullBuiltinFactory.getInstance());
-        installBuiltin(IOWrapPrimitiveBuiltinFactory.getInstance());
+        // installBuiltin(IOHasSizeBuiltinFactory.getInstance());
+        installBuiltin(IOIsActivatableBuiltinFactory.getInstance());
+        installBuiltin(IOIsNilBuiltinFactory.getInstance());
+        // installBuiltin(IOWrapPrimitiveBuiltinFactory.getInstance());
         installBuiltin(IOProtoBuiltinFactory.getInstance());
-        installBuiltin(IOJavaTypeBuiltinFactory.getInstance());
+        // installBuiltin(IOJavaTypeBuiltinFactory.getInstance());
         installBuiltin(IORegisterShutdownHookBuiltinFactory.getInstance());
-        installBuiltin(IOAddToHostClassPathBuiltinFactory.getInstance());
+        // installBuiltin(IOAddToHostClassPathBuiltinFactory.getInstance());
     }
      
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {
@@ -326,7 +314,7 @@ public final class IOState {
         } else if (a instanceof IOState) {
             return a;
         }
-        throw shouldNotReachHere("Value is not a truffle value.");
+        throw new ShouldNotBeHereException("Value is not a truffle value.");
     }
 
     @TruffleBoundary
@@ -380,7 +368,7 @@ public final class IOState {
             try {
                 interopLibrary.execute(shutdownHook);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
-                throw shouldNotReachHere("Shutdown hook is not executable!", e);
+                throw new ShouldNotBeHereException("Shutdown hook is not executable!", e);
             }
         }
     }
