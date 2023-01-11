@@ -63,6 +63,7 @@ import org.truffle.io.builtins.IOPrintlnBuiltinFactory;
 import org.truffle.io.builtins.IOProtoBuiltinFactory;
 import org.truffle.io.builtins.IOReadlnBuiltin;
 import org.truffle.io.builtins.IORegisterShutdownHookBuiltinFactory;
+import org.truffle.io.builtins.IOSlotNamesBuiltinFactory;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
@@ -212,6 +213,7 @@ public final class IOState {
         // installBuiltin(IOJavaTypeBuiltinFactory.getInstance());
         installBuiltin(IORegisterShutdownHookBuiltinFactory.getInstance());
         // installBuiltin(IOAddToHostClassPathBuiltinFactory.getInstance());
+        installBuiltin(IOSlotNamesBuiltinFactory.getInstance());
     }
      
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {
