@@ -70,6 +70,11 @@ public final class IONil extends IOObject {
     }
 
     @ExportMessage
+    boolean isMetaObject() {
+        return false;
+    }
+
+    @ExportMessage
     static final class IsIdenticalOrUndefined {
         @Specialization
         static TriState doIONil(IONil receiver, IONil other) {
