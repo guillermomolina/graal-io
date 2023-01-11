@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,39 +38,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.literals;
+package org.truffle.io.runtime.objects;
 
-import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.runtime.objects.IOFalse;
-import org.truffle.io.runtime.objects.IOTrue;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.utilities.TriState;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
+@ExportLibrary(InteropLibrary.class)
+public final class IOFalse extends IOObject {
 
-/**
- * Constant literal for a primitive {@code boolean} value. The unboxed value can be returned when the
- * parent expects a boolean value and calls {@link IOBooleanLiteralNode#executeBoolean}. In the generic case,
- * the primitive value is automatically boxed by Java.
- */
-@NodeInfo(shortName = "const")
-public final class IOBooleanLiteralNode extends IOExpressionNode {
+    public static final IOFalse SINGLETON = new IOFalse();
+    private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
-    private final boolean value;
-
-    public IOBooleanLiteralNode(boolean value) {
-        this.value = value;
+    private IOFalse() {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
-        throw new ShouldNotBeHereException();
-        //return value;
+    public String toString() {
+        return "false";
     }
 
-    @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        return value? IOTrue.SINGLETON : IOFalse.SINGLETON;
+    @ExportMessage
+    static final class IsIdenticalOrUndefined {
+        @Specialization
+        static TriState doIOFalse(IOFalse receiver, IOFalse other) {
+            return TriState.valueOf(IOFalse.SINGLETON == other);
+        }
+
+        @Fallback
+        static TriState doOther(IOFalse receiver, Object other) {
+            return TriState.valueOf(IOFalse.SINGLETON == other);
+        }
+    }
+
+    @ExportMessage
+    static int identityHashCode(IOFalse receiver) {
+        return IDENTITY_HASH;
+    }
+
+    @ExportMessage
+    Object toDisplayString(boolean allowSideEffects) {
+        return "false";
     }
 }
