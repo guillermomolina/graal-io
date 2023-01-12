@@ -52,7 +52,7 @@
   <artifactId>iolanguage</artifactId>
     <properties>
       <jar.dir>${project.build.directory}/jars</jar.dir>
-      <test.argLine>--upgrade-module-path='${jar.dir}/truffle-api.jar' --add-opens org.graalvm.sdk/org.graalvm.polyglot=ALL-UNNAMED --add-exports java.base/jdk.internal.module=ALL-UNNAMED</test.argLine>
+      <test.argLine>--upgrade-module-path='${jar.dir}/truffle-api.jar' --add-opens org.graalvm.sdk/org.graalvm.polyglot=ALL-UNNAMED --add-opens java.base/jdk.internal.module=ALL-UNNAMED --add-exports java.base/jdk.internal.module=ALL-UNNAMED</test.argLine>
       <antlr4.visitor>true</antlr4.visitor>
       <antlr4.listener>false</antlr4.listener>
     </properties>
