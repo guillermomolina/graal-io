@@ -4,7 +4,7 @@ mkobj := method(
   newobj
 )
 
-read := method(obj, name, ong getSlot(name))
+read := method(obj, name, obj getSlot(name))
 
 write := method(obj, name, value, obj setSlot(name, value))
 
