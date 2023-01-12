@@ -3,7 +3,6 @@ loop := method(n, obj, name,
   while (obj getSlot(name) < n, 
     obj setSlot(name, obj getSlot(name) + 1)
   )
-  obj getSlot(name)
 )
 
 i := 0

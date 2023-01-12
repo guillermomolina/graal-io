@@ -1,0 +1,10 @@
+snil
+snil
+sbar
+sfoo
+nils
+nils
+bars
+foos
+2 < 4: true
+Type error at String.io line 6 col 27: operation "<" not defined for Number 2, Sequence "4"

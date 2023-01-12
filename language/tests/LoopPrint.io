@@ -3,7 +3,6 @@ loop := method(n,
   while(i < n,  
     i := i + 1
   )
-  i
 )
 
 i := 0
