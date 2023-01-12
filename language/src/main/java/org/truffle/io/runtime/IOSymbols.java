@@ -55,8 +55,9 @@ public final class IOSymbols {
 
     public static final TruffleString EMPTY_STRING = constant("");
     public static final TruffleString UNDERSCORE = constant("_");
-    public static final TruffleString NULL = constant("NULL");
-    public static final TruffleString NULL_LC = constant("null");
+    public static final TruffleString NIL = constant("nil");
+    public static final TruffleString TRUE = constant("true");
+    public static final TruffleString FALSE = constant("false");
     public static final TruffleString SELF = constant("self");
     public static final TruffleString OBJECT = constant("Object");
     public static final TruffleString NUMBER = constant("Number");
@@ -78,7 +79,7 @@ public final class IOSymbols {
 
     public static TruffleString fromObject(Object o) {
         if (o == null) {
-            return NULL_LC;
+            return NIL;
         }
         if (o instanceof TruffleString) {
             return (TruffleString) o;

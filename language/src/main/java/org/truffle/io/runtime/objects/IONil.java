@@ -50,17 +50,20 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
 
+import org.truffle.io.runtime.IOSymbols;
+
 @ExportLibrary(InteropLibrary.class)
-public final class IONil extends IOObject {
+public final class IONil extends IOPrototype {
 
     public static final IONil SINGLETON = new IONil();
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
-     private IONil() {
+    private IONil() {
+        super(IOPrototype.OBJECT, IOSymbols.NIL, (l, v) -> l.isNull(v));
     }
 
     @Override
-    public String toString() {
+    public String toString(int depth) {
         return "nil";
     }
 
@@ -94,6 +97,6 @@ public final class IONil extends IOObject {
 
     @ExportMessage
     Object toDisplayString(boolean allowSideEffects) {
-        return "nil";
+        return IOSymbols.NIL;
     }
 }

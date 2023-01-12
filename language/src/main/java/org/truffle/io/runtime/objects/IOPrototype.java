@@ -60,7 +60,7 @@ import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOSymbols;
 
 @ExportLibrary(InteropLibrary.class)
-public final class IOPrototype extends IOObject {
+public class IOPrototype extends IOObject {
     public static final TruffleString TYPE = IOSymbols.constant("type");
 
     public static final IOPrototype OBJECT = new IOPrototype(null, IOSymbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
@@ -120,7 +120,7 @@ public final class IOPrototype extends IOObject {
     }
 
     @Override
-    public String toString() {
+    public String toString(int depth) {
         return "IOType[" + getType() + "]";
     }
 

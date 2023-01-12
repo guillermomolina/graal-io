@@ -45,12 +45,6 @@ package org.truffle.io.nodes.util;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.runtime.IOSymbols;
-import org.truffle.io.runtime.objects.IOBigNumber;
-import org.truffle.io.runtime.objects.IONil;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -61,6 +55,12 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.IOTypes;
+import org.truffle.io.runtime.IOSymbols;
+import org.truffle.io.runtime.objects.IOBigNumber;
+import org.truffle.io.runtime.objects.IONil;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
@@ -80,7 +80,7 @@ public abstract class IOToTruffleStringNode extends Node {
 
     @Specialization
     protected static TruffleString fromNull(IONil value) {
-        return IOSymbols.NULL;
+        return IOSymbols.NIL;
     }
 
     @Specialization
@@ -126,7 +126,7 @@ public abstract class IOToTruffleStringNode extends Node {
             } else if (interop.isNumber(value) && value instanceof IOBigNumber) {
                 return fromJavaStringNode.execute(bigNumberToString((IOBigNumber) value), IOLanguage.STRING_ENCODING);
             } else if (interop.isNull(value)) {
-                return IOSymbols.NULL_LC;
+                return IOSymbols.NIL;
             } else {
                 return FOREIGN_OBJECT;
             }
