@@ -60,14 +60,12 @@ public class IOReadPropertyTest {
     @Before
     public void setUp() {
         this.ctx = Context.create("io");
-        this.slObject = ctx.eval("io", "function createObject() {\n" +
-                        "obj1 = new();\n" +
-                        "obj1.number = 42;\n" +
-                        "return obj1;\n" +
-                        "}\n" +
-                        "function main() {\n" +
-                        "return createObject;\n" +
-                        "}").execute();
+        this.slObject = ctx.eval("io", "createObject := method(\n" +
+                        "obj1 := Object clone\n" +
+                        "obj1 number := 42\n" +
+                        "obj1\n" +
+                        ")\n" +
+                        "getSlot(\"createObject\")\n").execute();
     }
 
     @After
