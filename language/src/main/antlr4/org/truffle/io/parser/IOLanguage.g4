@@ -66,8 +66,8 @@ operation:
     ;
 
 assignment:
-    sequence? name=IDENTIFIER assign=('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '<-' | '<->' | '->') operation
-    | sequence? name=IDENTIFIER assign=('=' | ':=' | '::=') operation
+    sequence? name=identifier assign=('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '<-' | '<->' | '->') operation
+    | sequence? name=identifier assign=('=' | ':=' | '::=') operation
     ;
 
 sequence:
@@ -83,7 +83,7 @@ literalMessage:
     | continueMessage
     | ifMessage
     | whileMessage 
-    // | forMessage
+    | forMessage
     | listMessage
     | methodMessage
     ;
@@ -105,7 +105,7 @@ breakMessage: BREAK;
 continueMessage: CONTINUE;
 listMessage: LIST arguments?;
 methodMessage: METHOD OPEN EOL* parameterList? body=expression? EOL* CLOSE;
-parameterList: (IDENTIFIER EOL* COMMA EOL*)+;
+parameterList: (identifier EOL* COMMA EOL*)+;
 ifMessage:
     ifMessage1 EOL* thenMessage (EOL* elseMessage)?
     | ifThenElseMessage
@@ -118,20 +118,23 @@ ifThenElseMessage:
         condition=expression EOL* COMMA EOL* 
         thenPart=expression EOL* (COMMA EOL* 
         elsePart=expression EOL*)? 
-    CLOSE;
+    CLOSE
+    ;
 whileMessage: 
     WHILE OPEN EOL* 
         condition=expression EOL* COMMA EOL* 
         body=expression EOL* 
-    CLOSE;
-// forMessage: 
-//     FOR OPEN EOL* 
-//         counter=IDENTIFIER EOL* COMMA EOL* 
-//         startPart=expression EOL* COMMA EOL* 
-//         endPart=expression EOL* COMMA EOL* 
-//         (stepPart=expression EOL* COMMA EOL*)?
-//         body=expression EOL* 
-//     CLOSE;
+    CLOSE
+    ;
+forMessage: 
+    FOR OPEN EOL* 
+        counter=identifier EOL* COMMA EOL* 
+        startPart=expression EOL* COMMA EOL* 
+        endPart=expression EOL* COMMA EOL* 
+        (stepPart=expression EOL* COMMA EOL*)?
+        body=expression EOL* 
+    CLOSE
+    ;
 
 literal: 
     number 
@@ -141,17 +144,44 @@ literal:
 
 number:
     decimal
-    | FLOAT;
+    | FLOAT
+    ;
 
 decimal:
     INTEGER 
     | HEXADECIMAL 
     | OCTAL 
-    | BINARY;
+    | BINARY
+    ;
 
 pseudoVariable: NIL | TRUE | FALSE | SELF | SUPER;
 
 terminator: ';' | EOL;
+
+identifier: 
+    IDENTIFIER
+    | AT
+    | AT_PUT
+    | BREAK
+    | CONTINUE
+    | ELSE
+    | FALSE
+    | FOR
+    | GET_SLOT
+    | IF
+    | LIST
+    | METHOD
+    | NEW_SLOT
+    | NIL
+    | RETURN
+    | SELF
+    | SET_SLOT
+    | SUPER
+    | THEN
+    | TRUE
+    | UPDATE_SLOT
+    | WHILE
+    ;
 
 AT: 'at';
 AT_PUT: 'atPut';
@@ -159,7 +189,7 @@ BREAK: 'break';
 CONTINUE: 'continue';
 ELSE: 'else';
 FALSE: 'false';
-//FOR: 'for';
+FOR: 'for';
 GET_SLOT: 'getSlot';
 IF: 'if';
 LIST: 'list';
@@ -206,7 +236,8 @@ IDENTIFIER: (LETTER | '_') (LETTER | '_' | DIGIT)*;
 
 OPERATOR:  (':' | '.' | '\'' | '~' | '!' | '@' | '$' | 
     '%' | '^' | '&' | '*' | '-' | '+' | '/' | '=' | '{' | '}' | 
-    '[' | ']' | '|' | '\\' | '<' | '>' | '?')+;
+    '[' | ']' | '|' | '\\' | '<' | '>' | '?')+
+    ;
 
 COMMA: ',';
 OPEN: '(' | '[' | '{';

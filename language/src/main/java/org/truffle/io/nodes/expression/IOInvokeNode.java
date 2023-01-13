@@ -43,12 +43,6 @@
  */
 package org.truffle.io.nodes.expression;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.runtime.IOState;
@@ -56,6 +50,12 @@ import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
+
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public final class IOInvokeNode extends IOExpressionNode {
 

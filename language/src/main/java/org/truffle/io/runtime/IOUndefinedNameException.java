@@ -43,19 +43,14 @@
  */
 package org.truffle.io.runtime;
 
+import org.truffle.io.IOLanguageException;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-
-import org.truffle.io.IOLanguageException;
 
 public final class IOUndefinedNameException extends IOLanguageException {
 
     private static final long serialVersionUID = 1L;
-
-    @TruffleBoundary
-    public static IOUndefinedNameException undefinedMethod(Node location, Object name) {
-        throw new IOUndefinedNameException("Undefined method: " + name, location);
-    }
 
     @TruffleBoundary
     public static IOUndefinedNameException undefinedProperty(Node location, Object name) {

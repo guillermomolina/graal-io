@@ -43,6 +43,10 @@
  */
 package org.truffle.io.nodes.variables;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOMethod;
+
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -57,11 +61,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOMethod;
-
-@NodeChild("valueNode")
+@NodeChild("setSlot")
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "nameNode", type = IOExpressionNode.class)

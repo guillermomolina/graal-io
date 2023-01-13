@@ -43,8 +43,20 @@
  */
 package org.truffle.io.nodes.sequences;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.expression.IOInvokeNode;
+import org.truffle.io.nodes.literals.IOLongLiteralNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IOSymbols;
+import org.truffle.io.runtime.IOUndefinedNameException;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -53,63 +65,66 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.runtime.IOOutOfBoundsException;
-import org.truffle.io.runtime.IOSymbols;
-import org.truffle.io.runtime.IOUndefinedNameException;
-import org.truffle.io.runtime.objects.IOObject;
-
-/**
- * The node for reading a property of an object. When executed, this node:
- * <ol>
- * <li>evaluates the object expression on the left hand side of the object
- * access operator</li>
- * <li>evaluated the property name</li>
- * <li>reads the named property</li>
- * </ol>
- */
 @NodeInfo(shortName = "atPut")
 @NodeChild("receiverNode")
 @NodeChild("indexNode")
-@NodeChild("valueNode")
+@NodeField(name = "valueNode", type = IOExpressionNode.class)
 public abstract class IOSequenceAtPutNode extends IOExpressionNode {
 
     static final TruffleString AT_PUT = IOSymbols.constant("atPut");
     static final int LIBRARY_LIMIT = 3;
 
-    // @Specialization
-    // protected long atString(TruffleString receiver, long index,
-    //         @Cached TruffleString.ReadCharUTF16Node readByteNode) {
-    //     try {
-    //         return (long) readByteNode.execute(receiver, (int) index);
-    //     } catch (IndexOutOfBoundsException e) {
-    //         throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
-    //     }
-    // }
-
+    protected abstract IOExpressionNode getValueNode();
+    
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object atArrayPut(Object receiver, long index, Object value,
+    protected Object atArrayPut(VirtualFrame frame, Object receiver, Object index,
                     @CachedLibrary("receiver") InteropLibrary arrays,
                     @CachedLibrary("index") InteropLibrary numbers) {
         try {
-            arrays.writeArrayElement(receiver, index, value);
-        } catch (UnsupportedMessageException | UnsupportedTypeException e) {
-            throw IOUndefinedNameException.undefinedProperty(this, AT_PUT);
-        } catch (InvalidArrayIndexException e) {
-            throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
+            Object value = getValueNode().executeGeneric(frame);
+            arrays.writeArrayElement(receiver, numbers.asLong(index), value);
+        } catch (UnsupportedMessageException | UnsupportedTypeException | InvalidArrayIndexException e) {
+            throw IOUndefinedNameException.undefinedProperty(this, index);
         }
-        return value;
+        return receiver;
     }
 
-    @Specialization
-    protected Object atIOObjectPut(IOObject receiver, long index, Object value) {
-        throw new NotImplementedException();
+    @Specialization(limit = "LIBRARY_LIMIT")
+    protected Object atIOObjectPut(VirtualFrame frame, IOObject receiver, Object index,
+            @CachedLibrary("index") InteropLibrary numbers) {
+        try {
+            Object property = IOObjectUtil.getOrDefault(receiver, AT_PUT, null);
+            return getOrInvoke(frame, receiver, numbers.asLong(index), property);
+        } catch (UnsupportedMessageException e) {
+            throw IOUndefinedNameException.undefinedProperty(this, AT_PUT);
+        }
     }
 
-    @Specialization
-    protected Object atObjectPut(Object receiver, long index, Object value) {
-        throw new NotImplementedException();
+    @Specialization(limit = "LIBRARY_LIMIT")
+    protected Object atObjectPut(VirtualFrame frame, Object receiver, Object index,
+            @CachedLibrary("index") InteropLibrary numbers) {
+        try {
+            IOObject prototype = IOState.get(this).getPrototype(receiver);
+            Object property = IOObjectUtil.getOrDefault(prototype, AT_PUT, null);
+            return getOrInvoke(frame, receiver, numbers.asLong(index), property);
+        } catch (UnsupportedMessageException e) {
+            throw IOUndefinedNameException.undefinedProperty(this, AT_PUT);
+        }
     }
 
+    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, long index, final Object property) {
+        if (property == null) {
+            throw IOUndefinedNameException.undefinedProperty(this, AT_PUT);
+        }
+        if (property instanceof IOInvokable) {
+            final IOInvokable invokable = (IOInvokable) property;
+            final IOExpressionNode[] argumentNodes = new IOExpressionNode[2];
+            argumentNodes[0] = new IOLongLiteralNode(index);
+            argumentNodes[1] = getValueNode();
+            final IOInvokeNode invokeNode = new IOInvokeNode(invokable, receiver, argumentNodes);
+            Object result = invokeNode.executeGeneric(frame);
+            return result;
+        }
+        return property;
+    }
 }

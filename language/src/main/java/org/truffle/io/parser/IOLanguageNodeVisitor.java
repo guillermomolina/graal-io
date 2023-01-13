@@ -3,11 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -16,7 +11,6 @@ import org.antlr.v4.runtime.LexerNoViableAltException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.TerminalNode;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
@@ -27,6 +21,8 @@ import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;
 import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
 import org.truffle.io.parser.IOLanguageParser.DecimalContext;
 import org.truffle.io.parser.IOLanguageParser.ExpressionContext;
+import org.truffle.io.parser.IOLanguageParser.ForMessageContext;
+import org.truffle.io.parser.IOLanguageParser.IdentifierContext;
 import org.truffle.io.parser.IOLanguageParser.IfMessageContext;
 import org.truffle.io.parser.IOLanguageParser.IfThenElseMessageContext;
 import org.truffle.io.parser.IOLanguageParser.IolanguageContext;
@@ -42,6 +38,11 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
@@ -194,7 +195,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
                 receiverNode = (IOExpressionNode) visitSequence(ctx.sequence());
                 assert receiverNode != null;
             }
-            IOExpressionNode assignmentNameNode = factory.createStringLiteral(ctx.name, false);
+            IOExpressionNode assignmentNameNode = (IOExpressionNode) visitIdentifier(ctx.name);
             assert assignmentNameNode != null;
             IOExpressionNode valueNode = (IOExpressionNode) visitOperation(ctx.operation());
             assert valueNode != null;
@@ -267,6 +268,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         if (ctx.ifMessage() != null) {
             return visitIfMessage(ctx.ifMessage());
         }
+        if (ctx.forMessage() != null) {
+            return visitForMessage(ctx.forMessage());
+        }
         if (ctx.whileMessage() != null) {
             return visitWhileMessage(ctx.whileMessage());
         }
@@ -316,7 +320,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         if (ctx.decimal() == null) {
             indexNode = (IOExpressionNode) visitExpression(ctx.expression(0));
         } else {
-            indexNode = (IOExpressionNode)visitDecimal(ctx.decimal());
+            indexNode = (IOExpressionNode) visitDecimal(ctx.decimal());
         }
         assert indexNode != null;
         int start = ctx.start.getStartIndex();
@@ -326,8 +330,25 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         return result;
     }
 
-    public Node visitAtPutMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
-        throw new NotImplementedException();
+    public Node visitAtPutMessage(final MessageContext ctx, IOExpressionNode r) {
+        final IOExpressionNode indexNode;
+        if (ctx.decimal() == null) {
+            indexNode = (IOExpressionNode) visitExpression(ctx.expression(0));
+        } else {
+            indexNode = (IOExpressionNode) visitDecimal(ctx.decimal());
+        }
+        assert indexNode != null;
+        IOExpressionNode valueNode = (IOExpressionNode) visitExpression(ctx.value);
+        assert valueNode != null;
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        IOExpressionNode receiverNode = r;
+        if(receiverNode == null) {
+            receiverNode = factory.createReadSelf();
+        }
+        IOExpressionNode result = factory.createSequenceAtPut(receiverNode, indexNode, valueNode, start, length);
+        assert result != null;
+        return result;
     }
 
     public Node visitGetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
@@ -432,24 +453,25 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
     }
 
-    // @Override
-    // public Node visitForMessage(ForMessageContext ctx) {
-    //     factory.startLoopBlock();
-    //     IOExpressionNode counterNode = factory.createStringLiteral(ctx.counter,
-    //             false);
-    //     IOExpressionNode startValueNode = (IOExpressionNode) visitExpressionList(ctx.startPart);
-    //     IOExpressionNode endValueNode = (IOExpressionNode) visitExpressionList(ctx.endPart);
-    //     IOExpressionNode stepValueNode = null;
-    //     if (ctx.stepPart != null) {
-    //         stepValueNode = (IOExpressionNode) visitExpressionList(ctx.stepPart);
-    //     }
-    //     IOExpressionNode bodyNode = (IOExpressionNode) visitExpressionList(ctx.body);
-    //     IOExpressionNode result = factory.createFor(ctx.FOR().getSymbol(),
-    //             counterNode, startValueNode,
-    //             endValueNode, stepValueNode, bodyNode);
-    //     return factory.finishLoopBlock(result, ctx.start.getStartIndex(),
-    //             ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
-    // }
+    @Override
+    public Node visitForMessage(ForMessageContext ctx) {
+        throw new NotImplementedException();
+        // factory.startLoopBlock();
+        // IOExpressionNode counterNode = factory.createStringLiteral(ctx.counter,
+        //         false);
+        // IOExpressionNode startValueNode = (IOExpressionNode) visitExpressionList(ctx.startPart);
+        // IOExpressionNode endValueNode = (IOExpressionNode) visitExpressionList(ctx.endPart);
+        // IOExpressionNode stepValueNode = null;
+        // if (ctx.stepPart != null) {
+        //     stepValueNode = (IOExpressionNode) visitExpressionList(ctx.stepPart);
+        // }
+        // IOExpressionNode bodyNode = (IOExpressionNode) visitExpressionList(ctx.body);
+        // IOExpressionNode result = factory.createFor(ctx.FOR().getSymbol(),
+        //         counterNode, startValueNode,
+        //         endValueNode, stepValueNode, bodyNode);
+        // return factory.finishLoopBlock(result, ctx.start.getStartIndex(),
+        //         ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
+    }
 
     @Override
     public Node visitListMessage(ListMessageContext ctx) {
@@ -473,8 +495,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         }
         factory.startMethod(bodyStartToken);
         if (ctx.parameterList() != null) {
-            for (final TerminalNode parameter : ctx.parameterList().IDENTIFIER()) {
-                factory.addFormalParameter(parameter.getSymbol());
+            for (final IdentifierContext identifierCtx : ctx.parameterList().identifier()) {
+                factory.addFormalParameter(identifierCtx.start);
             }
         }
         int startPos = ctx.start.getStartIndex();
@@ -488,6 +510,11 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         final IOExpressionNode result = factory.finishMethod(bodyNode, startPos, length);
         assert result != null;
         return result;
+    }
+
+    @Override
+    public Node visitIdentifier(IdentifierContext ctx) {
+        return factory.createStringLiteral(ctx.start, false);
     }
 
     @Override

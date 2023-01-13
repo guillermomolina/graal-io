@@ -66,48 +66,10 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
     protected abstract IOExpressionNode[] getArgumentNodes();
 
     @Specialization
-    protected Object invokeLong(VirtualFrame frame, long receiver, Object name,
-            @Cached IOToTruffleStringNode toTruffleStringNode) {
-        IOObject prototype = IOState.get(this).getPrototype(receiver);
-        TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
-        if (value == null) {
-            throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
-        }
-        if (value instanceof IOInvokable) {
-            value = invoke(frame, (IOInvokable) value, receiver);
-        }
-        return value;
-    }
-
-    @Specialization
-    protected Object invokeBoolean(VirtualFrame frame, boolean receiver, Object name,
-            @Cached IOToTruffleStringNode toTruffleStringNode) {
-        TruffleString nameTS = toTruffleStringNode.execute(name);
-        IOObject prototype = IOState.get(this).getPrototype(receiver);
-        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
-        if (value == null) {
-            throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
-        }
-        if (value instanceof IOInvokable) {
-            value = invoke(frame, (IOInvokable) value, receiver);
-        }
-        return value;
-    }
-
-    @Specialization
     protected Object invokeIOObject(VirtualFrame frame, IOObject receiver, Object name,
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefault(receiver, nameTS, null);
-        if (value == null) {
-            value = IOObjectUtil.getOrDefault(receiver, nameTS, null);
-            throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
-        }
-        if (value instanceof IOInvokable) {
-            value = invoke(frame, (IOInvokable) value, receiver);
-        }
-        return value;
+        return getOrInvoke(frame, receiver, nameTS, receiver);
     }
 
     @Specialization
@@ -115,20 +77,21 @@ public abstract class IOInvokePropertyNode extends IOExpressionNode {
             @Cached IOToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
-        if (value == null) {
-            throw IOUndefinedNameException.undefinedProperty(toTruffleStringNode, nameTS);
-        }
-        if (value instanceof IOInvokable) {
-            value = invoke(frame, (IOInvokable) value, receiver);
-        }
-        return value;
+        return getOrInvoke(frame, receiver, nameTS, prototype);
     }
 
-    protected final Object invoke(VirtualFrame frame, final IOInvokable invokable, final Object receiver) {
-        final IOInvokeNode invokeNode = new IOInvokeNode(invokable, receiver, getArgumentNodes());;
-        Object result = invokeNode.executeGeneric(frame);
-        return result;
+    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, final TruffleString nameTS, final IOObject prototype) {
+        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
+        if (value == null) {
+            throw IOUndefinedNameException.undefinedProperty(this, nameTS);
+        }
+        if (value instanceof IOInvokable) {
+            final IOInvokable invokable = (IOInvokable) value;
+            final IOInvokeNode invokeNode = new IOInvokeNode(invokable, receiver, getArgumentNodes());
+            Object result = invokeNode.executeGeneric(frame);
+            return result;
+        }
+        return value;
     }
 
     @Override

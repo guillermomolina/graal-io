@@ -49,12 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -89,6 +83,7 @@ import org.truffle.io.nodes.logic.IOLogicalNotNodeGen;
 import org.truffle.io.nodes.logic.IOLogicalOrNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.sequences.IOSequenceAtNodeGen;
+import org.truffle.io.nodes.sequences.IOSequenceAtPutNodeGen;
 import org.truffle.io.nodes.util.IOUnboxNodeGen;
 import org.truffle.io.nodes.variables.IOInvokeLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOInvokePropertyNodeGen;
@@ -100,6 +95,12 @@ import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOWritePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.IOSymbols;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class IONodeFactory {
 
@@ -642,6 +643,18 @@ public class IONodeFactory {
         return result;
     }
 
+    public IOExpressionNode createSequenceAtPut(IOExpressionNode receiverNode, IOExpressionNode indexNode,
+            IOExpressionNode valueNode, int startPos, int length) {
+        if (receiverNode == null || indexNode == null || valueNode == null) {
+            return null;
+        }
+
+        final IOExpressionNode result = IOSequenceAtPutNodeGen.create(receiverNode, indexNode, valueNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+
+        return result;
+    }
 
     public IOExpressionNode createReadSlot(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos,
             int length) {

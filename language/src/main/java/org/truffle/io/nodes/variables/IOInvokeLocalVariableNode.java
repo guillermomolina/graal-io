@@ -87,11 +87,6 @@ public abstract class IOInvokeLocalVariableNode extends IOExpressionNode {
         return value;
     }
 
-    // @Override
-    // public boolean hasTag(Class<? extends Tag> tag) {
-    //     return tag == ReadVariableTag.class || super.hasTag(tag);
-    // }
-
     @Override
     public Object getNodeObject() {
         return NodeObjectDescriptor

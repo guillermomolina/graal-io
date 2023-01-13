@@ -43,10 +43,10 @@
  */
 package org.truffle.io.runtime;
 
+import org.truffle.io.IOLanguageException;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-
-import org.truffle.io.IOLanguageException;
 
 public final class IOOutOfBoundsException extends IOLanguageException {
 
@@ -58,7 +58,7 @@ public final class IOOutOfBoundsException extends IOLanguageException {
     }
 
     @TruffleBoundary
-    public static IOOutOfBoundsException outOfBoundsObject(Node location, Object index) {
+    public static IOOutOfBoundsException outOfBoundsInteger(Node location, Object index) {
         throw new IOOutOfBoundsException("Index " + index + " is out of bounds", location);
     }
 

@@ -43,6 +43,12 @@
  */
 package org.truffle.io.nodes.variables;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.util.IOToMemberNode;
+import org.truffle.io.nodes.util.IOToTruffleStringNode;
+import org.truffle.io.runtime.IOUndefinedNameException;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -54,13 +60,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.util.IOToMemberNode;
-import org.truffle.io.nodes.util.IOToTruffleStringNode;
-import org.truffle.io.runtime.IOUndefinedNameException;
-import org.truffle.io.runtime.objects.IOObject;
-
-@NodeInfo(shortName = "getProperty")
+@NodeInfo(shortName = "setSlot")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
 @NodeChild("valueNode")
