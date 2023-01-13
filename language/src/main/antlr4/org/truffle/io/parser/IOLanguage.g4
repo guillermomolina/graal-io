@@ -89,7 +89,9 @@ literalMessage:
     ;
 
 message:
-    GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
+    AT OPEN EOL* (decimal|expression) EOL* CLOSE
+    | AT_PUT OPEN EOL* (decimal|expression) EOL*  COMMA EOL* value=expression CLOSE
+    | GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
     | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
@@ -138,16 +140,21 @@ literal:
     ;
 
 number:
+    decimal
+    | FLOAT;
+
+decimal:
     INTEGER 
     | HEXADECIMAL 
     | OCTAL 
-    | BINARY 
-    | FLOAT;
+    | BINARY;
 
 pseudoVariable: NIL | TRUE | FALSE | SELF | SUPER;
 
 terminator: ';' | EOL;
 
+AT: 'at';
+AT_PUT: 'atPut';
 BREAK: 'break';
 CONTINUE: 'continue';
 ELSE: 'else';

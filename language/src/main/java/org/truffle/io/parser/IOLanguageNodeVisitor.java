@@ -25,6 +25,7 @@ import org.truffle.io.nodes.literals.IOMethodLiteralNode;
 import org.truffle.io.nodes.literals.IONilLiteralNode;
 import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;
 import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
+import org.truffle.io.parser.IOLanguageParser.DecimalContext;
 import org.truffle.io.parser.IOLanguageParser.ExpressionContext;
 import org.truffle.io.parser.IOLanguageParser.IfMessageContext;
 import org.truffle.io.parser.IOLanguageParser.IfThenElseMessageContext;
@@ -278,6 +279,12 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     }
 
     public Node visitMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        if (ctx.AT() != null) {
+            return visitAtMessage(ctx, receiverNode);
+        }
+        if (ctx.AT_PUT() != null) {
+            return visitAtPutMessage(ctx, receiverNode);
+        }
         if (ctx.GET_SLOT() != null) {
             return visitGetSlotMessage(ctx, receiverNode);
         }
@@ -302,6 +309,25 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
             return result;
         }
         throw new ShouldNotBeHereException();
+    }
+
+    public Node visitAtMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        final IOExpressionNode indexNode;
+        if (ctx.decimal() == null) {
+            indexNode = (IOExpressionNode) visitExpression(ctx.expression(0));
+        } else {
+            indexNode = (IOExpressionNode)visitDecimal(ctx.decimal());
+        }
+        assert indexNode != null;
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        IOExpressionNode result = factory.createReadArrayElement(receiverNode, indexNode, start, length);
+        assert result != null;
+        return result;
+    }
+
+    public Node visitAtPutMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+        throw new NotImplementedException();
     }
 
     public Node visitGetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
@@ -440,7 +466,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
     @Override
     public Node visitMethodMessage(MethodMessageContext ctx) {
         final Token bodyStartToken;
-        if(ctx.expression() == null) {
+        if (ctx.expression() == null) {
             bodyStartToken = ctx.CLOSE().getSymbol();
         } else {
             bodyStartToken = ctx.expression().start;
@@ -480,6 +506,14 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
 
     @Override
     public Node visitNumber(NumberContext ctx) {
+        if (ctx.decimal() != null) {
+            return visitDecimal(ctx.decimal());
+        }
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Node visitDecimal(DecimalContext ctx) {
         if (ctx.INTEGER() != null) {
             return factory.createNumericLiteral(ctx.INTEGER().getSymbol());
         }

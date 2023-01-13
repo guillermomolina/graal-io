@@ -93,6 +93,7 @@ import org.truffle.io.nodes.variables.IOInvokeLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOInvokePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOInvokeRemoteVariableNodeGen;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
+import org.truffle.io.nodes.variables.IOReadArrayElementNodeGen;
 import org.truffle.io.nodes.variables.IOReadLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOReadPropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
@@ -173,12 +174,12 @@ public class IONodeFactory {
         assert methodScope.parameterCount >= 2;
         // final IOEvalArgumentNode readArg = new IOEvalArgumentNode(methodScope.parameterCount);
         final IOReadArgumentNode readArg = new IOReadArgumentNode(methodScope.parameterCount);
-        int start = nameToken.getStartIndex();
+        int startPos = nameToken.getStartIndex();
         int length = nameToken.getText().length();
-        readArg.setSourceSection(start, length);
+        readArg.setSourceSection(startPos, length);
         IOStringLiteralNode nameNode = createStringLiteral(nameToken, false);
         methodScope.parameters.add(nameNode.getValue());
-        IOExpressionNode assignmentNode = createWriteVariable(nameNode, readArg, methodScope.parameterCount, start,
+        IOExpressionNode assignmentNode = createWriteVariable(nameNode, readArg, methodScope.parameterCount, startPos,
                 length, true);
         assert assignmentNode != null;
         methodScope.methodNodes.add(assignmentNode);
@@ -304,10 +305,10 @@ public class IONodeFactory {
         IOWhileNode whileNode = null;
         if (conditionNode != null && bodyNode != null) {
             conditionNode.addExpressionTag();
-            final int start = whileToken.getStartIndex();
+            final int startPos = whileToken.getStartIndex();
             final int end = bodyNode.getSourceEndIndex();
             whileNode = new IOWhileNode(conditionNode, bodyNode);
-            whileNode.setSourceSection(start, end - start);
+            whileNode.setSourceSection(startPos, end - startPos);
         }
         return whileNode;
     }
@@ -316,9 +317,9 @@ public class IONodeFactory {
             IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode bodyNode) {
         IOForNode forNode = null;
         if (counterNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
-            final int start = forToken.getStartIndex();
-            final int length = bodyNode.getSourceEndIndex() - start;
-            IOExpressionNode initialAssignmentNode = createWriteVariable(counterNode, startValueNode, start, length,
+            final int startPos = forToken.getStartIndex();
+            final int length = bodyNode.getSourceEndIndex() - startPos;
+            IOExpressionNode initialAssignmentNode = createWriteVariable(counterNode, startValueNode, startPos, length,
                     true);
             assert initialAssignmentNode != null;
             IOExpressionNode readControlNode = createReadLocalVariable(counterNode);
@@ -332,7 +333,7 @@ public class IONodeFactory {
             }
             forNode = new IOForNode(initialAssignmentNode, startValueNode, endValueNode, stepValueNode, readControlNode,
                     bodyNode);
-            forNode.setSourceSection(start, length);
+            forNode.setSourceSection(startPos, length);
         }
         return forNode;
     }
@@ -344,25 +345,25 @@ public class IONodeFactory {
         }
 
         conditionNode.addExpressionTag();
-        final int start = ifToken.getStartIndex();
+        final int startPos = ifToken.getStartIndex();
         final int end = elsePartNode == null ? thenPartNode.getSourceEndIndex() : elsePartNode.getSourceEndIndex();
         final IOIfNode ifNode = new IOIfNode(conditionNode, thenPartNode, elsePartNode);
-        ifNode.setSourceSection(start, end - start);
+        ifNode.setSourceSection(startPos, end - startPos);
         return ifNode;
     }
 
     public IOExpressionNode createReturn(Token t, IOExpressionNode valueNodeOrNull) {
-        final int start = t.getStartIndex();
+        final int startPos = t.getStartIndex();
         final int length;
         IOExpressionNode valueNode = valueNodeOrNull;
         if (valueNode == null) {
             length = t.getText().length();
             valueNode = createReadSelf();
         } else {
-            length = valueNode.getSourceEndIndex() - start;
+            length = valueNode.getSourceEndIndex() - startPos;
         }
         final IOReturnNode returnNode = new IOReturnNode(valueNode);
-        returnNode.setSourceSection(start, length);
+        returnNode.setSourceSection(startPos, length);
         return returnNode;
     }
 
@@ -415,21 +416,21 @@ public class IONodeFactory {
                 throw new RuntimeException("unexpected operation: " + opToken.getText());
         }
 
-        int start = leftNode.getSourceCharIndex();
-        int length = rightNode.getSourceEndIndex() - start;
-        result.setSourceSection(start, length);
+        int startPos = leftNode.getSourceCharIndex();
+        int length = rightNode.getSourceEndIndex() - startPos;
+        result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
         return result;
     }
 
-    public IOExpressionNode createWriteVariable(IOExpressionNode nameNode, IOExpressionNode valueNode, int start,
+    public IOExpressionNode createWriteVariable(IOExpressionNode nameNode, IOExpressionNode valueNode, int startPos,
             int length, boolean forceLocal) {
-        return createWriteVariable(nameNode, valueNode, null, start, length, forceLocal);
+        return createWriteVariable(nameNode, valueNode, null, startPos, length, forceLocal);
     }
 
     public IOExpressionNode createWriteVariable(IOExpressionNode nameNode, IOExpressionNode valueNode,
-            Integer argumentIndex, int start, int length, boolean forceLocal) {
+            Integer argumentIndex, int startPos, int length, boolean forceLocal) {
         if (nameNode == null || valueNode == null) {
             return null;
         }
@@ -460,7 +461,7 @@ public class IONodeFactory {
             assert contextLevel >= 0 && contextLevel < Integer.MAX_VALUE;
             result = IOWriteRemoteVariableNodeGen.create(valueNode, contextLevel, frameSlot, nameNode);
         }
-        result.setSourceSection(start, length);
+        result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
@@ -629,6 +630,19 @@ public class IONodeFactory {
         return result;
     }
 
+    public IOExpressionNode createReadArrayElement(IOExpressionNode receiverNode, IOExpressionNode indexNode, int startPos,
+            int length) {
+        if (receiverNode == null) {
+            receiverNode = createReadSelf();
+        }
+        final IOExpressionNode result = IOReadArrayElementNodeGen.create(receiverNode, indexNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+        assert result != null;
+        return result;
+    }
+
+
     public IOExpressionNode createReadSlot(IOExpressionNode receiverNode, IOExpressionNode nameNode, int startPos,
             int length) {
         IOExpressionNode result = null;
@@ -647,13 +661,13 @@ public class IONodeFactory {
     }
 
     public IOExpressionNode createWriteProperty(IOExpressionNode receiverNode, IOExpressionNode nameNode,
-            IOExpressionNode valueNode, int start, int length) {
+            IOExpressionNode valueNode, int startPos, int length) {
         if (receiverNode == null || nameNode == null || valueNode == null) {
             return null;
         }
 
         final IOExpressionNode result = IOWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
-        result.setSourceSection(start, length);
+        result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
         return result;
