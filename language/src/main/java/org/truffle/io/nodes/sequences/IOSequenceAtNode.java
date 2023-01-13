@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.sequences;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -53,7 +53,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOOutOfBoundsException;
@@ -74,42 +73,60 @@ import org.truffle.io.runtime.objects.IOObject;
 @NodeInfo(shortName = ".")
 @NodeChild("receiverNode")
 @NodeChild("indexNode")
-public abstract class IOReadArrayElementNode extends IOExpressionNode {
+public abstract class IOSequenceAtNode extends IOExpressionNode {
 
     static final TruffleString AT = IOSymbols.constant("at");
     static final int LIBRARY_LIMIT = 3;
- 
+
+    // @Specialization
+    // protected Object atString(TruffleString receiver, long index,
+    //         @Cached TruffleString.SubstringNode substringNode) {
+    //     try {
+    //         return substringNode.execute(receiver, (int) index, 1, IOLanguage.STRING_ENCODING, true);
+    //     } catch (IndexOutOfBoundsException e) {
+    //         throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
+    //     }
+    // }
+
     @Specialization
-    protected Object readIOObject(TruffleString receiver, long index,
-            @Cached TruffleString.SubstringNode substringNode) {
-        TruffleString value = substringNode.execute(receiver,(int)index,1, IOLanguage.STRING_ENCODING, true);
-        if (value == null) {
+    protected long atString(TruffleString receiver, long index,
+            @Cached TruffleString.ReadCharUTF16Node readByteNode) {
+        try {
+            return (long) readByteNode.execute(receiver, (int) index);
+        } catch (IndexOutOfBoundsException e) {
             throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
+        }
+    }
+
+    @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
+    protected Object atArray(Object receiver, long index,
+            @CachedLibrary("receiver") InteropLibrary arrays) {
+        try {
+            return arrays.readArrayElement(receiver, index);
+        } catch (UnsupportedMessageException e) {
+            throw IOUndefinedNameException.undefinedProperty(this, AT);
+        } catch (InvalidArrayIndexException e) {
+            throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
+        }
+    }
+
+    @Specialization
+    protected Object atIOObject(IOObject receiver, long index) {
+        Object value = IOObjectUtil.getOrDefault(receiver, AT, null);
+        if (value == null) {
+            throw IOUndefinedNameException.undefinedProperty(this, AT);
         }
         return value;
     }
 
-    @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object readArray(Object receiver, long index,
-            @CachedLibrary("receiver") InteropLibrary arrays,
-            @CachedLibrary("index") InteropLibrary numbers) {
-        try {
-            return arrays.readArrayElement(receiver, numbers.asLong(index));
-        } catch (UnsupportedMessageException e) {
-            throw IOUndefinedNameException.undefinedProperty(this, AT);
-        } catch(InvalidArrayIndexException e) {
-            throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
-        }
-    }
-
     @Specialization
-    protected Object read(Object receiver, long index) {
+    protected Object atObject(Object receiver, long index) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         Object value = IOObjectUtil.getOrDefault(prototype, AT, null);
         if (value == null) {
             throw IOUndefinedNameException.undefinedProperty(this, AT);
         }
-        return value;    
+        return value;
     }
 
 }

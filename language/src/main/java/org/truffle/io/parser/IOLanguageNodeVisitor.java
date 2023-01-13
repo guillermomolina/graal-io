@@ -321,7 +321,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         assert indexNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IOExpressionNode result = factory.createReadArrayElement(receiverNode, indexNode, start, length);
+        IOExpressionNode result = factory.createSequenceAt(receiverNode, indexNode, start, length);
         assert result != null;
         return result;
     }

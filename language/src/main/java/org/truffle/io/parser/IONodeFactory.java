@@ -88,12 +88,12 @@ import org.truffle.io.nodes.logic.IOLogicalAndNode;
 import org.truffle.io.nodes.logic.IOLogicalNotNodeGen;
 import org.truffle.io.nodes.logic.IOLogicalOrNode;
 import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.nodes.sequences.IOSequenceAtNodeGen;
 import org.truffle.io.nodes.util.IOUnboxNodeGen;
 import org.truffle.io.nodes.variables.IOInvokeLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOInvokePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOInvokeRemoteVariableNodeGen;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
-import org.truffle.io.nodes.variables.IOReadArrayElementNodeGen;
 import org.truffle.io.nodes.variables.IOReadLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOReadPropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
@@ -630,12 +630,12 @@ public class IONodeFactory {
         return result;
     }
 
-    public IOExpressionNode createReadArrayElement(IOExpressionNode receiverNode, IOExpressionNode indexNode, int startPos,
+    public IOExpressionNode createSequenceAt(IOExpressionNode receiverNode, IOExpressionNode indexNode, int startPos,
             int length) {
         if (receiverNode == null) {
             receiverNode = createReadSelf();
         }
-        final IOExpressionNode result = IOReadArrayElementNodeGen.create(receiverNode, indexNode);
+        final IOExpressionNode result = IOSequenceAtNodeGen.create(receiverNode, indexNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         assert result != null;

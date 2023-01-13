@@ -43,6 +43,17 @@
  */
 package org.truffle.io.nodes.variables;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.util.IOToMemberNode;
 import org.truffle.io.nodes.util.IOToTruffleStringNode;
@@ -50,18 +61,6 @@ import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.IOUndefinedNameException;
 import org.truffle.io.runtime.objects.IOObject;
-
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.strings.TruffleString;
 
 /**
  * The node for reading a property of an object. When executed, this node:
@@ -91,18 +90,7 @@ public abstract class IOReadPropertyNode extends IOExpressionNode {
         return value;
     }
 
-    @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object readArray(Object receiver, Object index,
-            @CachedLibrary("receiver") InteropLibrary arrays,
-            @CachedLibrary("index") InteropLibrary numbers) {
-        try {
-            return arrays.readArrayElement(receiver, numbers.asLong(index));
-        } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-            throw IOUndefinedNameException.undefinedProperty(this, index);
-        }
-    }
-
-    @Specialization(guards = { "!isIOObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
+    @Specialization(guards = "!isIOObject(receiver)", limit = "LIBRARY_LIMIT")
     protected Object readObject(Object receiver, Object name,
             @CachedLibrary("receiver") InteropLibrary objects,
             @Cached IOToMemberNode asMember) {
