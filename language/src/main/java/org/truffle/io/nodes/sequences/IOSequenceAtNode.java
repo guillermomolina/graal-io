@@ -70,7 +70,7 @@ import org.truffle.io.runtime.objects.IOObject;
  * <li>reads the named property</li>
  * </ol>
  */
-@NodeInfo(shortName = ".")
+@NodeInfo(shortName = "at")
 @NodeChild("receiverNode")
 @NodeChild("indexNode")
 public abstract class IOSequenceAtNode extends IOExpressionNode {

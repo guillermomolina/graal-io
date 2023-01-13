@@ -41,55 +41,75 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.sequences;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.util.IOToMemberNode;
-import org.truffle.io.nodes.util.IOToTruffleStringNode;
+import org.truffle.io.runtime.IOOutOfBoundsException;
+import org.truffle.io.runtime.IOSymbols;
 import org.truffle.io.runtime.IOUndefinedNameException;
 import org.truffle.io.runtime.objects.IOObject;
 
-@NodeInfo(shortName = "getProperty")
+/**
+ * The node for reading a property of an object. When executed, this node:
+ * <ol>
+ * <li>evaluates the object expression on the left hand side of the object
+ * access operator</li>
+ * <li>evaluated the property name</li>
+ * <li>reads the named property</li>
+ * </ol>
+ */
+@NodeInfo(shortName = "atPut")
 @NodeChild("receiverNode")
-@NodeChild("nameNode")
+@NodeChild("indexNode")
 @NodeChild("valueNode")
-public abstract class IOWritePropertyNode extends IOExpressionNode {
+public abstract class IOSequenceAtPutNode extends IOExpressionNode {
 
+    static final TruffleString AT_PUT = IOSymbols.constant("atPut");
     static final int LIBRARY_LIMIT = 3;
 
-    @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object writeIOObject(IOObject receiver, Object name, Object value,
-                    @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
-                    @Cached IOToTruffleStringNode toTruffleStringNode) {
-        objectLibrary.put(receiver, toTruffleStringNode.execute(name), value);
-        return value;
-    }
+    // @Specialization
+    // protected long atString(TruffleString receiver, long index,
+    //         @Cached TruffleString.ReadCharUTF16Node readByteNode) {
+    //     try {
+    //         return (long) readByteNode.execute(receiver, (int) index);
+    //     } catch (IndexOutOfBoundsException e) {
+    //         throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
+    //     }
+    // }
 
-    @Specialization(guards = "!isIOObject(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object writeObject(Object receiver, Object name, Object value,
-                    @CachedLibrary("receiver") InteropLibrary objectLibrary,
-                    @Cached IOToMemberNode asMember) {
+    @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
+    protected Object atArrayPut(Object receiver, long index, Object value,
+                    @CachedLibrary("receiver") InteropLibrary arrays,
+                    @CachedLibrary("index") InteropLibrary numbers) {
         try {
-            objectLibrary.writeMember(receiver, asMember.execute(name), value);
-        } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
-            // write was not successful. In IO we only have basic support for errors.
-            throw IOUndefinedNameException.undefinedProperty(this, name);
+            arrays.writeArrayElement(receiver, index, value);
+        } catch (UnsupportedMessageException | UnsupportedTypeException e) {
+            throw IOUndefinedNameException.undefinedProperty(this, AT_PUT);
+        } catch (InvalidArrayIndexException e) {
+            throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
         }
         return value;
     }
 
-    static boolean isIOObject(Object receiver) {
-        return receiver instanceof IOObject;
+    @Specialization
+    protected Object atIOObjectPut(IOObject receiver, long index, Object value) {
+        throw new NotImplementedException();
     }
+
+    @Specialization
+    protected Object atObjectPut(Object receiver, long index, Object value) {
+        throw new NotImplementedException();
+    }
+
 }
