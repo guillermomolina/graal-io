@@ -16,7 +16,7 @@ RUN useradd --uid $USER_UID --gid $USER_GID -m $USERNAME && \
     echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME && \
     chmod 0440 /etc/sudoers.d/$USERNAME
 
-RUN gu install -L /workspaces/component/io-component.jar
+# RUN gu install -L /workspaces/graal-io/component/io-component.jar
 
 # WORKDIR /workspaces/component
 
