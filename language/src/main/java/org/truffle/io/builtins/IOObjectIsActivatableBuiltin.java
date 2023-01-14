@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2015, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,53 +43,16 @@
  */
 package org.truffle.io.builtins;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOState;
-
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.strings.TruffleString;
 
-/**
- * Builtin function to evaluate source code in any supported language.
- * <p>
- * The call target is cached against the language id and the source code, so that if they are the
- * same each time then a direct call will be made to a cached AST, allowing it to be compiled and
- * possibly inlined.
- */
-@NodeInfo(shortName = "eval")
-public abstract class IOEvalBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "isActivatable")
+public abstract class IOObjectIsActivatableBuiltin extends IOBuiltinNode {
 
-    static final int LIMIT = 2;
-
-    @Specialization(guards = {"stringsEqual(equalNodeId, cachedId, id)", "stringsEqual(equalNodeCode, cachedCode, code)"}, limit = "LIMIT")
-    public Object evalCached(TruffleString id, TruffleString code,
-                    @Cached("id") TruffleString cachedId,
-                    @Cached("code") TruffleString cachedCode,
-                    @Cached("create(parse(id, code))") DirectCallNode callNode,
-                    @Cached TruffleString.EqualNode equalNodeId,
-                    @Cached TruffleString.EqualNode equalNodeCode) {
-        return callNode.call(new Object[]{});
-    }
-
-    @TruffleBoundary
-    @Specialization(replaces = "evalCached")
-    public Object evalUncached(TruffleString id, TruffleString code) {
-        return parse(id, code).call();
-    }
-
-    protected CallTarget parse(TruffleString id, TruffleString code) {
-        final Source source = Source.newBuilder(id.toJavaStringUncached(), code.toJavaStringUncached(), "(eval)").build();
-        return IOState.get(this).parse(source);
-    }
-
-    /* Work around findbugs warning in generate code. */
-    protected static boolean stringsEqual(TruffleString.EqualNode node, TruffleString a, TruffleString b) {
-        return node.execute(a, b, IOLanguage.STRING_ENCODING);
+    @Specialization(limit = "3")
+    public boolean isActivatable(Object obj, @CachedLibrary("obj") InteropLibrary executables) {
+        return executables.isExecutable(obj);
     }
 }

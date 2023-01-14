@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,42 +43,27 @@
  */
 package org.truffle.io.builtins;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.IOState;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeInfo(shortName = "slotNames")
-@ImportStatic(IOState.class)
-public abstract class IOSlotNamesBuiltin extends IOBuiltinNode {
+import org.truffle.io.IOLanguageException;
 
-    @Specialization(guards = "objInterop.hasMembers(receiver)")
-    @TruffleBoundary
-    public Object slotNames(Object receiver,
-            @CachedLibrary(limit = "3") InteropLibrary objInterop) {
-         try {
-            assert objInterop.hasMembers(receiver);
-            Object keys = objInterop.getMembers(receiver);
-            InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
-            long keyCount = keysInterop.getArraySize(keys);
-            Object[] argumentValues = new Object[(int)keyCount];
-            for (int i = 0; i < keyCount; i++) {
-                try {
-                    argumentValues[i] = keysInterop.readArrayElement(keys, i);
-                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-                    throw new NotImplementedException();
-                }
-            }
-            return IOState.get(this).createList(argumentValues);
+/**
+ * Built-in function that queries the size property of a foreign object. See
+ * <link>Messages.GET_SIZE</link>.
+ */
+@NodeInfo(shortName = "getSize")
+public abstract class IOListSizeBuiltin extends IOBuiltinNode {
+
+    @Specialization(limit = "3")
+    public Object getSize(Object obj, @CachedLibrary("obj") InteropLibrary arrays) {
+        try {
+            return arrays.getArraySize(obj);
         } catch (UnsupportedMessageException e) {
+            throw new IOLanguageException("Element is not a valid array.", this);
         }
-        return IOState.get(this).createList(new Object[0]);
     }
 }

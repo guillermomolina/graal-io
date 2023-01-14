@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,46 +43,33 @@
  */
 package org.truffle.io.builtins;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.IOSymbols;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.interop.IOLanguageView;
 
 /**
- * Builtin function that reads a String from the {@link IOState#getInput() standard input}.
+ * Builtin function to write a value to the {@link IOState#getOutput() standard output}. The
+ * different specialization leverage the typed {@code println} methods available in Java, i.e.,
+ * primitive values are printed without converting them to a {@link String} first.
+ * <p>
+ * Printing involves a lot of Java code, so we need to tell the optimizing system that it should not
+ * unconditionally inline everything reachable from the println() method. This is done via the
+ * {@link TruffleBoundary} annotations.
  */
-@NodeInfo(shortName = "readln")
-public abstract class IOReadlnBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "println")
+public abstract class IOObjectPrintlnBuiltin extends IOBuiltinNode {
 
     @Specialization
-    public TruffleString readln(Object obj, @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-        TruffleString result = fromJavaStringNode.execute(doRead(IOState.get(this).getInput()), IOLanguage.STRING_ENCODING);
-        if (result == null) {
-            /*
-             * We do not have a sophisticated end of file handling, so returning an empty string is
-             * a reasonable alternative. Note that the Java null value should never be used, since
-             * it can interfere with the specialization logic in generated source code.
-             */
-            result = IOSymbols.EMPTY_STRING;
-        }
-        return result;
+    @TruffleBoundary
+    public Object println(Object value,
+                    @CachedLibrary(limit = "3") InteropLibrary interop) {
+        IOState.get(this).getOutput().println(interop.toDisplayString(IOLanguageView.forValue(value)));
+        return value;
     }
 
-    @TruffleBoundary
-    private String doRead(BufferedReader in) {
-        try {
-            return in.readLine();
-        } catch (IOException ex) {
-            throw new IOLanguageException(ex.getMessage(), this);
-        }
-    }
 }

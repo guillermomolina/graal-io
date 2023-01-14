@@ -74,17 +74,17 @@ import org.graalvm.polyglot.Context;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.builtins.IOCloneBuiltinFactory;
-import org.truffle.io.builtins.IOExitBuiltinFactory;
-import org.truffle.io.builtins.IOHasProtoBuiltinFactory;
-import org.truffle.io.builtins.IOIsActivatableBuiltinFactory;
-import org.truffle.io.builtins.IOIsNilBuiltinFactory;
-import org.truffle.io.builtins.IOPrintlnBuiltin;
-import org.truffle.io.builtins.IOPrintlnBuiltinFactory;
-import org.truffle.io.builtins.IOProtoBuiltinFactory;
-import org.truffle.io.builtins.IOReadlnBuiltin;
-import org.truffle.io.builtins.IORegisterShutdownHookBuiltinFactory;
-import org.truffle.io.builtins.IOSlotNamesBuiltinFactory;
+import org.truffle.io.builtins.IOListSizeBuiltinFactory;
+import org.truffle.io.builtins.IOLobbyExitBuiltinFactory;
+import org.truffle.io.builtins.IOLobbyRegisterShutdownHookBuiltinFactory;
+import org.truffle.io.builtins.IOLobbyStackTraceBuiltinFactory;
+import org.truffle.io.builtins.IOObjectCloneBuiltinFactory;
+import org.truffle.io.builtins.IOObjectIsActivatableBuiltinFactory;
+import org.truffle.io.builtins.IOObjectIsNilBuiltinFactory;
+import org.truffle.io.builtins.IOObjectPrintlnBuiltin;
+import org.truffle.io.builtins.IOObjectPrintlnBuiltinFactory;
+import org.truffle.io.builtins.IOObjectProtoBuiltinFactory;
+import org.truffle.io.builtins.IOObjectSlotNamesBuiltinFactory;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
@@ -169,7 +169,7 @@ public final class IOState {
     }
 
     /**
-     * The default default, i.e., the output for the {@link IOPrintlnBuiltin}. To
+     * The default default, i.e., the output for the {@link IOObjectPrintlnBuiltin}. To
      * allow unit
      * testing, we do not use {@link System#out} directly.
      */
@@ -192,29 +192,20 @@ public final class IOState {
 
         IOObjectUtil.putProperty(lobby, IOSymbols.LOBBY, lobby);
         IOObjectUtil.putProperty(lobby, IOSymbols.PROTOS, protos);
-        installBuiltin(IOExitBuiltinFactory.getInstance(), lobby, "Lobby");
+        installBuiltin(IOLobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
+        installBuiltin(IOLobbyStackTraceBuiltinFactory.getInstance(), lobby, "Lobby");
+        installBuiltin(IOLobbyRegisterShutdownHookBuiltinFactory.getInstance(), lobby, "Lobby");
+        installBuiltin(IOListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
     }
 
     private void installBuiltins() {
-        // installBuiltin(IOReadlnBuiltinFactory.getInstance());
-        installBuiltin(IOPrintlnBuiltinFactory.getInstance());
-        // installBuiltin(IONanoTimeBuiltinFactory.getInstance());
-        // installBuiltin(IODefineFunctionBuiltinFactory.getInstance());
-        // installBuiltin(IOStackTraceBuiltinFactory.getInstance());
-        installBuiltin(IOCloneBuiltinFactory.getInstance());
-        // installBuiltin(IOEvalBuiltinFactory.getInstance());
-        // installBuiltin(IOImportBuiltinFactory.getInstance());
-        // installBuiltin(IOGetSizeBuiltinFactory.getInstance());
-        installBuiltin(IOHasProtoBuiltinFactory.getInstance());
-        // installBuiltin(IOHasSizeBuiltinFactory.getInstance());
-        installBuiltin(IOIsActivatableBuiltinFactory.getInstance());
-        installBuiltin(IOIsNilBuiltinFactory.getInstance());
-        // installBuiltin(IOWrapPrimitiveBuiltinFactory.getInstance());
-        installBuiltin(IOProtoBuiltinFactory.getInstance());
-        // installBuiltin(IOJavaTypeBuiltinFactory.getInstance());
-        installBuiltin(IORegisterShutdownHookBuiltinFactory.getInstance());
-        // installBuiltin(IOAddToHostClassPathBuiltinFactory.getInstance());
-        installBuiltin(IOSlotNamesBuiltinFactory.getInstance());
+        // installBuiltin(IOObjectReadlnBuiltinFactory.getInstance());
+        installBuiltin(IOObjectPrintlnBuiltinFactory.getInstance());
+        installBuiltin(IOObjectCloneBuiltinFactory.getInstance());
+        installBuiltin(IOObjectIsActivatableBuiltinFactory.getInstance());
+        installBuiltin(IOObjectIsNilBuiltinFactory.getInstance());
+        installBuiltin(IOObjectProtoBuiltinFactory.getInstance());
+        installBuiltin(IOObjectSlotNamesBuiltinFactory.getInstance());
     }
 
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {

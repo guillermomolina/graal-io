@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2021, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -44,15 +44,29 @@
 package org.truffle.io.builtins;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeInfo(shortName = "isActivatable")
-public abstract class IOIsActivatableBuiltin extends IOBuiltinNode {
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IONil;
 
-    @Specialization(limit = "3")
-    public boolean isActivatable(Object obj, @CachedLibrary("obj") InteropLibrary executables) {
-        return executables.isExecutable(obj);
+/**
+ * Builtin function that performs context exit.
+ */
+@NodeInfo(shortName = "exit")
+public abstract class IOLobbyExitBuiltin extends IOBuiltinNode {
+    @Specialization
+    public Object exit(Object obj, long exitCode) {
+        doExit((int) exitCode);
+        return IONil.SINGLETON;
+    }
+
+    @Specialization
+    public Object exit(Object obj, Object exitCode) {
+        doExit(0);
+        return IONil.SINGLETON;
+    }
+
+    private void doExit(int exitCode) {
+        IOState.get(this).getEnv().getContext().closeExited(this, exitCode);
     }
 }

@@ -43,15 +43,15 @@
  */
 package org.truffle.io.builtins;
 
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.runtime.IOState;
-
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
+
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.runtime.IOState;
 
 /**
  * Base class for all builtin functions. It contains the Truffle DSL annotation {@link NodeChild}
@@ -82,6 +82,7 @@ public abstract class IOBuiltinNode extends IOExpressionNode {
     public final long executeLong(VirtualFrame frame) throws UnexpectedResultException {
         return super.executeLong(frame);
     }
+
 
     protected abstract Object execute(VirtualFrame frame);
 }

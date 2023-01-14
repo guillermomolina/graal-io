@@ -43,11 +43,6 @@
  */
 package org.truffle.io.builtins;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.root.IOEvalRootNode;
-import org.truffle.io.nodes.root.IOFunctionRootNode;
-import org.truffle.io.runtime.IOSymbols;
-
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -63,12 +58,17 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.root.IOEvalRootNode;
+import org.truffle.io.nodes.root.IOFunctionRootNode;
+import org.truffle.io.runtime.IOSymbols;
+
 /**
  * Returns a string representation of the current stack. This includes the {@link CallTarget}s and
  * the contents of the {@link Frame}.
  */
 @NodeInfo(shortName = "stacktrace")
-public abstract class IOStackTraceBuiltin extends IOBuiltinNode {
+public abstract class IOLobbyStackTraceBuiltin extends IOBuiltinNode {
 
     public static final TruffleString FRAME = IOSymbols.constant("Frame: root ");
     public static final TruffleString SEPARATOR = IOSymbols.constant(", ");

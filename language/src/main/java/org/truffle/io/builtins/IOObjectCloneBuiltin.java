@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,33 +43,66 @@
  */
 package org.truffle.io.builtins;
 
-//import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
-// import org.truffle.io.runtime.IOState;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-// import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
+
 /**
- * Builtin function to define (or redefine) functions. The provided source code is parsed the same
- * way as the initial source of the script, so the same syntax applies.
+ * Built-in function to create a clone object. Objects in IO are simply made up of name/value pairs.
  */
-@NodeInfo(shortName = "defineFunction")
-public abstract class IODefineFunctionBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "clone")
+@ImportStatic(IOState.class)
+public abstract class IOObjectCloneBuiltin extends IOBuiltinNode {
 
-    @TruffleBoundary
     @Specialization
-    public TruffleString defineFunction(TruffleString code) {
-        throw new NotImplementedException();
-        // @formatter:off
-        // Source source = Source.newBuilder(IOLanguage.ID, code.toJavaStringUncached(), "[defineFunction]").build();
-        // @formatter:on
-        /* The same parsing code as for parsing the initial source. */
-        // IOState.get(this).getFunctionRegistry().register(source);
-
-        // return code;
+    public long cloneLong(long value) {
+        return value;
     }
+
+    @Specialization
+    public boolean cloneBoolean(boolean value) {
+        return value;
+    }
+
+    @Specialization
+    public Object cloneNil(IONil value) {
+        return value;
+    }
+
+    @Specialization
+    public Object cloneIOPrototype(IOPrototype proto) {
+        if(proto == IOPrototype.DATE) {
+            return IOState.get(this).createDate();
+        }
+        if(proto == IOPrototype.OBJECT) {
+            return IOState.get(this).cloneObject();
+        }
+        throw new NotImplementedException();
+    }
+
+    @Specialization(guards = "!values.isNull(obj)", limit = "3")
+    public Object cloneIOObject(IOObject obj, @CachedLibrary("obj") InteropLibrary values) {
+        return IOState.get(this).cloneObject(obj);
+    }
+
+    @Specialization(guards = "isString(value)")
+    @TruffleBoundary
+    public Object cloneString(Object value) {
+        return value;
+    }
+
+    protected boolean isString(Object value) {
+        return value instanceof TruffleString;
+    }
+
 }

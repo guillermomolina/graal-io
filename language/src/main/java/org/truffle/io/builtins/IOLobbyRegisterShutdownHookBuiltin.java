@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2015, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -44,19 +44,22 @@
 package org.truffle.io.builtins;
 
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Built-in function that queries if the foreign object has a size. See
- * <link>Messages.HAS_SIZE</link>.
- */
-@NodeInfo(shortName = "hasSize")
-public abstract class IOHasSizeBuiltin extends IOBuiltinNode {
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
 
-    @Specialization(limit = "3")
-    public boolean hasSize(Object obj, @CachedLibrary("obj") InteropLibrary arrays) {
-        return arrays.hasArrayElements(obj);
+/**
+ * Builtin function that registers a function as a shutdown hook. Only no-parameter functions are
+ * supported.
+ */
+@NodeInfo(shortName = "registerShutdownHook")
+public abstract class IOLobbyRegisterShutdownHookBuiltin extends IOBuiltinNode {
+
+    @Specialization
+    protected Object execute(IOMethod shutdownHook) {
+        IOState.get(this).registerShutdownHook(shutdownHook);
+        return IONil.SINGLETON;
     }
 }
