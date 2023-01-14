@@ -95,6 +95,7 @@ message:
     | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
+    | REPEAT OPEN EOL* expression EOL* CLOSE
     | id=IDENTIFIER arguments?
     ;
 
@@ -135,7 +136,6 @@ forMessage:
         body=expression EOL* 
     CLOSE
     ;
-
 literal: 
     number 
     | str=STRING
@@ -173,6 +173,7 @@ identifier:
     | METHOD
     | NEW_SLOT
     | NIL
+    | REPEAT
     | RETURN
     | SELF
     | SET_SLOT
@@ -196,6 +197,7 @@ LIST: 'list';
 METHOD: 'method';
 NEW_SLOT: 'newSlot';
 NIL: 'nil';
+REPEAT: 'repeat';
 RETURN: 'return';
 SELF: 'self';
 SET_SLOT: 'setSlot';

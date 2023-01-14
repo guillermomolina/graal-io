@@ -301,6 +301,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         if (ctx.UPDATE_SLOT() != null) {
             return visitUpdateSlotMessage(ctx, receiverNode);
         }
+        if (ctx.REPEAT() != null) {
+            return visitRepeatMessage(ctx, receiverNode);
+        }
         if (ctx.id != null) {
             final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.id, false);
             assert identifierNode != null;
@@ -343,7 +346,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         IOExpressionNode receiverNode = r;
-        if(receiverNode == null) {
+        if (receiverNode == null) {
             receiverNode = factory.createReadSelf();
         }
         IOExpressionNode result = factory.createSequenceAtPut(receiverNode, indexNode, valueNode, start, length);
@@ -387,6 +390,20 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<Node> {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         IOExpressionNode result = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length);
+        assert result != null;
+        return result;
+    }
+
+    public Node visitRepeatMessage(final MessageContext ctx, IOExpressionNode r) {
+        factory.startLoop();
+        IOExpressionNode bodyNode = (IOExpressionNode) visitExpression(ctx.expression(0));
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        IOExpressionNode receiverNode = r;
+        if (receiverNode == null) {
+            receiverNode = factory.createReadSelf();
+        }
+        IOExpressionNode result = factory.createRepeat(receiverNode, bodyNode, start, length);
         assert result != null;
         return result;
     }

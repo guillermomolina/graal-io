@@ -48,12 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -68,6 +62,7 @@ import org.truffle.io.nodes.controlflow.IODebuggerNode;
 import org.truffle.io.nodes.controlflow.IOForNode;
 import org.truffle.io.nodes.controlflow.IOIfNode;
 import org.truffle.io.nodes.controlflow.IOMethodBodyNode;
+import org.truffle.io.nodes.controlflow.IORepeatNode;
 import org.truffle.io.nodes.controlflow.IOReturnNode;
 import org.truffle.io.nodes.controlflow.IOWhileNode;
 import org.truffle.io.nodes.expression.IOBlockNode;
@@ -100,6 +95,12 @@ import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOWritePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.IOSymbols;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class IONodeFactory {
 
@@ -311,6 +312,16 @@ public class IONodeFactory {
             whileNode.setSourceSection(startPos, end - startPos);
         }
         return whileNode;
+    }
+
+    public IOExpressionNode createRepeat(IOExpressionNode receiverNode, IOExpressionNode bodyNode, int startPos, int length) {
+        IORepeatNode repeatNode = null;
+        if (receiverNode != null && bodyNode != null) {
+            receiverNode.addExpressionTag();
+            repeatNode = new IORepeatNode(receiverNode, bodyNode);
+            repeatNode.setSourceSection(startPos, length);
+        }
+        return repeatNode;
     }
 
     public IOExpressionNode createFor(Token forToken, IOStringLiteralNode counterNode, IOExpressionNode startValueNode,
