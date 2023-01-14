@@ -74,11 +74,13 @@ import org.graalvm.polyglot.Context;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.builtins.IODateSecondsSinceBuiltinFactory;
 import org.truffle.io.builtins.IOListSizeBuiltinFactory;
 import org.truffle.io.builtins.IOLobbyExitBuiltinFactory;
 import org.truffle.io.builtins.IOLobbyRegisterShutdownHookBuiltinFactory;
 import org.truffle.io.builtins.IOLobbyStackTraceBuiltinFactory;
 import org.truffle.io.builtins.IOObjectCloneBuiltinFactory;
+import org.truffle.io.builtins.IOObjectHasProtoBuiltinFactory;
 import org.truffle.io.builtins.IOObjectIsActivatableBuiltinFactory;
 import org.truffle.io.builtins.IOObjectIsNilBuiltinFactory;
 import org.truffle.io.builtins.IOObjectPrintlnBuiltin;
@@ -195,17 +197,19 @@ public final class IOState {
         installBuiltin(IOLobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
         installBuiltin(IOLobbyStackTraceBuiltinFactory.getInstance(), lobby, "Lobby");
         installBuiltin(IOLobbyRegisterShutdownHookBuiltinFactory.getInstance(), lobby, "Lobby");
-        installBuiltin(IOListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
     }
 
     private void installBuiltins() {
         // installBuiltin(IOObjectReadlnBuiltinFactory.getInstance());
         installBuiltin(IOObjectPrintlnBuiltinFactory.getInstance());
         installBuiltin(IOObjectCloneBuiltinFactory.getInstance());
+        installBuiltin(IOObjectHasProtoBuiltinFactory.getInstance());
         installBuiltin(IOObjectIsActivatableBuiltinFactory.getInstance());
         installBuiltin(IOObjectIsNilBuiltinFactory.getInstance());
         installBuiltin(IOObjectProtoBuiltinFactory.getInstance());
         installBuiltin(IOObjectSlotNamesBuiltinFactory.getInstance());
+        installBuiltin(IOListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
+        installBuiltin(IODateSecondsSinceBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
     }
 
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {
