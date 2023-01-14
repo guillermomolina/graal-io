@@ -58,7 +58,7 @@ public abstract class IODateSecondsSinceBuiltin extends IOBuiltinNode {
 
     @Specialization
     public long doDate(Date self, Date other) {
-        return (other.getTime()-self.getTime())/1000;
+        return (self.getTime()-other.getTime())/1000;
     }
 
     @Specialization
