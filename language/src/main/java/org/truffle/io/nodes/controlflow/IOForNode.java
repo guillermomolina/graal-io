@@ -78,8 +78,8 @@ public final class IOForNode extends IOExpressionNode {
     @Child
     private IOExpressionNode isDescendingNode;
 
-    public IOForNode(int slotFrameIndex, IOExpressionNode slotNameNode, IOExpressionNode startValueNode,
-            IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode readControlNode,
+    public IOForNode(int slotFrameIndex, IOExpressionNode slotNameNode, IOExpressionNode readControlNode,
+            IOExpressionNode startValueNode, IOExpressionNode endValueNode, IOExpressionNode stepValueNode,
             IOExpressionNode bodyNode) {
         this.slotFrameIndex = slotFrameIndex;
         this.slotNameNode = slotNameNode;
@@ -93,7 +93,8 @@ public final class IOForNode extends IOExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        IOExpressionNode initialAssignmentNode = IOWriteLocalVariableNodeGen.create(startValueNode, slotFrameIndex, slotNameNode, true);
+        IOExpressionNode initialAssignmentNode = IOWriteLocalVariableNodeGen.create(startValueNode, slotFrameIndex,
+                slotNameNode, true);
         final boolean isDescending = evaluateIsDescendingNode(frame);
         final IOExpressionNode hasEndedNode;
         if (isDescending) {
@@ -101,15 +102,16 @@ public final class IOForNode extends IOExpressionNode {
         } else {
             hasEndedNode = IOLessOrEqualNodeGen.create(readControlNode, endValueNode);
         }
-        if(stepValueNode == null) {
-            if(isDescending) {
+        if (stepValueNode == null) {
+            if (isDescending) {
                 stepValueNode = new IOLongLiteralNode(-1);
             } else {
                 stepValueNode = new IOLongLiteralNode(1);
             }
         }
         IOExpressionNode addNode = IOAddNodeGen.create(readControlNode, stepValueNode);
-        IOExpressionNode stepVariableNode = IOWriteLocalVariableNodeGen.create(addNode, slotFrameIndex, slotNameNode, false);
+        IOExpressionNode stepVariableNode = IOWriteLocalVariableNodeGen.create(addNode, slotFrameIndex, slotNameNode,
+                false);
         IOForRepeatingNode forRepeatingNode = new IOForRepeatingNode(hasEndedNode, bodyNode, stepVariableNode);
         LoopNode loopNode = Truffle.getRuntime().createLoopNode(forRepeatingNode);
 
@@ -121,7 +123,7 @@ public final class IOForNode extends IOExpressionNode {
         try {
             return isDescendingNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
-            throw new UnsupportedSpecializationException(this, new Node[]{isDescendingNode}, ex.getResult());
+            throw new UnsupportedSpecializationException(this, new Node[] { isDescendingNode }, ex.getResult());
         }
     }
 
