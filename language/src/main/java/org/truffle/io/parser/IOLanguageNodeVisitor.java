@@ -471,21 +471,21 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
 
     @Override
     public IOExpressionNode visitForMessage(ForMessageContext ctx) {
-        throw new NotImplementedException();
-        // factory.startLoopBlock();
-        // IOExpressionNode counterNode = (IOExpressionNode)visitIdentifier(ctx.identifier());
-        // IOExpressionNode startValueNode = visitExpressionList(ctx.startPart);
-        // IOExpressionNode endValueNode = visitExpressionList(ctx.endPart);
-        // IOExpressionNode stepValueNode = null;
-        // if (ctx.stepPart != null) {
-        //     stepValueNode = visitExpressionList(ctx.stepPart);
-        // }
-        // IOExpressionNode bodyNode = visitExpressionList(ctx.body);
-        // IOExpressionNode result = factory.createFor(ctx.FOR().getSymbol(),
-        //         counterNode, startValueNode,
-        //         endValueNode, stepValueNode, bodyNode);
-        // return factory.finishLoopBlock(result, ctx.start.getStartIndex(),
-        //         ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
+        // throw new NotImplementedException();
+        factory.startLoop();
+        IOExpressionNode slotNameNode = visitIdentifier(ctx.identifier());
+        IOExpressionNode startValueNode = visitExpression(ctx.startPart);
+        IOExpressionNode endValueNode = visitExpression(ctx.endPart);
+        IOExpressionNode stepValueNode = null;
+        if (ctx.stepPart != null) {
+            stepValueNode = visitExpression(ctx.stepPart);
+        }
+        IOExpressionNode bodyNode = visitExpression(ctx.body);
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
+        IOExpressionNode result = factory.createFor(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
+                startPos, length);
+        return factory.createLoopBlock(result, startPos, length);
     }
 
     @Override

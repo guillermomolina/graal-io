@@ -43,17 +43,28 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.arithmetic.IOAddNodeGen;
 import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.literals.IOLongLiteralNode;
+import org.truffle.io.nodes.logic.IOLessOrEqualNodeGen;
+import org.truffle.io.nodes.logic.IOLessThanNodeGen;
+import org.truffle.io.nodes.logic.IOLogicalNotNodeGen;
+import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
+
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 @NodeInfo(shortName = "for", description = "The node implementing a for loop")
 public final class IOForNode extends IOExpressionNode {
 
+    private int slotFrameIndex;
     @Child
-    private IOExpressionNode initialAssignmentNode;
+    private IOExpressionNode slotNameNode;
     @Child
     private IOExpressionNode startValueNode;
     @Child
@@ -64,25 +75,27 @@ public final class IOForNode extends IOExpressionNode {
     private IOExpressionNode readControlNode;
     @Child
     private IOExpressionNode bodyNode;
+    @Child
+    private IOExpressionNode isDescendingNode;
 
-    public IOForNode(IOExpressionNode initialAssignmentNode, IOExpressionNode startValueNode,
+    public IOForNode(int slotFrameIndex, IOExpressionNode slotNameNode, IOExpressionNode startValueNode,
             IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode readControlNode,
             IOExpressionNode bodyNode) {
-        this.initialAssignmentNode = initialAssignmentNode;
+        this.slotFrameIndex = slotFrameIndex;
+        this.slotNameNode = slotNameNode;
         this.startValueNode = startValueNode;
         this.endValueNode = endValueNode;
         this.stepValueNode = stepValueNode;
         this.readControlNode = readControlNode;
         this.bodyNode = bodyNode;
+        this.isDescendingNode = IOLessThanNodeGen.create(endValueNode, startValueNode);
     }
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        throw new NotImplementedException();
-        /* 
-        final IOExpressionNode isDescendingNode = IOLessThanNodeGen.create(endValueNode, startValueNode);
-        final boolean isDescending = isDescendingNode.executeBoolean(frame);
-        final IOExpressionNode hasEndedNode = null;
+        IOExpressionNode initialAssignmentNode = IOWriteLocalVariableNodeGen.create(startValueNode, slotFrameIndex, slotNameNode, true);
+        final boolean isDescending = evaluateIsDescendingNode(frame);
+        final IOExpressionNode hasEndedNode;
         if (isDescending) {
             hasEndedNode = IOLogicalNotNodeGen.create(IOLessThanNodeGen.create(readControlNode, endValueNode));
         } else {
@@ -95,14 +108,21 @@ public final class IOForNode extends IOExpressionNode {
                 stepValueNode = new IOLongLiteralNode(1);
             }
         }
-        IOExpressionNode stepNode = IOWritePropertyNodeGen.create(receiverNode, nameNode, IOAddNodeGen.create(readControlNode, stepValueNode));
-
-        IOForRepeatingNode forRepeatingNode = new IOForRepeatingNode(bodyNode, stepNode, hasEndedNode);
+        IOExpressionNode addNode = IOAddNodeGen.create(readControlNode, stepValueNode);
+        IOExpressionNode stepVariableNode = IOWriteLocalVariableNodeGen.create(addNode, slotFrameIndex, slotNameNode, false);
+        IOForRepeatingNode forRepeatingNode = new IOForRepeatingNode(hasEndedNode, bodyNode, stepVariableNode);
         LoopNode loopNode = Truffle.getRuntime().createLoopNode(forRepeatingNode);
 
         initialAssignmentNode.executeGeneric(frame);
         return loopNode.execute(frame);
-        */
+    }
+
+    private boolean evaluateIsDescendingNode(VirtualFrame frame) {
+        try {
+            return isDescendingNode.executeBoolean(frame);
+        } catch (UnexpectedResultException ex) {
+            throw new UnsupportedSpecializationException(this, new Node[]{isDescendingNode}, ex.getResult());
+        }
     }
 
 }

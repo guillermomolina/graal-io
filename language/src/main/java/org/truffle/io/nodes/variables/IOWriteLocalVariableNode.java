@@ -62,7 +62,7 @@ import com.oracle.truffle.api.strings.TruffleString;
  * Node to write a local variable to a function's {@link VirtualFrame frame}. The Truffle frame API
  * allows to store primitive values of all Java primitive types, and Object values.
  */
-@NodeChild("setSlot")
+@NodeChild("valueNode")
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "nameNode", type = IOExpressionNode.class)
 @NodeField(name = "declaration", type = boolean.class)

@@ -61,7 +61,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 
-@NodeChild("setSlot")
+@NodeChild("valueNode")
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "nameNode", type = IOExpressionNode.class)

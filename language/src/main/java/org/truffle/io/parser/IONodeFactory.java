@@ -222,7 +222,8 @@ public class IONodeFactory {
             final IORootNode rootNode = new IORootNode(language, methodScope.frameDescriptorBuilder.build(),
                     methodBodyNode,
                     methodSrc);
-            TruffleString[] parameters = methodScope.parameters.toArray(new TruffleString[methodScope.parameters.size()]);
+            TruffleString[] parameters = methodScope.parameters
+                    .toArray(new TruffleString[methodScope.parameters.size()]);
             methodLiteralNode = new IOMethodLiteralNode(rootNode, parameters);
             methodLiteralNode.setSourceSection(startPos, length);
         }
@@ -314,7 +315,8 @@ public class IONodeFactory {
         return whileNode;
     }
 
-    public IOExpressionNode createRepeat(IOExpressionNode receiverNode, IOExpressionNode bodyNode, int startPos, int length) {
+    public IOExpressionNode createRepeat(IOExpressionNode receiverNode, IOExpressionNode bodyNode, int startPos,
+            int length) {
         IORepeatNode repeatNode = null;
         if (receiverNode != null && bodyNode != null) {
             receiverNode.addExpressionTag();
@@ -324,26 +326,22 @@ public class IONodeFactory {
         return repeatNode;
     }
 
-    public IOExpressionNode createFor(Token forToken, IOStringLiteralNode counterNode, IOExpressionNode startValueNode,
-            IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode bodyNode) {
+    public IOExpressionNode createFor(IOExpressionNode slotNameNode, IOExpressionNode startValueNode,
+            IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode bodyNode, int startPos,
+            int length) {
         IOForNode forNode = null;
-        if (counterNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
-            final int startPos = forToken.getStartIndex();
-            final int length = bodyNode.getSourceEndIndex() - startPos;
-            IOExpressionNode initialAssignmentNode = createWriteVariable(counterNode, startValueNode, startPos, length,
-                    true);
-            assert initialAssignmentNode != null;
-            IOExpressionNode readControlNode = createReadLocalVariable(counterNode);
-            assert readControlNode != null;
-            initialAssignmentNode.addExpressionTag();
+        if (slotNameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
+            assert slotNameNode instanceof IOStringLiteralNode;
+            TruffleString name = ((IOStringLiteralNode) slotNameNode).executeGeneric(null);
+            int slotFrameIndex = methodScope.getOrAddLocal(name, null);
+            IOExpressionNode readControlNode = createReadLocalVariable(slotNameNode, startPos, length);
             readControlNode.addExpressionTag();
             startValueNode.addExpressionTag();
             endValueNode.addExpressionTag();
             if (stepValueNode != null) {
                 stepValueNode.addExpressionTag();
             }
-            forNode = new IOForNode(initialAssignmentNode, startValueNode, endValueNode, stepValueNode, readControlNode,
-                    bodyNode);
+            forNode = new IOForNode(slotFrameIndex, slotNameNode, readControlNode, startValueNode, endValueNode, stepValueNode, bodyNode);
             forNode.setSourceSection(startPos, length);
         }
         return forNode;
@@ -448,7 +446,7 @@ public class IONodeFactory {
         if (isAtLobby() && argumentIndex == null) {
             return null;
         }
-
+        assert nameNode instanceof IOStringLiteralNode;
         TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
 
         int contextLevel = Integer.MAX_VALUE;
@@ -479,6 +477,7 @@ public class IONodeFactory {
 
     // public IOExpressionNode createReadVariable(IOExpressionNode nameNode) {
     //     if (nameNode != null) {
+    //         assert nameNode instanceof IOStringLiteralNode; 
     //         TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
     //         final IOExpressionNode result;
     //         final Pair<Integer, Integer> foundSlot = methodScope.find(name);
@@ -528,6 +527,7 @@ public class IONodeFactory {
     public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes,
             int startPos, int length) {
         if (nameNode != null) {
+            assert nameNode instanceof IOStringLiteralNode;
             TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
             final IOExpressionNode result;
             final Pair<Integer, Integer> foundSlot = methodScope.find(name);

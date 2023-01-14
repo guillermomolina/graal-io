@@ -43,89 +43,56 @@
  */
 package org.truffle.io.nodes.controlflow;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffle.io.nodes.expression.IOBlockNode;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.util.IOUnboxNodeGen;
-
-/**
- * The loop body of a {@link IOForNode for loop}. A Truffle framework {@link LoopNode} between
- * the {@link IOForNode} and {@link IOForRepeatingNode} allows Truffle to perform loop
- * optimizations, for example, compile just the loop body for long running loops.
- */
 public final class IOForRepeatingNode extends Node implements RepeatingNode {
 
-    /**
-     * The counter of the loop. This in a {@link IOExpressionNode} because we require a result
-     * value. We do not have a node type that can only return a {@code boolean} value, so
-     * {@link #evaluateCounter executing the counter} can lead to a type error.
-     */
-    @Child private IOExpressionNode counterNode;
-
-    /** Expression (or {@link IOBlockNode block}) executed as long as the counter is true. */
+    @Child private IOExpressionNode hasEndedNode;
     @Child private IOExpressionNode bodyNode;
+    @Child private IOExpressionNode stepVariableNode;
 
-    /**
-     * Profiling information, collected by the interpreter, capturing whether a {@code continue}
-     * expression was used in this loop. This allows the compiler to generate better code for loops
-     * without a {@code continue}.
-     */
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
 
-    public IOForRepeatingNode(IOExpressionNode counterNode, IOExpressionNode startNode, IOExpressionNode endNode, IOExpressionNode stepNode, IOExpressionNode bodyNode) {
-        this.counterNode = IOUnboxNodeGen.create(counterNode);
+    public IOForRepeatingNode(IOExpressionNode hasEndedNode, IOExpressionNode bodyNode, IOExpressionNode stepVariableNode) {
+        this.hasEndedNode = hasEndedNode;
         this.bodyNode = bodyNode;
+        this.stepVariableNode = stepVariableNode;
     }
 
     @Override
     public boolean executeRepeating(VirtualFrame frame) {
-        if (!evaluateCounter(frame)) {
-            /* Normal exit of the loop when loop counter is false. */
+        if (!evaluateHasEndedNode(frame)) {
             return false;
         }
 
         try {
-            /* Execute the loop body. */
             bodyNode.executeGeneric(frame);
-            /* Continue with next loop iteration. */
+            stepVariableNode.executeGeneric(frame);
             return true;
 
         } catch (IOContinueException ex) {
-            /* In the interpreter, record profiling information that the loop uses continue. */
             continueTaken.enter();
-            /* Continue with next loop iteration. */
             return true;
 
         } catch (IOBreakException ex) {
-            /* In the interpreter, record profiling information that the loop uses break. */
             breakTaken.enter();
-            /* Break out of the loop. */
             return false;
         }
     }
 
-    private boolean evaluateCounter(VirtualFrame frame) {
+    private boolean evaluateHasEndedNode(VirtualFrame frame) {
         try {
-            /*
-             * The counter must evaluate to a boolean value, so we call the boolean-specialized
-             * execute method.
-             */
-            return counterNode.executeBoolean(frame);
+            return hasEndedNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
-            /*
-             * The counter evaluated to a non-boolean result. This is a type error in the IO
-             * program. We report it with the same exception that Truffle DSL generated nodes use to
-             * report type errors.
-             */
-            throw new UnsupportedSpecializationException(this, new Node[]{counterNode}, ex.getResult());
+            throw new UnsupportedSpecializationException(this, new Node[]{hasEndedNode}, ex.getResult());
         }
     }
 
