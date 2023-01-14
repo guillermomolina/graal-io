@@ -63,6 +63,7 @@ public final class IOSymbols {
     public static final TruffleString NUMBER = constant("Number");
     public static final TruffleString SEQUENCE = constant("Sequence");
     public static final TruffleString LIST = constant("List");
+    public static final TruffleString DATE = constant("Date");
     public static final TruffleString BLOCK = constant("Block");
     public static final TruffleString MESSAGE = constant("Message");
     public static final TruffleString CALL = constant("Call");

@@ -43,10 +43,6 @@
  */
 package org.truffle.io.builtins;
 
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -54,6 +50,12 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
 
 /**
  * Built-in function to create a clone object. Objects in IO are simply made up of name/value pairs.
@@ -75,6 +77,17 @@ public abstract class IOCloneBuiltin extends IOBuiltinNode {
     @Specialization
     public Object cloneNil(IONil value) {
         return value;
+    }
+
+    @Specialization
+    public Object cloneIOPrototype(IOPrototype proto) {
+        if(proto == IOPrototype.DATE) {
+            return IOState.get(this).createDate();
+        }
+        if(proto == IOPrototype.OBJECT) {
+            return IOState.get(this).cloneObject();
+        }
+        throw new NotImplementedException();
     }
 
     @Specialization(guards = "!values.isNull(obj)", limit = "3")

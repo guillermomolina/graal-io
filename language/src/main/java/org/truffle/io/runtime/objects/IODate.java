@@ -1,12 +1,15 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ */
+/*
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
  *
  * Subject to the condition set forth below, permission is hereby granted to any
  * person obtaining a copy of this software, associated documentation and/or
- * list (collectively the "Software"), free of charge and under any and all
+ * data (collectively the "Software"), free of charge and under any and all
  * copyright rights in the Software, and any and all patent rights owned or
  * freely licensable by each licensor hereunder covering either (i) the
  * unmodified Software as contributed to or provided by such licensor, or (ii)
@@ -40,83 +43,48 @@
  */
 package org.truffle.io.runtime.objects;
 
-import java.util.List;
+import java.util.Date;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
 
-import org.truffle.io.runtime.IOObjectUtil;
+public final class IODate extends IOObject implements Comparable<IODate> {
 
-@ExportLibrary(InteropLibrary.class)
-public class IOList extends IOObject {
-    private Object[] list;
+    private final Date value;
 
-    public IOList(int size) {
-        super(IOPrototype.LIST);
-        this.list = new Object[size];
+    public IODate(Date value) {
+        super(IOPrototype.DATE);
+        this.value = value;
     }
 
-    public IOList(Object[] list) {
-        super(IOPrototype.LIST);
-        this.list = list;
+    public IODate() {
+        this(new Date());
     }
 
-    public static IOList create(Object[] list) {
-        return new IOList(list);
+    public Date getValue() {
+        return value;
     }
 
     @TruffleBoundary
-    public static IOList create(List<? extends Object> list) {
-        return new IOList(list.toArray(new Object[0]));
+    public int compareTo(IODate o) {
+        return value.compareTo(o.getValue());
     }
 
+    @Override
     public String toString(int depth) {
-        String string = String.format("list(%s)", IOObjectUtil.toString(this, depth));
-        return string;
+        return value.toString();
     }
 
-    @ExportMessage
-    boolean hasArrayElements() {
-        return true;
-    }
-
-    @ExportMessage
-    Object readArrayElement(long index) throws InvalidArrayIndexException {
-        if (!isArrayElementReadable(index)) {
-            throw InvalidArrayIndexException.create(index);
+    @Override
+    @TruffleBoundary
+    public boolean equals(Object obj) {
+        if (obj instanceof IODate) {
+            return value.equals(((IODate) obj).getValue());
         }
-        return list[(int) index];
-    }
-
-    @ExportMessage
-    boolean isArrayElementReadable(long index) {
-        return index >= 0 && index < list.length;
-    }
-
-    @ExportMessage
-    boolean isArrayElementModifiable(long index) {
-        return index >= 0 && index < list.length;
-    }
-
-    @ExportMessage
-    boolean isArrayElementInsertable(long index) {
         return false;
     }
 
-    @ExportMessage
-    long getArraySize() {
-        return list.length;
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
-
-    @ExportMessage
-    public void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
-        if (!isArrayElementReadable(index)) {
-            throw InvalidArrayIndexException.create(index);
-        }
-        list[(int) index] = value;
-    }
-
 }

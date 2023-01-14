@@ -69,9 +69,10 @@ public class IOPrototype extends IOObject {
     public static final IOPrototype SEQUENCE = new IOPrototype(OBJECT, IOSymbols.SEQUENCE, (l, v) -> l.isString(v));
     public static final IOPrototype BLOCK = new IOPrototype(OBJECT, IOSymbols.BLOCK, (l, v) -> l.isExecutable(v));
     public static final IOPrototype LIST = new IOPrototype(OBJECT, IOSymbols.LIST, (l, v) -> l.hasArrayElements(v));
+    public static final IOPrototype DATE = new IOPrototype(OBJECT, IOSymbols.DATE, (l, v) -> v instanceof IODate);
 
     @CompilationFinal(dimensions = 1)
-    public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, OBJECT };
+    public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, DATE, OBJECT };
 
     private final TypeCheck isInstance;
 

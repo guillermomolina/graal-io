@@ -89,6 +89,7 @@ import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
 import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IODate;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOList;
 import org.truffle.io.runtime.objects.IOMethod;
@@ -187,6 +188,7 @@ public final class IOState {
         IOObjectUtil.putProperty(protos, IOSymbols.NUMBER, IOPrototype.NUMBER);
         IOObjectUtil.putProperty(protos, IOSymbols.SEQUENCE, IOPrototype.SEQUENCE);
         IOObjectUtil.putProperty(protos, IOSymbols.LIST, IOPrototype.LIST);
+        IOObjectUtil.putProperty(protos, IOSymbols.DATE, IOPrototype.DATE);
 
         IOObjectUtil.putProperty(lobby, IOSymbols.LOBBY, lobby);
         IOObjectUtil.putProperty(lobby, IOSymbols.PROTOS, protos);
@@ -388,6 +390,13 @@ public final class IOState {
         IOList list = new IOList(data);
         allocationReporter.onReturnValue(list, 0, AllocationReporter.SIZE_UNKNOWN);
         return list;
+    }
+
+    public IODate createDate() {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IODate date = new IODate();
+        allocationReporter.onReturnValue(date, 0, AllocationReporter.SIZE_UNKNOWN);
+        return date;
     }
 
     public IOMethod createMethod(RootCallTarget callTarget, final TruffleString[] parameters,
