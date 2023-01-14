@@ -43,11 +43,16 @@
  */
 package org.truffle.io.parser;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
@@ -68,8 +73,8 @@ import org.truffle.io.nodes.controlflow.IOWhileNode;
 import org.truffle.io.nodes.expression.IOBlockNode;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.expression.IOParenExpressionNode;
-import org.truffle.io.nodes.literals.IOBigIntegerLiteralNode;
 import org.truffle.io.nodes.literals.IOBooleanLiteralNode;
+import org.truffle.io.nodes.literals.IODoubleLiteralNode;
 import org.truffle.io.nodes.literals.IOListLiteralNode;
 import org.truffle.io.nodes.literals.IOLongLiteralNode;
 import org.truffle.io.nodes.literals.IOMethodLiteralNode;
@@ -95,12 +100,6 @@ import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOWritePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.IOSymbols;
-
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class IONodeFactory {
 
@@ -574,11 +573,13 @@ public class IONodeFactory {
     public IOExpressionNode createNumericLiteral(Token literalToken) {
         IOExpressionNode result;
         try {
-            /* Try if the literal is small enough to fit into a long value. */
             result = new IOLongLiteralNode(Long.parseLong(literalToken.getText()));
         } catch (NumberFormatException ex) {
-            /* Overflow of long value, so fall back to BigInteger. */
-            result = new IOBigIntegerLiteralNode(new BigInteger(literalToken.getText()));
+            try {
+                result = new IODoubleLiteralNode(Double.parseDouble(literalToken.getText()));
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("can not parse number: " + literalToken.getText());
+            }
         }
         srcFromToken(result, literalToken);
         result.addExpressionTag();

@@ -43,6 +43,8 @@
  */
 package org.truffle.io.nodes.arithmetic;
 
+import java.math.BigInteger;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -50,7 +52,6 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.expression.IOBinaryNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
 
 /**
  * This class is similar to the extensively documented {@link IOAddNode}.
@@ -63,15 +64,36 @@ public abstract class IOMulNode extends IOBinaryNode {
         return Math.multiplyExact(left, right);
     }
 
+    @Specialization(rewriteOn = ArithmeticException.class)
+    public static final long doLong(final long left, final long right) {
+      return Math.multiplyExact(left, right);
+    }
+  
     @Specialization
     @TruffleBoundary
-    protected IOBigNumber mul(IOBigNumber left, IOBigNumber right) {
-        return new IOBigNumber(left.getValue().multiply(right.getValue()));
+    public static final Object doLongWithOverflow(final long left, final long right) {
+      return reduceToLongOrDouble(
+          BigInteger.valueOf(left).multiply(BigInteger.valueOf(right)));
+    }
+  
+    @Specialization
+    public static final double doLong(final long left, final double right) {
+      return doDouble(left, right);
+    }
+      
+    @Specialization
+    @TruffleBoundary
+    public static final double doDouble(final double left, final long right) {
+      return left * right;
     }
 
+    @Specialization
+    public static final double doDouble(final double left, final double right) {
+      return left * right;
+    }
+  
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw IOLanguageException.typeError(this, left, right);
     }
-
 }

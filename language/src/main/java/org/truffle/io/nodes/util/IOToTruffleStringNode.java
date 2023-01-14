@@ -43,8 +43,6 @@
  */
 package org.truffle.io.nodes.util;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -57,9 +55,9 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.IOLanguage;
+import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.IOTypes;
 import org.truffle.io.runtime.IOSymbols;
-import org.truffle.io.runtime.objects.IOBigNumber;
 import org.truffle.io.runtime.objects.IONil;
 
 /**
@@ -72,8 +70,6 @@ public abstract class IOToTruffleStringNode extends Node {
 
     static final int LIMIT = 5;
 
-    private static final TruffleString TRUE = IOSymbols.constant("true");
-    private static final TruffleString FALSE = IOSymbols.constant("false");
     private static final TruffleString FOREIGN_OBJECT = IOSymbols.constant("[foreign object]");
 
     public abstract TruffleString execute(Object value);
@@ -85,7 +81,7 @@ public abstract class IOToTruffleStringNode extends Node {
 
     @Specialization
     protected static TruffleString fromString(String value,
-                    @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.execute(value, IOLanguage.STRING_ENCODING);
     }
 
@@ -96,47 +92,42 @@ public abstract class IOToTruffleStringNode extends Node {
 
     @Specialization
     protected static TruffleString fromBoolean(boolean value) {
-        return value ? TRUE : FALSE;
+        return value ? IOSymbols.TRUE : IOSymbols.FALSE;
     }
 
     @Specialization
     @TruffleBoundary
     protected static TruffleString fromLong(long value,
-                    @Cached TruffleString.FromLongNode fromLongNode) {
+            @Cached TruffleString.FromLongNode fromLongNode) {
         return fromLongNode.execute(value, IOLanguage.STRING_ENCODING, true);
     }
 
     @Specialization
     @TruffleBoundary
-    protected static TruffleString fromBigNumber(IOBigNumber value,
+    protected static TruffleString fromDouble(double value,
                     @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-        return fromJavaStringNode.execute(value.toString(), IOLanguage.STRING_ENCODING);
+        return fromJavaStringNode.execute(String.valueOf(value), IOLanguage.STRING_ENCODING);
     }
 
     @Specialization(limit = "LIMIT")
     protected static TruffleString fromInterop(Object value,
-                    @CachedLibrary("value") InteropLibrary interop,
-                    @Cached TruffleString.FromLongNode fromLongNode,
-                    @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            @CachedLibrary("value") InteropLibrary interop,
+            @Cached TruffleString.FromLongNode fromLongNode,
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         try {
             if (interop.fitsInLong(value)) {
                 return fromLongNode.execute(interop.asLong(value), IOLanguage.STRING_ENCODING, true);
+            } else if (interop.fitsInDouble(value)) {
+                return fromJavaStringNode.execute(String.valueOf(interop.asDouble(value)), IOLanguage.STRING_ENCODING);
             } else if (interop.isString(value)) {
                 return fromJavaStringNode.execute(interop.asString(value), IOLanguage.STRING_ENCODING);
-            } else if (interop.isNumber(value) && value instanceof IOBigNumber) {
-                return fromJavaStringNode.execute(bigNumberToString((IOBigNumber) value), IOLanguage.STRING_ENCODING);
             } else if (interop.isNull(value)) {
                 return IOSymbols.NIL;
             } else {
                 return FOREIGN_OBJECT;
             }
         } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
+            throw new ShouldNotBeHereException(e);
         }
-    }
-
-    @TruffleBoundary
-    private static String bigNumberToString(IOBigNumber value) {
-        return value.toString();
     }
 }

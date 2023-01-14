@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,29 +40,27 @@
  */
 package org.truffle.io.nodes.literals;
 
-import java.math.BigInteger;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
 
-/**
- * Constant literal for a arbitrary-precision number that exceeds the range of
- * {@link IOLongLiteralNode}.
- */
 @NodeInfo(shortName = "const")
-public final class IOBigIntegerLiteralNode extends IOExpressionNode {
+public final class IODoubleLiteralNode extends IOExpressionNode {
 
-    private final IOBigNumber value;
+    private final double value;
 
-    public IOBigIntegerLiteralNode(BigInteger value) {
-        this.value = new IOBigNumber(value);
+    public IODoubleLiteralNode(double value) {
+        this.value = value;
+    }
+
+    public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
+        return value;
     }
 
     @Override
-    public IOBigNumber executeGeneric(VirtualFrame frame) {
+    public Object executeGeneric(VirtualFrame frame) {
         return value;
     }
 }

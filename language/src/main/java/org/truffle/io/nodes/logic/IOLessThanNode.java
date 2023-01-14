@@ -43,15 +43,14 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.arithmetic.IOAddNode;
-import org.truffle.io.nodes.expression.IOBinaryNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.arithmetic.IOAddNode;
+import org.truffle.io.nodes.expression.IOBinaryNode;
 
 /**
  * This class is similar to the extensively documented {@link IOAddNode}. The only difference: the
@@ -61,19 +60,29 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class IOLessThanNode extends IOBinaryNode {
 
     @Specialization
-    protected boolean lessThan(long left, long right) {
-        return left < right;
+    public static final boolean doLong(final long left, final long right) {
+      return left < right;
     }
-
+  
+    @Specialization
+    public static final boolean doLong(final long left, final double right) {
+      return doDouble(left, right);
+    }
+  
     @Specialization
     @TruffleBoundary
-    protected boolean lessThan(IOBigNumber left, IOBigNumber right) {
-        return left.compareTo(right) < 0;
+    public static final boolean doDouble(final double left, final long right) {
+      return doDouble(left, (double) right);
+    }
+  
+    @Specialization
+    public static final boolean doDouble(final double left, final double right) {
+      return left < right;
     }
 
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw IOLanguageException.typeError(this, left, right);
     }
-
+  
 }

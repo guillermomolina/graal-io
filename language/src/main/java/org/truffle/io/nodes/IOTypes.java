@@ -43,59 +43,44 @@
  */
 package org.truffle.io.nodes;
 
-import java.math.BigInteger;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeCast;
 import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.objects.IOBigNumber;
 import org.truffle.io.runtime.objects.IONil;
 
-/**
- * The type system of IO, as explained in {@link IOLanguage}. Based on the {@link TypeSystem}
- * annotation, the Truffle DSL generates the subclass {@link IOTypesGen} with type test and type
- * conversion methods for some types. In this class, we only cover types where the automatically
- * generated ones would not be sufficient.
- */
-@TypeSystem({long.class, boolean.class})
+@TypeSystem({boolean.class, long.class, double.class})
 public abstract class IOTypes {
 
-    /**
-     * Example of a manually specified type check that replaces the automatically generated type
-     * check that the Truffle DSL would generate. For {@link IONil}, we do not need an
-     * {@code instanceof} check, because we know that there is only a {@link IONil#SINGLETON
-     * singleton} instance.
-     */
     @TypeCheck(IONil.class)
     public static boolean isIONull(Object value) {
         return value == IONil.SINGLETON;
     }
 
-    /**
-     * Example of a manually specified type cast that replaces the automatically generated type cast
-     * that the Truffle DSL would generate. For {@link IONil}, we do not need an actual cast,
-     * because we know that there is only a {@link IONil#SINGLETON singleton} instance.
-     */
     @TypeCast(IONil.class)
     public static IONil asIONull(Object value) {
         assert isIONull(value);
         return IONil.SINGLETON;
     }
 
-    /**
-     * Informs the Truffle DSL that a primitive {@code long} value can be used in all
-     * specializations where a {@link IOBigNumber} is expected. This models the semantic of IO: It
-     * only has an arbitrary precision Number type (implemented as {@link IOBigNumber}, and
-     * {@code long} is only used as a performance optimization to avoid the costly
-     * {@link IOBigNumber} arithmetic for values that fit into a 64-bit primitive value.
-     */
     @ImplicitCast
-    @TruffleBoundary
-    public static IOBigNumber castBigNumber(long value) {
-        return new IOBigNumber(BigInteger.valueOf(value));
+    public static long castSmallIntToInt(int value) {
+        return value;
+    }
+
+    @ImplicitCast
+    public static double castSmallFloatToFloat(float value) {
+        return value;
+    }
+
+    @ImplicitCast
+    public static double castSmallIntToFloat(int value) {
+        return value;
+    }
+
+    @ImplicitCast
+    public static double castIntToFloat(long value) {
+        return value;
     }
 }

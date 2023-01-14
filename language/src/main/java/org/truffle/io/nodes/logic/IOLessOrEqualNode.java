@@ -43,34 +43,60 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.IOBinaryNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
+import java.math.BigInteger;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * This class is similar to the {@link IOLessThanNode}.
- */
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.IOBinaryNode;
+
 @NodeInfo(shortName = "<=")
 public abstract class IOLessOrEqualNode extends IOBinaryNode {
 
-    @Specialization
-    protected boolean lessOrEqual(long left, long right) {
-        return left <= right;
-    }
+  @Specialization
+  public static final boolean doLong(final long left, final long right) {
+    return left <= right;
+  }
 
-    @Specialization
-    @TruffleBoundary
-    protected boolean lessOrEqual(IOBigNumber left, IOBigNumber right) {
-        return left.compareTo(right) <= 0;
-    }
+  @Specialization
+  public static final boolean doLong(final long left, final double right) {
+    return doDouble(left, right);
+  }
 
-    @Fallback
-    protected Object typeError(Object left, Object right) {
-        throw IOLanguageException.typeError(this, left, right);
-    }
+  @Specialization
+  @TruffleBoundary
+  public static final boolean doLong(final long left, final BigInteger right) {
+    return doBigInteger(BigInteger.valueOf(left), right);
+  }
+
+  @Specialization
+  @TruffleBoundary
+  public static final boolean doBigInteger(final BigInteger left, final BigInteger right) {
+    return left.compareTo(right) <= 0;
+  }
+
+  @Specialization
+  @TruffleBoundary
+  public static final boolean doBigInteger(final BigInteger left, final long right) {
+    return doBigInteger(left, BigInteger.valueOf(right));
+  }
+
+  @Specialization
+  @TruffleBoundary
+  public static final boolean doDouble(final double left, final long right) {
+    return doDouble(left, (double) right);
+  }
+
+  @Specialization
+  public static final boolean doDouble(final double left, final double right) {
+    return left <= right;
+  }
+
+  @Fallback
+  protected Object typeError(Object left, Object right) {
+    throw IOLanguageException.typeError(this, left, right);
+  }
 }

@@ -45,10 +45,6 @@ package org.truffle.io.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.objects.IOPrototype;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -58,6 +54,11 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.runtime.objects.IOPrototype;
 
 /**
  * Language views are needed in order to allow tools to have a consistent perspective on primitive
@@ -133,37 +134,37 @@ public final class IOLanguageView implements TruffleObject {
         for (IOPrototype type : IOPrototype.PRECEDENCE) {
             if (type.isInstance(this.delegate, interop)) {
                 try {
-                    if(interop.isBoolean(delegate)) {
+                    if (interop.isBoolean(delegate)) {
                         return Boolean.toString(interop.asBoolean(delegate));
                     }
-                    /*
-                     * The type is a partial evaluation constant here as we use @ExplodeLoop. So
-                     * this if-else cascade should fold after partial evaluation.
-                     */
-                    if (type == IOPrototype.NUMBER) {
+                    if (interop.fitsInLong(delegate)) {
                         return longToString(interop.asLong(delegate));
-                    } else if (type == IOPrototype.SEQUENCE) {
-                        return interop.asString(delegate);
-                    } else {
-                        throw new NotImplementedException();
-                        /* We use the type name as fallback for any other type */
-                        //return type.getName();
                     }
+                    if (interop.fitsInDouble(delegate)) {
+                        return doubleToString(interop.asDouble(delegate));
+                    }
+                    if (type == IOPrototype.SEQUENCE) {
+                        return interop.asString(delegate);
+                    }
+                    throw new NotImplementedException();
+                    /* We use the type name as fallback for any other type */
+                    //return type.getName();
                 } catch (UnsupportedMessageException e) {
-                    throw shouldNotReachHere(e);
+                    throw new ShouldNotBeHereException(e);
                 }
             }
         }
         return "Unsupported";
     }
 
-    /*
-     * Long.toString is not safe for partial evaluation and therefore needs to be called behind a
-     * boundary.
-     */
     @TruffleBoundary
     private static String longToString(long l) {
         return Long.toString(l);
+    }
+
+    @TruffleBoundary
+    private static String doubleToString(double d) {
+        return Double.toString(d);
     }
 
     public static Object create(Object value) {

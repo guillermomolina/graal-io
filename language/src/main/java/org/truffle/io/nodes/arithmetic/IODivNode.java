@@ -43,14 +43,12 @@
  */
 package org.truffle.io.nodes.arithmetic;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.expression.IOBinaryNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
 
 /**
  * This class is similar to the extensively documented {@link IOAddNode}. Divisions by 0 throw the
@@ -71,13 +69,12 @@ public abstract class IODivNode extends IOBinaryNode {
         }
         return result;
     }
-
+  
     @Specialization
-    @TruffleBoundary
-    protected IOBigNumber div(IOBigNumber left, IOBigNumber right) {
-        return new IOBigNumber(left.getValue().divide(right.getValue()));
+    public static final long doLong(final long left, final double right) {
+      return (long) (left / right);
     }
-
+    
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw IOLanguageException.typeError(this, left, right);

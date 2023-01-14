@@ -45,9 +45,6 @@ package org.truffle.io.nodes.util;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.runtime.objects.IOBigNumber;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -59,6 +56,8 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.IOTypes;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
@@ -96,8 +95,8 @@ public abstract class IOToMemberNode extends Node {
 
     @Specialization
     @TruffleBoundary
-    protected static String fromBigNumber(IOBigNumber value) {
-        return value.toString();
+    protected static String fromDouble(double value) {
+        return String.valueOf(value);
     }
 
     @Specialization(limit = "LIMIT")
@@ -105,10 +104,10 @@ public abstract class IOToMemberNode extends Node {
         try {
             if (interop.fitsInLong(value)) {
                 return longToString(interop.asLong(value));
+            } else if (interop.fitsInDouble(value)) {
+                return doubleToString(interop.asDouble(value));
             } else if (interop.isString(value)) {
                 return interop.asString(value);
-            } else if (interop.isNumber(value) && value instanceof IOBigNumber) {
-                return bigNumberToString((IOBigNumber) value);
             } else {
                 throw error(value);
             }
@@ -123,8 +122,8 @@ public abstract class IOToMemberNode extends Node {
     }
 
     @TruffleBoundary
-    private static String bigNumberToString(IOBigNumber value) {
-        return value.toString();
+    private static String doubleToString(double doubleValue) {
+        return String.valueOf(doubleValue);
     }
 
     @TruffleBoundary

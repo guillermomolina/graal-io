@@ -65,7 +65,7 @@ public class IOPrototype extends IOObject {
 
     public static final IOPrototype OBJECT = new IOPrototype(null, IOSymbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
     public static final IOPrototype NUMBER = new IOPrototype(OBJECT, IOSymbols.NUMBER,
-            (l, v) -> l.fitsInLong(v) || v instanceof IOBigNumber);
+            (l, v) -> l.fitsInLong(v) || l.fitsInDouble(v));
     public static final IOPrototype SEQUENCE = new IOPrototype(OBJECT, IOSymbols.SEQUENCE, (l, v) -> l.isString(v));
     public static final IOPrototype BLOCK = new IOPrototype(OBJECT, IOSymbols.BLOCK, (l, v) -> l.isExecutable(v));
     public static final IOPrototype LIST = new IOPrototype(OBJECT, IOSymbols.LIST, (l, v) -> l.hasArrayElements(v));

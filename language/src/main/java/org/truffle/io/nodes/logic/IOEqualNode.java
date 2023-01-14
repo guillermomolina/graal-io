@@ -43,14 +43,6 @@
  */
 package org.truffle.io.nodes.logic;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.IOBinaryNode;
-import org.truffle.io.runtime.objects.IOBigNumber;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -59,6 +51,14 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.nodes.expression.IOBinaryNode;
+import org.truffle.io.runtime.objects.IOFalse;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOTrue;
 
 /**
  * The {@code ==} operator of IO is defined on all types. Therefore, we need a
@@ -72,21 +72,36 @@ import com.oracle.truffle.api.strings.TruffleString;
 public abstract class IOEqualNode extends IOBinaryNode {
 
     @Specialization
-    protected boolean doLong(long left, long right) {
-        return left == right;
+    public static final boolean doBoolean(final boolean left, final boolean right) {
+      return left == right;
     }
 
+    @Specialization
+    public static final boolean doLong(final long left, final long right) {
+      return left == right;
+    }
+  
+    @Specialization
+    public static final boolean doLong(final long left, final double right) {
+      return left == right;
+    }
+    
+    @Specialization
+    public static final boolean doLong(final long left, final String right) {
+      return false;
+    }
+    
     @Specialization
     @TruffleBoundary
-    protected boolean doBigNumber(IOBigNumber left, IOBigNumber right) {
-        return left.equals(right);
+    public static final boolean doDouble(final double left, final long right) {
+      return left == right;
     }
-
+  
     @Specialization
-    protected boolean doBoolean(boolean left, boolean right) {
-        return left == right;
+    public static final boolean doDouble(final double left, final double right) {
+      return left == right;
     }
-
+  
     @Specialization
     protected boolean doString(String left, String right) {
         return left.equals(right);
@@ -100,45 +115,28 @@ public abstract class IOEqualNode extends IOBinaryNode {
 
     @Specialization
     protected boolean doNull(IONil left, IONil right) {
-        /* There is only the singleton instance of IONil, so we do not need equals(). */
         return left == right;
     }
 
     @Specialization
-    protected boolean doFunction(IOMethod left, Object right) {
-        /*
-         * Our function registry maintains one canonical IOMethod object per function name, so we
-         * do not need equals().
-         */
+    protected boolean doTrue(IOTrue left, IOTrue right) {
         return left == right;
     }
 
-    /*
-     * This is a generic specialization of equality operation. Since it is generic this
-     * specialization covers the entire semantics. One can see this by having no method guards set
-     * and the types for the left and right value are Object. The previous specializations are only
-     * here for interpreter performance and footprint reasons. They could be removed and this
-     * operation be semantically equivalent.
-     *
-     * We cache four combinations of interop values until we fallback to the uncached version of
-     * this specialization. This limit is set arbitrary and for a real language should be set to the
-     * minimal possible value, for a set of given benchmarks.
-     *
-     * This specialization is generic and handles all the cases, but in this case we decided to not
-     * replace the previous specializations, as they are still more efficient in the interpeter.
-     */
+    @Specialization
+    protected boolean doFalse(IOFalse left, IOFalse right) {
+        return left == right;
+    }
+
+    @Specialization
+    protected boolean doInvokable(IOInvokable left, Object right) {
+        return left == right;
+    }
+
     @Specialization(limit = "4")
     public boolean doGeneric(Object left, Object right,
                     @CachedLibrary("left") InteropLibrary leftInterop,
                     @CachedLibrary("right") InteropLibrary rightInterop) {
-        /*
-         * This method looks very inefficient. In practice most of these branches fold as the
-         * interop type checks typically return a constant when using a cached library.
-         *
-         * Exercise: Try looking at what happens to this method during partial evaluation in IGV.
-         * Tip: comment out all the previous @Specialization annotations to make it easier to
-         * activate this specialization.
-         */
         try {
             if (leftInterop.isBoolean(left) && rightInterop.isBoolean(right)) {
                 return doBoolean(leftInterop.asBoolean(left), rightInterop.asBoolean(right));
@@ -148,20 +146,15 @@ public abstract class IOEqualNode extends IOBinaryNode {
                 return true;
             } else if (leftInterop.fitsInLong(left) && rightInterop.fitsInLong(right)) {
                 return doLong(leftInterop.asLong(left), (rightInterop.asLong(right)));
-            } else if (left instanceof IOBigNumber && right instanceof IOBigNumber) {
-                return doBigNumber((IOBigNumber) left, (IOBigNumber) right);
+            } else if (leftInterop.fitsInDouble(left) && rightInterop.fitsInDouble(right)) {
+                return doDouble(leftInterop.asDouble(left), (rightInterop.asDouble(right)));
             } else if (leftInterop.hasIdentity(left) && rightInterop.hasIdentity(right)) {
                 return leftInterop.isIdentical(left, right, rightInterop);
             } else {
-                /*
-                 * We return false in good dynamic language manner. Stricter languages might throw
-                 * an error here.
-                 */
                 return false;
             }
         } catch (UnsupportedMessageException e) {
-            // this case must not happen as we always check interop types before converting
-            throw shouldNotReachHere(e);
+            throw new ShouldNotBeHereException(e);
         }
     }
 
