@@ -88,6 +88,7 @@ import org.truffle.io.builtins.IOObjectPrintlnBuiltin;
 import org.truffle.io.builtins.IOObjectPrintlnBuiltinFactory;
 import org.truffle.io.builtins.IOObjectProtoBuiltinFactory;
 import org.truffle.io.builtins.IOObjectSlotNamesBuiltinFactory;
+import org.truffle.io.builtins.IOSystemSleepBuiltinFactory;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
@@ -192,6 +193,7 @@ public final class IOState {
         IOObjectUtil.putProperty(protos, IOSymbols.SEQUENCE, IOPrototype.SEQUENCE);
         IOObjectUtil.putProperty(protos, IOSymbols.LIST, IOPrototype.LIST);
         IOObjectUtil.putProperty(protos, IOSymbols.DATE, IOPrototype.DATE);
+        IOObjectUtil.putProperty(protos, IOSymbols.SYSTEM, IOPrototype.SYSTEM);
 
         IOObjectUtil.putProperty(lobby, IOSymbols.LOBBY, lobby);
         IOObjectUtil.putProperty(lobby, IOSymbols.PROTOS, protos);
@@ -212,6 +214,7 @@ public final class IOState {
         installBuiltin(IOListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
         installBuiltin(IODateSecondsSinceBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
         installBuiltin(IODateNowBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
+        installBuiltin(IOSystemSleepBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
     }
 
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {
