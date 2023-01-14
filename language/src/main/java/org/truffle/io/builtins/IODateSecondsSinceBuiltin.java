@@ -47,8 +47,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.objects.IODate;
 
 /**
@@ -59,14 +57,14 @@ import org.truffle.io.runtime.objects.IODate;
 public abstract class IODateSecondsSinceBuiltin extends IOBuiltinNode {
 
     @Specialization
-    public Object doDate(Date self, Date other) {
-        throw new NotImplementedException();
+    public long doDate(Date self, Date other) {
+        return (other.getTime()-self.getTime())/1000;
     }
 
     @Specialization
     public Object doDate(IODate self, IODate other) {
-        Date selfDate = IOObjectUtil.getDate(self);
-        Date otherDate = IOObjectUtil.getDate(other);
+        Date selfDate = self.getValue();
+        Date otherDate = other.getValue();
         return doDate(selfDate, otherDate);
     }
     

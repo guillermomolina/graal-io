@@ -74,6 +74,7 @@ import org.graalvm.polyglot.Context;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.builtins.IODateNowBuiltinFactory;
 import org.truffle.io.builtins.IODateSecondsSinceBuiltinFactory;
 import org.truffle.io.builtins.IOListSizeBuiltinFactory;
 import org.truffle.io.builtins.IOLobbyExitBuiltinFactory;
@@ -210,6 +211,7 @@ public final class IOState {
         installBuiltin(IOObjectSlotNamesBuiltinFactory.getInstance());
         installBuiltin(IOListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
         installBuiltin(IODateSecondsSinceBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
+        installBuiltin(IODateNowBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
     }
 
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {

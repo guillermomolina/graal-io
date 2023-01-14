@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,54 +38,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime.objects;
+package org.truffle.io.builtins;
 
 import java.util.Date;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
-public final class IODate extends IOObject implements Comparable<IODate> {
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.runtime.objects.IODate;
 
-    private Date value;
+/**
+ * Built-in function that queries the size property of a foreign object. See
+ * <link>Messages.GET_SIZE</link>.
+ */
+@NodeInfo(shortName = "now")
+public abstract class IODateNowBuiltin extends IOBuiltinNode {
 
-    public IODate(Date value) {
-        super(IOPrototype.DATE);
-        this.value = value;
+    @Specialization
+    public Object doDate(IODate self) {
+        self.setValue(new Date());
+        return self;
     }
-
-    public IODate() {
-        this(new Date());
-    }
-
-    public Date getValue() {
-        return value;
-    }
-
-    public void setValue(final Date value) {
-        this.value = value;
-    }
-
-    @TruffleBoundary
-    public int compareTo(IODate o) {
-        return value.compareTo(o.getValue());
-    }
-
-    @Override
-    public String toString(int depth) {
-        return value.toString();
-    }
-
-    @Override
-    @TruffleBoundary
-    public boolean equals(Object obj) {
-        if (obj instanceof IODate) {
-            return value.equals(((IODate) obj).getValue());
-        }
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return value.hashCode();
+    
+    @Fallback
+    protected Object typeError(Object left) {
+        throw IOLanguageException.typeError(this, left);
     }
 }
