@@ -78,8 +78,6 @@ import org.truffle.io.builtins.IODateNowBuiltinFactory;
 import org.truffle.io.builtins.IODateSecondsSinceBuiltinFactory;
 import org.truffle.io.builtins.IOListSizeBuiltinFactory;
 import org.truffle.io.builtins.IOLobbyExitBuiltinFactory;
-import org.truffle.io.builtins.IOLobbyRegisterShutdownHookBuiltinFactory;
-import org.truffle.io.builtins.IOLobbyStackTraceBuiltinFactory;
 import org.truffle.io.builtins.IOObjectCloneBuiltinFactory;
 import org.truffle.io.builtins.IOObjectHasProtoBuiltinFactory;
 import org.truffle.io.builtins.IOObjectIsActivatableBuiltinFactory;
@@ -88,13 +86,16 @@ import org.truffle.io.builtins.IOObjectPrintlnBuiltin;
 import org.truffle.io.builtins.IOObjectPrintlnBuiltinFactory;
 import org.truffle.io.builtins.IOObjectProtoBuiltinFactory;
 import org.truffle.io.builtins.IOObjectSlotNamesBuiltinFactory;
-import org.truffle.io.builtins.IOSystemSleepBuiltinFactory;
+import org.truffle.io.builtins.system.IOSystemRegisterShutdownHookBuiltinFactory;
+import org.truffle.io.builtins.system.IOSystemSleepBuiltinFactory;
+import org.truffle.io.builtins.system.IOSystemStackTraceBuiltinFactory;
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.variables.IOReadArgumentNode;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IODate;
 import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOList;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
@@ -119,7 +120,7 @@ public final class IOState {
     private final BufferedReader input;
     private final PrintWriter output;
     private final AllocationReporter allocationReporter;
-    private final List<IOMethod> shutdownHooks = new ArrayList<>();
+    private final List<IOInvokable> shutdownHooks = new ArrayList<>();
 
     private static final Source BUILTIN_SOURCE = Source.newBuilder(IOLanguage.ID, "", "IO builtin").build();
 
@@ -198,8 +199,6 @@ public final class IOState {
         IOObjectUtil.putProperty(lobby, IOSymbols.LOBBY, lobby);
         IOObjectUtil.putProperty(lobby, IOSymbols.PROTOS, protos);
         installBuiltin(IOLobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
-        installBuiltin(IOLobbyStackTraceBuiltinFactory.getInstance(), lobby, "Lobby");
-        installBuiltin(IOLobbyRegisterShutdownHookBuiltinFactory.getInstance(), lobby, "Lobby");
     }
 
     private void installBuiltins() {
@@ -215,6 +214,8 @@ public final class IOState {
         installBuiltin(IODateSecondsSinceBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
         installBuiltin(IODateNowBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
         installBuiltin(IOSystemSleepBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(IOSystemStackTraceBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(IOSystemRegisterShutdownHookBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
     }
 
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {
@@ -355,7 +356,7 @@ public final class IOState {
      * @param func no-parameter function to be registered as a shutdown hook
      */
     @TruffleBoundary
-    public void registerShutdownHook(IOMethod func) {
+    public void registerShutdownHook(IOInvokable func) {
         shutdownHooks.add(func);
     }
 
@@ -365,7 +366,7 @@ public final class IOState {
      */
     public void runShutdownHooks() {
         InteropLibrary interopLibrary = InteropLibrary.getUncached();
-        for (IOMethod shutdownHook : shutdownHooks) {
+        for (IOInvokable shutdownHook : shutdownHooks) {
             try {
                 interopLibrary.execute(shutdownHook);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {

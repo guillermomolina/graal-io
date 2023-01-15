@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
+package org.truffle.io.builtins.system;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -59,23 +59,20 @@ import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 
 import org.truffle.io.IOLanguage;
+import org.truffle.io.builtins.IOBuiltinNode;
 import org.truffle.io.nodes.root.IOEvalRootNode;
 import org.truffle.io.nodes.root.IOFunctionRootNode;
 import org.truffle.io.runtime.IOSymbols;
 
-/**
- * Returns a string representation of the current stack. This includes the {@link CallTarget}s and
- * the contents of the {@link Frame}.
- */
 @NodeInfo(shortName = "stacktrace")
-public abstract class IOLobbyStackTraceBuiltin extends IOBuiltinNode {
+public abstract class IOSystemStackTraceBuiltin extends IOBuiltinNode {
 
     public static final TruffleString FRAME = IOSymbols.constant("Frame: root ");
     public static final TruffleString SEPARATOR = IOSymbols.constant(", ");
     public static final TruffleString EQUALS = IOSymbols.constant("=");
 
     @Specialization
-    public TruffleString trace(Object obj) {
+    public Object doMethod(Object self) {
         return createStackTrace();
     }
 

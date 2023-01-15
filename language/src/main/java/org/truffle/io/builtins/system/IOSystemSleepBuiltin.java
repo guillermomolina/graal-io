@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,25 +38,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
+package org.truffle.io.builtins.system;
 
+import java.util.concurrent.TimeUnit;
+
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.builtins.IOBuiltinNode;
 
-/**
- * Builtin function that registers a function as a shutdown hook. Only no-parameter functions are
- * supported.
- */
-@NodeInfo(shortName = "registerShutdownHook")
-public abstract class IOLobbyRegisterShutdownHookBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "sleep")
+public abstract class IOSystemSleepBuiltin extends IOBuiltinNode {
 
     @Specialization
-    protected Object execute(IOMethod shutdownHook) {
-        IOState.get(this).registerShutdownHook(shutdownHook);
-        return IONil.SINGLETON;
+    public Object doDate(Object self, long number) {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+        }
+        return self;
+    }
+   
+    @Fallback
+    protected Object typeError(Object self, Object number) {
+        throw IOLanguageException.typeError(this, number);
     }
 }

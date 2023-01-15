@@ -70,11 +70,11 @@ public class IOExitTest {
         String message = "Hello world!";
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             try (Context context = Context.newBuilder().out(out).build()) {
-                context.eval("io", "onShutdown := method(\n" +
-                                "  \"" + message + "\" println\n" +
+                context.eval("io", "System registerShutdownHook(\n" + 
+                                "  method(\n" +
+                                "    \"" + message + "\" println\n" +
+                                "  )\n" +
                                 ")\n" +
-                                "\n" +
-                                "getSlot(\"onShutdown\") registerShutdownHook\n" +
                                 "exit(5)\n");
                 Assert.fail();
             } catch (PolyglotException pe) {
@@ -90,11 +90,11 @@ public class IOExitTest {
         String message = "Hello world!";
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             try (Context context = Context.newBuilder().out(out).build()) {
-                context.eval("io", "onShutdown := method(\n" +
-                                "  \"" + message + "\" println\n" +
-                                ")\n" +
-                                "\n" +
-                                "getSlot(\"onShutdown\") registerShutdownHook\n");
+                context.eval("io", "System registerShutdownHook(\n" + 
+                                "  method(\n" +
+                                "    \"" + message + "\" println\n" +
+                                "  )\n" +
+                                ")\n");
             }
             Assert.assertEquals(message + LINE_SEPARATOR, out.toString());
         }
@@ -114,8 +114,8 @@ public class IOExitTest {
                                 "  \"" + message2 + "\" println\n" +
                                 ")\n" +
                                 "\n" +
-                                "getSlot(\"onShutdown1\") registerShutdownHook\n" +
-                                "getSlot(\"onShutdown2\") registerShutdownHook\n");
+                                "System registerShutdownHook(getSlot(\"onShutdown1\"))\n" +
+                                "System registerShutdownHook(getSlot(\"onShutdown2\"))\n");
             }
             Assert.assertEquals(message1 + LINE_SEPARATOR + message2 + LINE_SEPARATOR, out.toString());
         }

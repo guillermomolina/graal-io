@@ -1,5 +1,8 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ */
+/*
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,40 +41,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
-
-import java.util.concurrent.TimeUnit;
+package org.truffle.io.builtins.system;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.runtime.objects.IOPrototype;
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IONil;
 
-/**
- * Built-in function that queries the size property of a foreign object. See
- * <link>Messages.GET_SIZE</link>.
- */
-@NodeInfo(shortName = "sleep")
-public abstract class IOSystemSleepBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "registerShutdownHook")
+public abstract class IOSystemRegisterShutdownHookBuiltin extends IOBuiltinNode {
 
-    @Specialization(guards = "isSystemPrototype(system)")
-    public Object doDate(IOPrototype system, long number) {
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-        }
-        return system;
+    @Specialization
+    public Object doMethod(Object self, IOInvokable shutdownHook) {
+        IOState.get(this).registerShutdownHook(shutdownHook);
+        return IONil.SINGLETON;
     }
-    
+   
     @Fallback
-    protected Object typeError(Object system, Object number) {
-        throw IOLanguageException.typeError(this, system, number);
-    }
-
-    protected boolean isSystemPrototype(IOPrototype a) {
-        return a == IOPrototype.SYSTEM;
+    protected Object typeError(Object self, Object shutdownHook) {
+        throw IOLanguageException.typeError(this, shutdownHook);
     }
 
 }
