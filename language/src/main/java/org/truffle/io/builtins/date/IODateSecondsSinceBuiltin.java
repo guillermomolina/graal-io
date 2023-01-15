@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
+package org.truffle.io.builtins.date;
 
 import java.util.Date;
 
@@ -47,6 +47,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.IOLanguageException;
+import org.truffle.io.builtins.IOBuiltinNode;
 import org.truffle.io.runtime.objects.IODate;
 
 /**
@@ -69,7 +70,7 @@ public abstract class IODateSecondsSinceBuiltin extends IOBuiltinNode {
     }
     
     @Fallback
-    protected Object typeError(Object left, Object right) {
-        throw IOLanguageException.typeError(this, left, right);
+    protected Object typeError(Object self, Object other) {
+        throw IOLanguageException.typeError(this, self, other);
     }
 }
