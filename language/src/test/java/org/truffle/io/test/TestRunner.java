@@ -138,9 +138,9 @@ public class TestRunner extends ParentRunner<TestCase> {
     }
 
     protected static List<TestCase> createTests(final Class<?> c) throws IOException, InitializationError {
-        TestSuite suite = c.getAnnotation(TestSuite.class);
+        IOTestSuite suite = c.getAnnotation(IOTestSuite.class);
         if (suite == null) {
-            throw new InitializationError(String.format("@%s annotation required on class '%s' to run with '%s'.", TestSuite.class.getSimpleName(), c.getName(), TestRunner.class.getSimpleName()));
+            throw new InitializationError(String.format("@%s annotation required on class '%s' to run with '%s'.", IOTestSuite.class.getSimpleName(), c.getName(), TestRunner.class.getSimpleName()));
         }
 
         String[] paths = suite.value();
@@ -151,7 +151,7 @@ public class TestRunner extends ParentRunner<TestCase> {
         }
 
         Class<?> testCaseDirectory = c;
-        if (suite.testCaseDirectory() != TestSuite.class) {
+        if (suite.testCaseDirectory() != IOTestSuite.class) {
             testCaseDirectory = suite.testCaseDirectory();
         }
         Path root = getRootViaResourceURL(testCaseDirectory, paths);

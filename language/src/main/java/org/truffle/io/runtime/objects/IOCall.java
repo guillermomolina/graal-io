@@ -66,8 +66,8 @@ public class IOCall extends IOObject {
     @DynamicField
     private Object coroutine;
 
-    public IOCall(final IOObject sender, final IOObject message, final IOObject target, final IOObject slotContext,
-            final IOObject activated, final IOObject coroutine) {
+    public IOCall(final IOContext sender, final IOMessage message, final Object target, final IOObject slotContext,
+            final IOMethod activated, final IOObject coroutine) {
         setSender(sender);
         setMessage(message);
         setTarget(target);
@@ -76,27 +76,27 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public IOObject getSender() {
-        return (IOObject)IOObjectUtil.getProperty(this, SENDER);
+    public IOContext getSender() {
+        return (IOContext)IOObjectUtil.getProperty(this, SENDER);
     }
 
-    public void setSender(IOObject sender) {
+    public void setSender(IOContext sender) {
         IOObjectUtil.putProperty(this, SENDER, sender);
     }
 
-    public IOObject getMessage() {
-        return (IOObject)IOObjectUtil.getProperty(this, MESSAGE);
+    public IOMessage getMessage() {
+        return (IOMessage)IOObjectUtil.getProperty(this, MESSAGE);
     }
 
-    public void setMessage(IOObject message) {
+    public void setMessage(IOMessage message) {
         IOObjectUtil.putProperty(this, MESSAGE, message);
     }
 
-    public IOObject getTarget() {
-        return (IOObject)IOObjectUtil.getProperty(this, TARGET);
+    public Object getTarget() {
+        return IOObjectUtil.getProperty(this, TARGET);
     }
 
-    public void setTarget(IOObject target) {
+    public void setTarget(Object target) {
         IOObjectUtil.putProperty(this, TARGET, target);
     }
 
@@ -108,11 +108,11 @@ public class IOCall extends IOObject {
         IOObjectUtil.putProperty(this, SLOTCONTEXT, slotcontext);
     }
 
-    public IOObject getActivated() {
-        return (IOObject)IOObjectUtil.getProperty(this, ACTIVATED);
+    public IOMethod getActivated() {
+        return (IOMethod)IOObjectUtil.getProperty(this, ACTIVATED);
     }
 
-    public void setActivated(IOObject activated) {
+    public void setActivated(IOMethod activated) {
         IOObjectUtil.putProperty(this, ACTIVATED, activated);
     }
 

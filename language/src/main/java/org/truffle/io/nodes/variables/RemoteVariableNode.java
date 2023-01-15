@@ -42,6 +42,7 @@ package org.truffle.io.nodes.variables;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOMethod;
 
 import com.oracle.truffle.api.dsl.NodeField;
@@ -79,17 +80,19 @@ public abstract class RemoteVariableNode extends ExpressionNode {
 
     @ExplodeLoop
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        IOMethod self = (IOMethod) frame.getArguments()[1];
+        Object call = frame.getArguments()[1];
+        assert call instanceof IOCall;
+        IOMethod method = (IOMethod) ((IOCall)call).getActivated();
         int i = getContextLevel() - 1;
 
         while (i > 0) {
-            self = (IOMethod) self.getOuterContext();
+            method = (IOMethod) method.getOuterContext();
             i--;
         }
 
         // Graal needs help here to see that this is always a MaterializedFrame
         // so, we record explicitly a class profile
-        return frameType.profile(self.getContext());
+        return frameType.profile(method.getContext());
 
     }
 

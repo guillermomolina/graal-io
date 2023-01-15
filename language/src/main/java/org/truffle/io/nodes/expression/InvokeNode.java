@@ -46,6 +46,7 @@ package org.truffle.io.nodes.expression;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOMethod;
@@ -107,8 +108,9 @@ public final class InvokeNode extends ExpressionNode {
         int argumentCount = Integer.max(argumentNodes.length, method.getNumArgs());
         CompilerAsserts.compilationConstant(argumentCount);
         Object[] argumentValues = new Object[argumentCount + 2];
+        IOCall call = IOState.get(this).createCall(null, null, receiver, null, method, null);
         argumentValues[0] = receiver;
-        argumentValues[1] = method;
+        argumentValues[1] = call;
         if (argumentCount > 0) {
             int argumentValuesIndex = 0;
             int argumentNodesIndex = 0;
