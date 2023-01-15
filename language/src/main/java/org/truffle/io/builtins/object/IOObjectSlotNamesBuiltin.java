@@ -46,6 +46,8 @@ package org.truffle.io.builtins.object;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
@@ -64,22 +66,39 @@ public abstract class IOObjectSlotNamesBuiltin extends IOBuiltinNode {
     @TruffleBoundary
     public Object slotNames(Object receiver,
             @CachedLibrary(limit = "3") InteropLibrary objInterop) {
-         try {
+        try {
             assert objInterop.hasMembers(receiver);
             Object keys = objInterop.getMembers(receiver);
             InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
             long keyCount = keysInterop.getArraySize(keys);
-            Object[] argumentValues = new Object[(int)keyCount];
+            Object[] objectSlotNames = new Object[(int) keyCount];
             for (int i = 0; i < keyCount; i++) {
                 try {
-                    argumentValues[i] = keysInterop.readArrayElement(keys, i);
+                    objectSlotNames[i] = keysInterop.readArrayElement(keys, i);
                 } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
                     throw new NotImplementedException();
                 }
             }
-            return IOState.get(this).createList(argumentValues);
+            //Object[] frameSlotNames = getFrameSlotNames(frame);
+            return IOState.get(this).createList(objectSlotNames);
         } catch (UnsupportedMessageException e) {
         }
         return IOState.get(this).createList(new Object[0]);
     }
+
+    @Specialization
+    public Object slotNames(Object receiver) {
+        throw new NotImplementedException();
+    }
+
+    public Object[] getFrameSlotNames(VirtualFrame frame) {
+        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+        int count = frameDescriptor.getNumberOfSlots();
+        Object[] slotNames = new Object[count];
+        for (int i = 0; i < count; i++) {
+            slotNames[i] = frameDescriptor.getSlotName(i);
+        }
+        return slotNames;
+    }
+
 }
