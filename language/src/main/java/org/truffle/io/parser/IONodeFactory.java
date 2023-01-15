@@ -149,7 +149,8 @@ public class IONodeFactory {
             return frameSlot;
         }
 
-        public Pair<Integer, Integer> findOrAddLocal(TruffleString name, Integer argumentIndex, boolean forceLocalIfRemote) {
+        public Pair<Integer, Integer> findOrAddLocal(TruffleString name, Integer argumentIndex,
+                boolean forceLocalIfRemote) {
             int contextLevel = Integer.MAX_VALUE;
             int frameSlot = -1;
             final Pair<Integer, Integer> foundSlot = find(name);
@@ -539,20 +540,14 @@ public class IONodeFactory {
         if (slotNameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
             assert slotNameNode instanceof IOStringLiteralNode;
             TruffleString name = ((IOStringLiteralNode) slotNameNode).executeGeneric(null);
-            final Pair<Integer, Integer> foundSlot = methodScope.find(name);
-            if (foundSlot == null) {
-                if (isAtLobby()) {
-                    return null;
-                }
-
-            }
+            final Pair<Integer, Integer> foundSlot = methodScope.findOrAddLocal(name, null, false);
+            int contextLevel = foundSlot.a;
+            int slotFrameIndex = foundSlot.b;
             startValueNode.addExpressionTag();
             endValueNode.addExpressionTag();
             if (stepValueNode != null) {
                 stepValueNode.addExpressionTag();
             }
-            int contextLevel = foundSlot.a;
-            int slotFrameIndex = foundSlot.b;
             final IOExpressionNode result;
             if (contextLevel == 0) {
                 result = new IOForLocalVariableNode(slotFrameIndex, slotNameNode, startValueNode, endValueNode,
