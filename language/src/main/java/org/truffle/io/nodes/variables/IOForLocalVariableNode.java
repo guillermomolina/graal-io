@@ -77,7 +77,7 @@ public final class IOForLocalVariableNode extends IOExpressionNode {
     @Child
     private IOExpressionNode isDescendingNode;
 
-    public IOForLocalVariableNode(int slotFrameIndex, IOExpressionNode slotNameNode, IOExpressionNode readControlNode,
+    public IOForLocalVariableNode(int slotFrameIndex, IOExpressionNode slotNameNode,
             IOExpressionNode startValueNode, IOExpressionNode endValueNode, IOExpressionNode stepValueNode,
             IOExpressionNode bodyNode) {
         this.slotFrameIndex = slotFrameIndex;
@@ -85,15 +85,15 @@ public final class IOForLocalVariableNode extends IOExpressionNode {
         this.startValueNode = startValueNode;
         this.endValueNode = endValueNode;
         this.stepValueNode = stepValueNode;
-        this.readControlNode = readControlNode;
         this.bodyNode = bodyNode;
+        this.readControlNode = IOReadLocalVariableNodeGen.create(slotFrameIndex);
         this.isDescendingNode = IOLessThanNodeGen.create(endValueNode, startValueNode);
     }
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         IOExpressionNode initialAssignmentNode = IOWriteLocalVariableNodeGen.create(startValueNode, slotFrameIndex,
-                slotNameNode, true);
+                slotNameNode);
         final boolean isDescending = evaluateIsDescendingNode(frame);
         final IOExpressionNode hasEndedNode;
         if (isDescending) {
@@ -109,8 +109,7 @@ public final class IOForLocalVariableNode extends IOExpressionNode {
             }
         }
         IOExpressionNode addNode = IOAddNodeGen.create(readControlNode, stepValueNode);
-        IOExpressionNode stepVariableNode = IOWriteLocalVariableNodeGen.create(addNode, slotFrameIndex, slotNameNode,
-                false);
+        IOExpressionNode stepVariableNode = IOWriteLocalVariableNodeGen.create(addNode, slotFrameIndex, slotNameNode);
         IOForRepeatingNode forRepeatingNode = new IOForRepeatingNode(hasEndedNode, bodyNode, stepVariableNode);
         LoopNode loopNode = Truffle.getRuntime().createLoopNode(forRepeatingNode);
 

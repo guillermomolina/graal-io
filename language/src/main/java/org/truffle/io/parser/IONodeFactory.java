@@ -140,13 +140,28 @@ public class IONodeFactory {
             return null;
         }
 
-        public Integer getOrAddLocal(TruffleString name, Integer argumentIndex) {
+        protected Integer getOrAddLocal(TruffleString name, Integer argumentIndex) {
             Integer frameSlot = locals.get(name);
             if (frameSlot == null) {
                 frameSlot = frameDescriptorBuilder.addSlot(FrameSlotKind.Illegal, name, argumentIndex);
                 locals.put(name, frameSlot);
             }
             return frameSlot;
+        }
+
+        public Pair<Integer, Integer> findOrAddLocal(TruffleString name, Integer argumentIndex, boolean forceLocalIfRemote) {
+            int contextLevel = Integer.MAX_VALUE;
+            int frameSlot = -1;
+            final Pair<Integer, Integer> foundSlot = find(name);
+            if (foundSlot != null) {
+                contextLevel = foundSlot.a;
+                frameSlot = foundSlot.b;
+            }
+            if (foundSlot == null || (forceLocalIfRemote && contextLevel > 0)) {
+                contextLevel = 0;
+                frameSlot = getOrAddLocal(name, argumentIndex);
+            }
+            return new Pair<Integer, Integer>(contextLevel, frameSlot);
         }
     }
 
@@ -326,27 +341,6 @@ public class IONodeFactory {
         return repeatNode;
     }
 
-    public IOExpressionNode createFor(IOExpressionNode slotNameNode, IOExpressionNode startValueNode,
-            IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode bodyNode, int startPos,
-            int length) {
-        IOForLocalVariableNode forNode = null;
-        if (slotNameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
-            assert slotNameNode instanceof IOStringLiteralNode;
-            TruffleString name = ((IOStringLiteralNode) slotNameNode).executeGeneric(null);
-            int slotFrameIndex = methodScope.getOrAddLocal(name, null);
-            IOExpressionNode readControlNode = createReadLocalVariable(slotNameNode, startPos, length);
-            readControlNode.addExpressionTag();
-            startValueNode.addExpressionTag();
-            endValueNode.addExpressionTag();
-            if (stepValueNode != null) {
-                stepValueNode.addExpressionTag();
-            }
-            forNode = new IOForLocalVariableNode(slotFrameIndex, slotNameNode, readControlNode, startValueNode, endValueNode, stepValueNode, bodyNode);
-            forNode.setSourceSection(startPos, length);
-        }
-        return forNode;
-    }
-
     public IOExpressionNode createIf(Token ifToken, IOExpressionNode conditionNode, IOExpressionNode thenPartNode,
             IOExpressionNode elsePartNode) {
         if (conditionNode == null || thenPartNode == null) {
@@ -448,24 +442,13 @@ public class IONodeFactory {
         }
         assert nameNode instanceof IOStringLiteralNode;
         TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
-
-        int contextLevel = Integer.MAX_VALUE;
-        int frameSlot = -1;
-        boolean newVariable = false;
-        final Pair<Integer, Integer> foundSlot = methodScope.find(name);
-        if (foundSlot != null) {
-            contextLevel = foundSlot.a;
-            frameSlot = foundSlot.b;
-        }
-        if (foundSlot == null || (forceLocal && contextLevel > 0)) {
-            contextLevel = 0;
-            frameSlot = methodScope.getOrAddLocal(name, argumentIndex);
-            newVariable = true;
-        }
+        final Pair<Integer, Integer> foundSlot = methodScope.findOrAddLocal(name, argumentIndex, forceLocal);
+        int contextLevel = foundSlot.a;
+        int frameSlot = foundSlot.b;
         final IOExpressionNode result;
         assert frameSlot != -1;
         if (contextLevel == 0) {
-            result = IOWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
+            result = IOWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode);
         } else {
             assert contextLevel >= 0 && contextLevel < Integer.MAX_VALUE;
             result = IOWriteRemoteVariableNodeGen.create(valueNode, contextLevel, frameSlot);
@@ -524,16 +507,16 @@ public class IONodeFactory {
         throw new NotImplementedException();
     }
 
-    public IOExpressionNode createInvokeVariable(IOExpressionNode nameNode, List<IOExpressionNode> argumentNodes,
+    public IOExpressionNode createInvokeVariable(IOExpressionNode slotNameNode, List<IOExpressionNode> argumentNodes,
             int startPos, int length) {
-        if (nameNode != null) {
-            assert nameNode instanceof IOStringLiteralNode;
-            TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
-            final IOExpressionNode result;
+        if (slotNameNode != null) {
+            assert slotNameNode instanceof IOStringLiteralNode;
+            TruffleString name = ((IOStringLiteralNode) slotNameNode).executeGeneric(null);
             final Pair<Integer, Integer> foundSlot = methodScope.find(name);
             if (foundSlot != null) {
                 int contextLevel = foundSlot.a;
                 int frameSlot = foundSlot.b;
+                final IOExpressionNode result;
                 if (contextLevel == 0) {
                     result = IOInvokeLocalVariableNodeGen.create(frameSlot,
                             argumentNodes.toArray(new IOExpressionNode[argumentNodes.size()]));
@@ -547,6 +530,42 @@ public class IONodeFactory {
             }
         }
         return null;
+    }
+
+    public IOExpressionNode createForVariable(IOExpressionNode slotNameNode, IOExpressionNode startValueNode,
+            IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode bodyNode, int startPos,
+            int length) {
+        IOForLocalVariableNode forNode = null;
+        if (slotNameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
+            assert slotNameNode instanceof IOStringLiteralNode;
+            TruffleString name = ((IOStringLiteralNode) slotNameNode).executeGeneric(null);
+            final Pair<Integer, Integer> foundSlot = methodScope.find(name);
+            if (foundSlot == null) {
+                if (isAtLobby()) {
+                    return null;
+                }
+
+            }
+            startValueNode.addExpressionTag();
+            endValueNode.addExpressionTag();
+            if (stepValueNode != null) {
+                stepValueNode.addExpressionTag();
+            }
+            int contextLevel = foundSlot.a;
+            int slotFrameIndex = foundSlot.b;
+            final IOExpressionNode result;
+            if (contextLevel == 0) {
+                result = new IOForLocalVariableNode(slotFrameIndex, slotNameNode, startValueNode, endValueNode,
+                        stepValueNode, bodyNode);
+            } else {
+                throw new NotImplementedException();
+                //result = new IOForRemoteVariableNode(contextLevel, slotFrameIndex, slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode);
+            }
+            result.setSourceSection(startPos, length);
+            result.addExpressionTag();
+            return result;
+        }
+        return forNode;
     }
 
     public IOExpressionNode createReadSelf() {

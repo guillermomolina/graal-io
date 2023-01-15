@@ -43,9 +43,6 @@
  */
 package org.truffle.io.nodes.variables;
 
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -58,6 +55,9 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+
 /**
  * Node to write a local variable to a function's {@link VirtualFrame frame}. The Truffle frame API
  * allows to store primitive values of all Java primitive types, and Object values.
@@ -65,7 +65,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 @NodeChild("valueNode")
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "nameNode", type = IOExpressionNode.class)
-@NodeField(name = "declaration", type = boolean.class)
 public abstract class IOWriteLocalVariableNode extends IOExpressionNode {
 
     /**
@@ -79,8 +78,6 @@ public abstract class IOWriteLocalVariableNode extends IOExpressionNode {
      * the Truffle DSL based on the {@link NodeChild} annotation on the class.
      */
     protected abstract IOExpressionNode getNameNode();
-
-    public abstract boolean isDeclaration();
 
     public final TruffleString getSlotName() {
         return (TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot());
