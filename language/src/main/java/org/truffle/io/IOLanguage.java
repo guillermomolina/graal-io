@@ -47,6 +47,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.root.EvalRootNode;
+import org.truffle.io.parser.IOLanguageNodeVisitor;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.interop.IOLanguageView;
+
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -65,14 +71,8 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.nodes.root.IOEvalRootNode;
-import org.truffle.io.parser.IOLanguageNodeVisitor;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.interop.IOLanguageView;
 
-
-@TruffleLanguage.Registration(id = IOLanguage.ID, name = "IO", defaultMimeType = IOLanguage.MIME_TYPE, characterMimeTypes = IOLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = IOFileDetector.class, //
+@TruffleLanguage.Registration(id = IOLanguage.ID, name = "IO", defaultMimeType = IOLanguage.MIME_TYPE, characterMimeTypes = IOLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = FileDetector.class, //
                 website = "https://iolanguage.org/")
 @ProvidedTags({StandardTags.CallTag.class, StandardTags.ExpressionTag.class, StandardTags.RootTag.class, StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
                 StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class})
@@ -125,7 +125,7 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
             throw new NotImplementedException();
         }
 
-        final RootNode evalMain = new IOEvalRootNode(this, main);
+        final RootNode evalMain = new EvalRootNode(this, main);
         return evalMain.getCallTarget();
     }
 

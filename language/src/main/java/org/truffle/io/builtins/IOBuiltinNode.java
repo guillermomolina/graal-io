@@ -43,15 +43,15 @@
  */
 package org.truffle.io.builtins;
 
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.runtime.IOState;
+
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.runtime.IOState;
 
 /**
  * Base class for all builtin functions. It contains the Truffle DSL annotation {@link NodeChild}
@@ -60,9 +60,9 @@ import org.truffle.io.runtime.IOState;
  * subclass is instantiated there,. This ensures that builtin functions can be called like user-defined
  * functions; there is no special function lookup or call node for builtin functions.
  */
-@NodeChild(value = "arguments", type = IOExpressionNode[].class)
+@NodeChild(value = "arguments", type = ExpressionNode[].class)
 @GenerateNodeFactory
-public abstract class IOBuiltinNode extends IOExpressionNode {
+public abstract class IOBuiltinNode extends ExpressionNode {
 
     @Override
     public final Object executeGeneric(VirtualFrame frame) {

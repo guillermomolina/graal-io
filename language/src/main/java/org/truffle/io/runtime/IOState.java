@@ -49,6 +49,38 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.graalvm.polyglot.Context;
+import org.truffle.io.IOLanguage;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.builtins.date.DateNowBuiltinFactory;
+import org.truffle.io.builtins.date.DateSecondsSinceBuiltinFactory;
+import org.truffle.io.builtins.list.ListSizeBuiltinFactory;
+import org.truffle.io.builtins.lobby.LobbyExitBuiltinFactory;
+import org.truffle.io.builtins.object.ObjectCloneBuiltinFactory;
+import org.truffle.io.builtins.object.ObjectHasProtoBuiltinFactory;
+import org.truffle.io.builtins.object.ObjectIsActivatableBuiltinFactory;
+import org.truffle.io.builtins.object.ObjectIsNilBuiltinFactory;
+import org.truffle.io.builtins.object.ObjectPrintlnBuiltin;
+import org.truffle.io.builtins.object.ObjectPrintlnBuiltinFactory;
+import org.truffle.io.builtins.object.ObjectProtoBuiltinFactory;
+import org.truffle.io.builtins.object.ObjectSlotNamesBuiltinFactory;
+import org.truffle.io.builtins.system.SystemRegisterShutdownHookBuiltinFactory;
+import org.truffle.io.builtins.system.SystemSleepBuiltinFactory;
+import org.truffle.io.builtins.system.SystemStackTraceBuiltinFactory;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.nodes.variables.ReadArgumentNode;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -69,38 +101,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.graalvm.polyglot.Context;
-import org.truffle.io.IOLanguage;
-import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.builtins.date.IODateNowBuiltinFactory;
-import org.truffle.io.builtins.date.IODateSecondsSinceBuiltinFactory;
-import org.truffle.io.builtins.list.IOListSizeBuiltinFactory;
-import org.truffle.io.builtins.lobby.IOLobbyExitBuiltinFactory;
-import org.truffle.io.builtins.object.IOObjectCloneBuiltinFactory;
-import org.truffle.io.builtins.object.IOObjectHasProtoBuiltinFactory;
-import org.truffle.io.builtins.object.IOObjectIsActivatableBuiltinFactory;
-import org.truffle.io.builtins.object.IOObjectIsNilBuiltinFactory;
-import org.truffle.io.builtins.object.IOObjectPrintlnBuiltin;
-import org.truffle.io.builtins.object.IOObjectPrintlnBuiltinFactory;
-import org.truffle.io.builtins.object.IOObjectProtoBuiltinFactory;
-import org.truffle.io.builtins.object.IOObjectSlotNamesBuiltinFactory;
-import org.truffle.io.builtins.system.IOSystemRegisterShutdownHookBuiltinFactory;
-import org.truffle.io.builtins.system.IOSystemSleepBuiltinFactory;
-import org.truffle.io.builtins.system.IOSystemStackTraceBuiltinFactory;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.nodes.variables.IOReadArgumentNode;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IODate;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-import org.truffle.io.runtime.objects.IOPrototype;
 
 /**
  * The run-time state of IO during execution. The context is created by the
@@ -174,7 +174,7 @@ public final class IOState {
     }
 
     /**
-     * The default default, i.e., the output for the {@link IOObjectPrintlnBuiltin}. To
+     * The default default, i.e., the output for the {@link ObjectPrintlnBuiltin}. To
      * allow unit
      * testing, we do not use {@link System#out} directly.
      */
@@ -189,33 +189,33 @@ public final class IOState {
     private void setupLobby() {
         IOPrototype.OBJECT.setPrototype(lobby);
 
-        IOObjectUtil.putProperty(protos, IOSymbols.OBJECT, IOPrototype.OBJECT);
-        IOObjectUtil.putProperty(protos, IOSymbols.NUMBER, IOPrototype.NUMBER);
-        IOObjectUtil.putProperty(protos, IOSymbols.SEQUENCE, IOPrototype.SEQUENCE);
-        IOObjectUtil.putProperty(protos, IOSymbols.LIST, IOPrototype.LIST);
-        IOObjectUtil.putProperty(protos, IOSymbols.DATE, IOPrototype.DATE);
-        IOObjectUtil.putProperty(protos, IOSymbols.SYSTEM, IOPrototype.SYSTEM);
+        IOObjectUtil.putProperty(protos, Symbols.OBJECT, IOPrototype.OBJECT);
+        IOObjectUtil.putProperty(protos, Symbols.NUMBER, IOPrototype.NUMBER);
+        IOObjectUtil.putProperty(protos, Symbols.SEQUENCE, IOPrototype.SEQUENCE);
+        IOObjectUtil.putProperty(protos, Symbols.LIST, IOPrototype.LIST);
+        IOObjectUtil.putProperty(protos, Symbols.DATE, IOPrototype.DATE);
+        IOObjectUtil.putProperty(protos, Symbols.SYSTEM, IOPrototype.SYSTEM);
 
-        IOObjectUtil.putProperty(lobby, IOSymbols.LOBBY, lobby);
-        IOObjectUtil.putProperty(lobby, IOSymbols.PROTOS, protos);
+        IOObjectUtil.putProperty(lobby, Symbols.LOBBY, lobby);
+        IOObjectUtil.putProperty(lobby, Symbols.PROTOS, protos);
     }
 
     private void installBuiltins() {
-        // installBuiltin(IOObjectReadlnBuiltinFactory.getInstance());
-        installBuiltin(IOObjectPrintlnBuiltinFactory.getInstance());
-        installBuiltin(IOObjectCloneBuiltinFactory.getInstance());
-        installBuiltin(IOObjectHasProtoBuiltinFactory.getInstance());
-        installBuiltin(IOObjectIsActivatableBuiltinFactory.getInstance());
-        installBuiltin(IOObjectIsNilBuiltinFactory.getInstance());
-        installBuiltin(IOObjectProtoBuiltinFactory.getInstance());
-        installBuiltin(IOObjectSlotNamesBuiltinFactory.getInstance());
-        installBuiltin(IOListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
-        installBuiltin(IODateSecondsSinceBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
-        installBuiltin(IODateNowBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
-        installBuiltin(IOSystemSleepBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(IOSystemStackTraceBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(IOSystemRegisterShutdownHookBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(IOLobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
+        // installBuiltin(ObjectReadlnBuiltinFactory.getInstance());
+        installBuiltin(ObjectPrintlnBuiltinFactory.getInstance());
+        installBuiltin(ObjectCloneBuiltinFactory.getInstance());
+        installBuiltin(ObjectHasProtoBuiltinFactory.getInstance());
+        installBuiltin(ObjectIsActivatableBuiltinFactory.getInstance());
+        installBuiltin(ObjectIsNilBuiltinFactory.getInstance());
+        installBuiltin(ObjectProtoBuiltinFactory.getInstance());
+        installBuiltin(ObjectSlotNamesBuiltinFactory.getInstance());
+        installBuiltin(ListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
+        installBuiltin(DateSecondsSinceBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
+        installBuiltin(DateNowBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
+        installBuiltin(SystemSleepBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(SystemStackTraceBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(SystemRegisterShutdownHookBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(LobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
     }
 
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {
@@ -232,14 +232,14 @@ public final class IOState {
          * methods in the builtin classes.
          */
         int argumentCount = factory.getExecutionSignature().size();
-        IOExpressionNode[] argumentNodes = new IOExpressionNode[argumentCount];
+        ExpressionNode[] argumentNodes = new ExpressionNode[argumentCount];
         /*
          * Builtin functions are like normal functions, i.e., the arguments are passed
          * in as an Object[] array encapsulated in IOArguments. A IOReadArgumentNode
          * extracts a parameter from this array.
          */
         for (int i = 0; i < argumentCount; i++) {
-            argumentNodes[i] = new IOReadArgumentNode(i);
+            argumentNodes[i] = new ReadArgumentNode(i);
         }
         /* Instantiate the builtin node. This node performs the actual functionality. */
         IOBuiltinNode builtinBodyNode = factory.createNode((Object) argumentNodes);
@@ -258,8 +258,8 @@ public final class IOState {
         IORootNode rootNode = new IORootNode(language, new FrameDescriptor(), builtinBodyNode,
                 BUILTIN_SOURCE.createUnavailableSection());
         String functionName = targetName + "_" + name;
-        IOFunction function = createFunction(rootNode.getCallTarget(), IOSymbols.fromJavaString(functionName));
-        IOObjectUtil.putProperty(target, IOSymbols.fromJavaString(name), function);
+        IOFunction function = createFunction(rootNode.getCallTarget(), Symbols.fromJavaString(functionName));
+        IOObjectUtil.putProperty(target, Symbols.fromJavaString(name), function);
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {
@@ -415,7 +415,7 @@ public final class IOState {
         return function;
     }
 
-    public IOBlock createBlock(final IOExpressionNode blockNode, final MaterializedFrame frame) {
+    public IOBlock createBlock(final ExpressionNode blockNode, final MaterializedFrame frame) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOBlock block = new IOBlock(blockNode, frame);
         allocationReporter.onReturnValue(block, 0, AllocationReporter.SIZE_UNKNOWN);

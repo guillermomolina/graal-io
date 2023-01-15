@@ -41,17 +41,17 @@
 package org.truffle.io.runtime.objects;
 
 import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOSymbols;
+import org.truffle.io.runtime.Symbols;
 
 import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOCall extends IOObject { 
-    private static final TruffleString SENDER = IOSymbols.constant("sender");
-    private static final TruffleString MESSAGE = IOSymbols.constant("message");
-    private static final TruffleString TARGET = IOSymbols.constant("target");
-    private static final TruffleString SLOTCONTEXT = IOSymbols.constant("slotContext");
-    private static final TruffleString ACTIVATED = IOSymbols.constant("activated");
-    private static final TruffleString COROUTINE = IOSymbols.constant("coroutine");
+    private static final TruffleString SENDER = Symbols.constant("sender");
+    private static final TruffleString MESSAGE = Symbols.constant("message");
+    private static final TruffleString TARGET = Symbols.constant("target");
+    private static final TruffleString SLOTCONTEXT = Symbols.constant("slotContext");
+    private static final TruffleString ACTIVATED = Symbols.constant("activated");
+    private static final TruffleString COROUTINE = Symbols.constant("coroutine");
 
     @DynamicField
     private Object sender;

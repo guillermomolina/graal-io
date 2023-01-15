@@ -40,23 +40,23 @@
  */
  package org.truffle.io.runtime.objects;
 
-import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.expression.ExpressionNode;
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
 
 public class IOBlock extends IOObject {
 
-    private final IOExpressionNode blockNode;
+    private final ExpressionNode blockNode;
     private final MaterializedFrame context;
 
-    public IOBlock(final IOExpressionNode blockNode, final MaterializedFrame context) {
+    public IOBlock(final ExpressionNode blockNode, final MaterializedFrame context) {
         super(IOPrototype.BLOCK);
         this.blockNode = blockNode;
         this.context = context;
     }
 
-    public IOExpressionNode getblockNode() {
+    public ExpressionNode getblockNode() {
         return blockNode;
     }
 

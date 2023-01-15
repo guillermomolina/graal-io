@@ -64,7 +64,7 @@ import com.oracle.truffle.api.utilities.TriState;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOSymbols;
+import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOObject extends DynamicObject {
@@ -153,7 +153,7 @@ public class IOObject extends DynamicObject {
     @ExportMessage(name = "getMetaQualifiedName")
     @ExportMessage(name = "getMetaSimpleName")
     public Object getName() {
-        return IOSymbols.OBJECT;
+        return Symbols.OBJECT;
     }
 
     @ExportMessage

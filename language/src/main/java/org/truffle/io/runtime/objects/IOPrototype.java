@@ -57,20 +57,20 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOSymbols;
+import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOPrototype extends IOObject {
-    public static final TruffleString TYPE = IOSymbols.constant("type");
+    public static final TruffleString TYPE = Symbols.constant("type");
 
-    public static final IOPrototype OBJECT = new IOPrototype(null, IOSymbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
-    public static final IOPrototype NUMBER = new IOPrototype(OBJECT, IOSymbols.NUMBER,
+    public static final IOPrototype OBJECT = new IOPrototype(null, Symbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
+    public static final IOPrototype NUMBER = new IOPrototype(OBJECT, Symbols.NUMBER,
             (l, v) -> l.fitsInLong(v) || l.fitsInDouble(v));
-    public static final IOPrototype SEQUENCE = new IOPrototype(OBJECT, IOSymbols.SEQUENCE, (l, v) -> l.isString(v));
-    public static final IOPrototype BLOCK = new IOPrototype(OBJECT, IOSymbols.BLOCK, (l, v) -> l.isExecutable(v));
-    public static final IOPrototype LIST = new IOPrototype(OBJECT, IOSymbols.LIST, (l, v) -> l.hasArrayElements(v));
-    public static final IOPrototype DATE = new IOPrototype(OBJECT, IOSymbols.DATE, (l, v) -> v instanceof IODate);
-    public static final IOPrototype SYSTEM = new IOPrototype(OBJECT, IOSymbols.SYSTEM, (l, v) -> v == IOPrototype.SYSTEM);
+    public static final IOPrototype SEQUENCE = new IOPrototype(OBJECT, Symbols.SEQUENCE, (l, v) -> l.isString(v));
+    public static final IOPrototype BLOCK = new IOPrototype(OBJECT, Symbols.BLOCK, (l, v) -> l.isExecutable(v));
+    public static final IOPrototype LIST = new IOPrototype(OBJECT, Symbols.LIST, (l, v) -> l.hasArrayElements(v));
+    public static final IOPrototype DATE = new IOPrototype(OBJECT, Symbols.DATE, (l, v) -> v instanceof IODate);
+    public static final IOPrototype SYSTEM = new IOPrototype(OBJECT, Symbols.SYSTEM, (l, v) -> v == IOPrototype.SYSTEM);
 
     @CompilationFinal(dimensions = 1)
     public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, DATE, OBJECT };

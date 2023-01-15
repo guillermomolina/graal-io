@@ -47,7 +47,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
 
-import org.truffle.io.runtime.IOSymbols;
+import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public final class IOTrue extends IOPrototype {
@@ -56,7 +56,7 @@ public final class IOTrue extends IOPrototype {
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
     private IOTrue() {
-        super(IOPrototype.OBJECT, IOSymbols.TRUE, (l, v) -> l.isBoolean(v) && (Boolean)v == Boolean.TRUE);
+        super(IOPrototype.OBJECT, Symbols.TRUE, (l, v) -> l.isBoolean(v) && (Boolean)v == Boolean.TRUE);
     }
 
     @Override
@@ -84,6 +84,6 @@ public final class IOTrue extends IOPrototype {
 
     @ExportMessage
     Object toDisplayString(boolean allowSideEffects) {
-        return IOSymbols.TRUE;
+        return Symbols.TRUE;
     }
 }

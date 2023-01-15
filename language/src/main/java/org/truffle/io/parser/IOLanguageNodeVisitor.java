@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -18,9 +14,9 @@ import org.antlr.v4.runtime.Token;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.literals.IOMethodLiteralNode;
-import org.truffle.io.nodes.literals.IONilLiteralNode;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.literals.MethodLiteralNode;
+import org.truffle.io.nodes.literals.NilLiteralNode;
 import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;
 import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
 import org.truffle.io.parser.IOLanguageParser.DecimalContext;
@@ -43,11 +39,15 @@ import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
 
-public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNode> {
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
+
+public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<ExpressionNode> {
 
     private static final TruffleLogger LOGGER = IOLanguage.getLogger(IOLanguageNodeVisitor.class);
 
-    private IONodeFactory factory;
+    private NodeFactory factory;
     private Source source;
 
     private static final class BailoutErrorListener extends BaseErrorListener {
@@ -79,7 +79,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
             // String contents = token == null ? (substring.length() == 0 ? "" : substring.substring(substring.length() - 1)) : token.getText();
             int lineNr = lineNumber > source.getLineCount() ? source.getLineCount() : lineNumber;
             if (lexerException.getInputStream().LA(1) == IntStream.EOF) {
-                throw new IOIncompleteSourceException(message, e, lineNr, source);
+                throw new IncompleteSourceException(message, e, lineNr, source);
             } else {
                 throwParseError(source, lineNr, charPositionInLine, token, message);
             }
@@ -89,7 +89,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
             // String contents = token == null ? (substring.length() == 0 ? "" : substring.substring(substring.length() - 1)) : token.getText();
             int lineNr = lineNumber > source.getLineCount() ? source.getLineCount() : lineNumber;
             if (token.getType() == Token.EOF) {
-                throw new IOIncompleteSourceException(message, e, lineNr, source);
+                throw new IncompleteSourceException(message, e, lineNr, source);
             } else {
                 throwParseError(source, lineNr, charPositionInLine, token, message);
             }
@@ -100,7 +100,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
         int col = charPositionInLine + 1;
         String location = "-- line " + line + " col " + col + ": ";
         int length = token == null ? 1 : Math.max(token.getStopIndex() - token.getStartIndex(), 0);
-        throw new IOParseException(source, line, col, length,
+        throw new ParseException(source, line, col, length,
                 String.format("Error(s) parsing script:%n" + location + message));
     }
 
@@ -112,56 +112,56 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
         BailoutErrorListener listener = new BailoutErrorListener(source);
         lexer.addErrorListener(listener);
         parser.addErrorListener(listener);
-        this.factory = new IONodeFactory(language, source);
+        this.factory = new NodeFactory(language, source);
         this.source = source;
-        IOMethodLiteralNode methodMessageNode = (IOMethodLiteralNode) visitIolanguage(parser.iolanguage());
+        MethodLiteralNode methodMessageNode = (MethodLiteralNode) visitIolanguage(parser.iolanguage());
         return methodMessageNode.getValue().getCallTarget();
     }
 
     @Override
-    public IOExpressionNode visitIolanguage(IolanguageContext ctx) {
+    public ExpressionNode visitIolanguage(IolanguageContext ctx) {
         LOGGER.fine("Started visitIolanguage()");
         factory.startMethod(ctx.start);
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
-        IOExpressionNode bodyNode = null;
+        ExpressionNode bodyNode = null;
         if (ctx.expression() != null) {
             bodyNode = visitExpression(ctx.expression());
         } else {
             bodyNode = visitEmptyExpression(startPos, length);
         }
-        final IOExpressionNode result = factory.finishMethod(bodyNode, startPos, length);
+        final ExpressionNode result = factory.finishMethod(bodyNode, startPos, length);
         assert result != null;
         LOGGER.fine("Ended visitIolanguage()");
         return result;
     }
 
     @Override
-    public IOExpressionNode visitExpression(final ExpressionContext ctx) {
-        List<IOExpressionNode> body = new ArrayList<>();
+    public ExpressionNode visitExpression(final ExpressionContext ctx) {
+        List<ExpressionNode> body = new ArrayList<>();
 
         for (final OperationContext operationCtx : ctx.operation()) {
-            IOExpressionNode operationNode = visitOperation(operationCtx);
+            ExpressionNode operationNode = visitOperation(operationCtx);
             if (operationNode != null) {
                 body.add(operationNode);
             }
         }
-        final IOExpressionNode result = factory.createBlock(body, ctx.start.getStartIndex(),
+        final ExpressionNode result = factory.createBlock(body, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
         assert result != null;
         return result;
     }
 
-    public IOExpressionNode visitEmptyExpression(int startPos, int length) {
-        List<IOExpressionNode> body = new ArrayList<>();
-        body.add(new IONilLiteralNode());
-        final IOExpressionNode result = factory.createBlock(body, startPos, length);
+    public ExpressionNode visitEmptyExpression(int startPos, int length) {
+        List<ExpressionNode> body = new ArrayList<>();
+        body.add(new NilLiteralNode());
+        final ExpressionNode result = factory.createBlock(body, startPos, length);
         assert result != null;
         return result;
     }
 
     @Override
-    public IOExpressionNode visitOperation(final OperationContext ctx) {
+    public ExpressionNode visitOperation(final OperationContext ctx) {
         if (ctx.assignment() != null) {
             return visitAssignment(ctx.assignment());
         }
@@ -172,9 +172,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
             throw new ShouldNotBeHereException();
         }
         try {
-            IOExpressionNode result = null;
-            IOExpressionNode leftNode = visitOperation(ctx.operation(0));
-            IOExpressionNode rightNode = visitOperation(ctx.operation(1));
+            ExpressionNode result = null;
+            ExpressionNode leftNode = visitOperation(ctx.operation(0));
+            ExpressionNode rightNode = visitOperation(ctx.operation(1));
             switch (ctx.op.getText()) {
                 default:
                     result = factory.createBinary(ctx.op, leftNode, rightNode);
@@ -187,20 +187,20 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitAssignment(final AssignmentContext ctx) {
+    public ExpressionNode visitAssignment(final AssignmentContext ctx) {
         if (ctx.assign.getText().equals(":=")) {
-            IOExpressionNode receiverNode = null;
+            ExpressionNode receiverNode = null;
             if (ctx.sequence() != null) {
                 receiverNode = visitSequence(ctx.sequence());
                 assert receiverNode != null;
             }
-            IOExpressionNode assignmentNameNode = visitIdentifier(ctx.name);
+            ExpressionNode assignmentNameNode = visitIdentifier(ctx.name);
             assert assignmentNameNode != null;
-            IOExpressionNode valueNode = visitOperation(ctx.operation());
+            ExpressionNode valueNode = visitOperation(ctx.operation());
             assert valueNode != null;
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
-            IOExpressionNode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start,
+            ExpressionNode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start,
                     length);
             assert result != null;
             return result;
@@ -209,8 +209,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitSequence(final SequenceContext ctx) {
-        IOExpressionNode result = null;
+    public ExpressionNode visitSequence(final SequenceContext ctx) {
+        ExpressionNode result = null;
         if (ctx.literal() != null) {
             result = visitLiteral(ctx.literal());
             assert result != null;
@@ -223,7 +223,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
         }
         if (ctx.message() != null && !ctx.message().isEmpty()) {
             for (final MessageContext messageCtx : ctx.message()) {
-                IOExpressionNode receiver = result;
+                ExpressionNode receiver = result;
                 result = visitMessage(messageCtx, receiver);
             }
             assert result != null;
@@ -232,23 +232,23 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitSubexpression(SubexpressionContext ctx) {
+    public ExpressionNode visitSubexpression(SubexpressionContext ctx) {
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
-        final IOExpressionNode expression;
+        final ExpressionNode expression;
         if (ctx.expression() != null) {
             expression = visitExpression(ctx.expression());
         } else {
             expression = visitEmptyExpression(startPos, length);
         }
         assert expression != null;
-        final IOExpressionNode result = factory.createParenExpression(expression, startPos, length);
+        final ExpressionNode result = factory.createParenExpression(expression, startPos, length);
         assert result != null;
         return result;
     }
 
     @Override
-    public IOExpressionNode visitLiteralMessage(LiteralMessageContext ctx) {
+    public ExpressionNode visitLiteralMessage(LiteralMessageContext ctx) {
         if (ctx.returnMessage() != null) {
             return visitReturnMessage(ctx.returnMessage());
         }
@@ -277,11 +277,11 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitMessage(final MessageContext ctx) {
+    public ExpressionNode visitMessage(final MessageContext ctx) {
         throw new ShouldNotBeHereException();
     }
 
-    public IOExpressionNode visitMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+    public ExpressionNode visitMessage(final MessageContext ctx, ExpressionNode receiverNode) {
         if (ctx.AT() != null) {
             return visitAtMessage(ctx, receiverNode);
         }
@@ -304,12 +304,12 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
             return visitRepeatMessage(ctx, receiverNode);
         }
         if (ctx.id != null) {
-            final IOExpressionNode identifierNode = factory.createStringLiteral(ctx.id, false);
+            final ExpressionNode identifierNode = factory.createStringLiteral(ctx.id, false);
             assert identifierNode != null;
-            List<IOExpressionNode> argumentNodes = createArgumentsList(ctx.arguments());
+            List<ExpressionNode> argumentNodes = createArgumentsList(ctx.arguments());
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
-            IOExpressionNode result = factory.createInvokeSlot(receiverNode, identifierNode, argumentNodes, start,
+            ExpressionNode result = factory.createInvokeSlot(receiverNode, identifierNode, argumentNodes, start,
                     length);
             assert result != null;
             return result;
@@ -317,8 +317,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
         throw new ShouldNotBeHereException();
     }
 
-    public IOExpressionNode visitAtMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
-        final IOExpressionNode indexNode;
+    public ExpressionNode visitAtMessage(final MessageContext ctx, ExpressionNode receiverNode) {
+        final ExpressionNode indexNode;
         if (ctx.decimal() == null) {
             indexNode = visitExpression(ctx.expression(0));
         } else {
@@ -327,34 +327,34 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
         assert indexNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IOExpressionNode result = factory.createSequenceAt(receiverNode, indexNode, start, length);
+        ExpressionNode result = factory.createSequenceAt(receiverNode, indexNode, start, length);
         assert result != null;
         return result;
     }
 
-    public IOExpressionNode visitAtPutMessage(final MessageContext ctx, IOExpressionNode r) {
-        final IOExpressionNode indexNode;
+    public ExpressionNode visitAtPutMessage(final MessageContext ctx, ExpressionNode r) {
+        final ExpressionNode indexNode;
         if (ctx.decimal() == null) {
             indexNode = visitExpression(ctx.expression(0));
         } else {
             indexNode = visitDecimal(ctx.decimal());
         }
         assert indexNode != null;
-        IOExpressionNode valueNode = visitExpression(ctx.value);
+        ExpressionNode valueNode = visitExpression(ctx.value);
         assert valueNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IOExpressionNode receiverNode = r;
+        ExpressionNode receiverNode = r;
         if (receiverNode == null) {
             receiverNode = factory.createReadSelf();
         }
-        IOExpressionNode result = factory.createSequenceAtPut(receiverNode, indexNode, valueNode, start, length);
+        ExpressionNode result = factory.createSequenceAtPut(receiverNode, indexNode, valueNode, start, length);
         assert result != null;
         return result;
     }
 
-    public IOExpressionNode visitGetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
-        final IOExpressionNode nameNode;
+    public ExpressionNode visitGetSlotMessage(final MessageContext ctx, ExpressionNode receiverNode) {
+        final ExpressionNode nameNode;
         if (ctx.name == null) {
             nameNode = visitExpression(ctx.expression(0));
         } else {
@@ -363,60 +363,60 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
         assert nameNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IOExpressionNode result = factory.createReadSlot(receiverNode, nameNode, start, length);
+        ExpressionNode result = factory.createReadSlot(receiverNode, nameNode, start, length);
         assert result != null;
         return result;
     }
 
-    public IOExpressionNode visitNewSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+    public ExpressionNode visitNewSlotMessage(final MessageContext ctx, ExpressionNode receiverNode) {
         throw new NotImplementedException();
     }
 
-    public IOExpressionNode visitUpdateSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
+    public ExpressionNode visitUpdateSlotMessage(final MessageContext ctx, ExpressionNode receiverNode) {
         throw new NotImplementedException();
     }
 
-    public IOExpressionNode visitSetSlotMessage(final MessageContext ctx, IOExpressionNode receiverNode) {
-        final IOExpressionNode nameNode;
+    public ExpressionNode visitSetSlotMessage(final MessageContext ctx, ExpressionNode receiverNode) {
+        final ExpressionNode nameNode;
         if (ctx.name == null) {
             nameNode = visitExpression(ctx.expression(0));
         } else {
             nameNode = factory.createStringLiteral(ctx.name, true);
         }
         assert nameNode != null;
-        IOExpressionNode valueNode = visitExpression(ctx.value);
+        ExpressionNode valueNode = visitExpression(ctx.value);
         assert valueNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IOExpressionNode result = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length);
+        ExpressionNode result = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length);
         assert result != null;
         return result;
     }
 
-    public IOExpressionNode visitRepeatMessage(final MessageContext ctx, IOExpressionNode r) {
+    public ExpressionNode visitRepeatMessage(final MessageContext ctx, ExpressionNode r) {
         factory.startLoop();
-        IOExpressionNode bodyNode = visitExpression(ctx.expression(0));
+        ExpressionNode bodyNode = visitExpression(ctx.expression(0));
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IOExpressionNode receiverNode = r;
+        ExpressionNode receiverNode = r;
         if (receiverNode == null) {
             receiverNode = factory.createReadSelf();
         }
-        IOExpressionNode result = factory.createRepeat(receiverNode, bodyNode, start, length);
+        ExpressionNode result = factory.createRepeat(receiverNode, bodyNode, start, length);
         assert result != null;
         return result;
     }
 
     @Override
-    public IOExpressionNode visitArguments(final ArgumentsContext ctx) {
+    public ExpressionNode visitArguments(final ArgumentsContext ctx) {
         throw new ShouldNotBeHereException();
     }
 
-    public List<IOExpressionNode> createArgumentsList(final ArgumentsContext ctx) {
-        List<IOExpressionNode> argumentNodes = new ArrayList<>();
+    public List<ExpressionNode> createArgumentsList(final ArgumentsContext ctx) {
+        List<ExpressionNode> argumentNodes = new ArrayList<>();
         if (ctx != null) {
             for (final ExpressionContext expressionCtx : ctx.expression()) {
-                IOExpressionNode argumentNode = visitExpression(expressionCtx);
+                ExpressionNode argumentNode = visitExpression(expressionCtx);
                 assert argumentNode != null;
                 argumentNodes.add(argumentNode);
             }
@@ -425,18 +425,18 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitReturnMessage(final ReturnMessageContext ctx) {
-        IOExpressionNode valueNode = null;
+    public ExpressionNode visitReturnMessage(final ReturnMessageContext ctx) {
+        ExpressionNode valueNode = null;
         if (ctx.operation() != null) {
             valueNode = visitOperation(ctx.operation());
             assert valueNode != null;
         }
-        IOExpressionNode returnNode = factory.createReturn(ctx.RETURN().getSymbol(), valueNode);
+        ExpressionNode returnNode = factory.createReturn(ctx.RETURN().getSymbol(), valueNode);
         return returnNode;
     }
 
     @Override
-    public IOExpressionNode visitIfMessage(IfMessageContext ctx) {
+    public ExpressionNode visitIfMessage(IfMessageContext ctx) {
         if (ctx.ifMessage1() != null) {
             throw new NotImplementedException();
         }
@@ -447,53 +447,53 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitIfThenElseMessage(IfThenElseMessageContext ctx) {
-        IOExpressionNode conditionNode = visitExpression(ctx.condition);
-        IOExpressionNode thenPartNode = visitExpression(ctx.thenPart);
-        IOExpressionNode elsePartNode = null;
+    public ExpressionNode visitIfThenElseMessage(IfThenElseMessageContext ctx) {
+        ExpressionNode conditionNode = visitExpression(ctx.condition);
+        ExpressionNode thenPartNode = visitExpression(ctx.thenPart);
+        ExpressionNode elsePartNode = null;
         if (ctx.elsePart != null) {
             elsePartNode = visitExpression(ctx.elsePart);
         }
-        IOExpressionNode result = factory.createIf(ctx.IF().getSymbol(), conditionNode, thenPartNode, elsePartNode);
+        ExpressionNode result = factory.createIf(ctx.IF().getSymbol(), conditionNode, thenPartNode, elsePartNode);
         assert result != null;
         return result;
     }
 
     @Override
-    public IOExpressionNode visitWhileMessage(WhileMessageContext ctx) {
+    public ExpressionNode visitWhileMessage(WhileMessageContext ctx) {
         factory.startLoop();
-        IOExpressionNode conditionNode = visitExpression(ctx.condition);
-        IOExpressionNode bodyNode = visitExpression(ctx.body);
-        IOExpressionNode result = factory.createWhile(ctx.WHILE().getSymbol(), conditionNode, bodyNode);
+        ExpressionNode conditionNode = visitExpression(ctx.condition);
+        ExpressionNode bodyNode = visitExpression(ctx.body);
+        ExpressionNode result = factory.createWhile(ctx.WHILE().getSymbol(), conditionNode, bodyNode);
         return factory.createLoopBlock(result, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
     }
 
     @Override
-    public IOExpressionNode visitForMessage(ForMessageContext ctx) {
+    public ExpressionNode visitForMessage(ForMessageContext ctx) {
         // throw new NotImplementedException();
         factory.startLoop();
-        IOExpressionNode slotNameNode = visitIdentifier(ctx.identifier());
-        IOExpressionNode startValueNode = visitExpression(ctx.startPart);
-        IOExpressionNode endValueNode = visitExpression(ctx.endPart);
-        IOExpressionNode stepValueNode = null;
+        ExpressionNode slotNameNode = visitIdentifier(ctx.identifier());
+        ExpressionNode startValueNode = visitExpression(ctx.startPart);
+        ExpressionNode endValueNode = visitExpression(ctx.endPart);
+        ExpressionNode stepValueNode = null;
         if (ctx.stepPart != null) {
             stepValueNode = visitExpression(ctx.stepPart);
         }
-        IOExpressionNode bodyNode = visitExpression(ctx.body);
+        ExpressionNode bodyNode = visitExpression(ctx.body);
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
-        IOExpressionNode result = factory.createForVariable(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
+        ExpressionNode result = factory.createForVariable(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
                 startPos, length);
         assert result != null;
         return factory.createLoopBlock(result, startPos, length);
     }
 
     @Override
-    public IOExpressionNode visitListMessage(ListMessageContext ctx) {
-        List<IOExpressionNode> elementNodes = new ArrayList<>();
+    public ExpressionNode visitListMessage(ListMessageContext ctx) {
+        List<ExpressionNode> elementNodes = new ArrayList<>();
         for (final ExpressionContext expressionCtx : ctx.arguments().expression()) {
-            IOExpressionNode elementNode = visitExpression(expressionCtx);
+            ExpressionNode elementNode = visitExpression(expressionCtx);
             assert elementNode != null;
             elementNodes.add(elementNode);
         }
@@ -502,7 +502,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitMethodMessage(MethodMessageContext ctx) {
+    public ExpressionNode visitMethodMessage(MethodMessageContext ctx) {
         final Token bodyStartToken;
         if (ctx.expression() == null) {
             bodyStartToken = ctx.CLOSE().getSymbol();
@@ -517,24 +517,24 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
         }
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
-        IOExpressionNode bodyNode = null;
+        ExpressionNode bodyNode = null;
         if (ctx.expression() != null) {
             bodyNode = visitExpression(ctx.expression());
         } else {
             bodyNode = visitEmptyExpression(bodyStartToken.getStartIndex(), length);
         }
-        final IOExpressionNode result = factory.finishMethod(bodyNode, startPos, length);
+        final ExpressionNode result = factory.finishMethod(bodyNode, startPos, length);
         assert result != null;
         return result;
     }
 
     @Override
-    public IOExpressionNode visitIdentifier(IdentifierContext ctx) {
+    public ExpressionNode visitIdentifier(IdentifierContext ctx) {
         return factory.createStringLiteral(ctx.start, false);
     }
 
     @Override
-    public IOExpressionNode visitLiteral(final LiteralContext ctx) {
+    public ExpressionNode visitLiteral(final LiteralContext ctx) {
         if (ctx.str != null) {
             return factory.createStringLiteral(ctx.str, true);
         }
@@ -548,7 +548,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitNumber(NumberContext ctx) {
+    public ExpressionNode visitNumber(NumberContext ctx) {
         if (ctx.decimal() != null) {
             return visitDecimal(ctx.decimal());
         }
@@ -556,7 +556,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitDecimal(DecimalContext ctx) {
+    public ExpressionNode visitDecimal(DecimalContext ctx) {
         if (ctx.INTEGER() != null) {
             return factory.createNumericLiteral(ctx.INTEGER().getSymbol());
         }
@@ -564,7 +564,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IOExpressionNod
     }
 
     @Override
-    public IOExpressionNode visitPseudoVariable(PseudoVariableContext ctx) {
+    public ExpressionNode visitPseudoVariable(PseudoVariableContext ctx) {
         if (ctx.TRUE() != null) {
             return factory.createBoolean(ctx.TRUE().getSymbol());
         }

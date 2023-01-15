@@ -45,6 +45,11 @@ package org.truffle.io.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.runtime.objects.IOPrototype;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -54,11 +59,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.runtime.objects.IOPrototype;
 
 /**
  * Language views are needed in order to allow tools to have a consistent perspective on primitive

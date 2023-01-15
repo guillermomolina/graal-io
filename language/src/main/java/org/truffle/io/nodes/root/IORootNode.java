@@ -46,6 +46,14 @@ package org.truffle.io.nodes.root;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.controlflow.MethodBodyNode;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.BlockNode;
+import org.truffle.io.nodes.variables.ReadArgumentNode;
+import org.truffle.io.nodes.variables.WriteLocalVariableNode;
+import org.truffle.io.runtime.IOState;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -57,33 +65,17 @@ import com.oracle.truffle.api.nodes.NodeVisitor;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.nodes.controlflow.IOMethodBodyNode;
-import org.truffle.io.nodes.expression.IOBlockNode;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.variables.IOReadArgumentNode;
-import org.truffle.io.nodes.variables.IOWriteLocalVariableNode;
-import org.truffle.io.runtime.IOState;
-
-/**
- * The root of all IO execution trees. It is a Truffle requirement that the tree root extends the
- * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
- * builtin functions, the {@link #bodyNode} is a subclass of {@link IOBuiltinNode}. For user-defined
- * functions, the {@link #bodyNode} is a {@link IOMethodBodyNode}.
- */
 @NodeInfo(language = "IO", description = "The root of all IO execution trees")
 public class IORootNode extends RootNode {
-    /** The function body that is executed, and specialized during execution. */
-    @Child private IOExpressionNode bodyNode;
+    @Child private ExpressionNode bodyNode;
 
     private boolean isCloningAllowed;
 
     private final SourceSection sourceSection;
 
-    @CompilerDirectives.CompilationFinal(dimensions = 1) private volatile IOWriteLocalVariableNode[] argumentNodesCache;
+    @CompilerDirectives.CompilationFinal(dimensions = 1) private volatile WriteLocalVariableNode[] argumentNodesCache;
 
-    public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, IOExpressionNode bodyNode, SourceSection sourceSection) {
+    public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, ExpressionNode bodyNode, SourceSection sourceSection) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.sourceSection = sourceSection;
@@ -100,7 +92,7 @@ public class IORootNode extends RootNode {
         return bodyNode.executeGeneric(frame);
     }
 
-    public IOExpressionNode getBodyNode() {
+    public ExpressionNode getBodyNode() {
         return bodyNode;
     }
 
@@ -118,8 +110,8 @@ public class IORootNode extends RootNode {
         return "root";
     }
 
-    public final IOWriteLocalVariableNode[] getDeclaredArguments() {
-        IOWriteLocalVariableNode[] argumentNodes = argumentNodesCache;
+    public final WriteLocalVariableNode[] getDeclaredArguments() {
+        WriteLocalVariableNode[] argumentNodes = argumentNodesCache;
         if (argumentNodes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             argumentNodesCache = argumentNodes = findArgumentNodes();
@@ -127,11 +119,11 @@ public class IORootNode extends RootNode {
         return argumentNodes;
     }
 
-    private IOWriteLocalVariableNode[] findArgumentNodes() {
-        List<IOWriteLocalVariableNode> writeArgNodes = new ArrayList<>(4);
+    private WriteLocalVariableNode[] findArgumentNodes() {
+        List<WriteLocalVariableNode> writeArgNodes = new ArrayList<>(4);
         NodeUtil.forEachChild(this.getBodyNode(), new NodeVisitor() {
 
-            private IOWriteLocalVariableNode wn; // The current write node containing a slot
+            private WriteLocalVariableNode wn; // The current write node containing a slot
 
             @Override
             public boolean visit(Node node) {
@@ -139,15 +131,15 @@ public class IORootNode extends RootNode {
                 if (node instanceof InstrumentableNode.WrapperNode) {
                     return NodeUtil.forEachChild(node, this);
                 }
-                if (node instanceof IOWriteLocalVariableNode) {
-                    wn = (IOWriteLocalVariableNode) node;
+                if (node instanceof WriteLocalVariableNode) {
+                    wn = (WriteLocalVariableNode) node;
                     boolean all = NodeUtil.forEachChild(node, this);
                     wn = null;
                     return all;
-                } else if (wn != null && (node instanceof IOReadArgumentNode)) {
+                } else if (wn != null && (node instanceof ReadArgumentNode)) {
                     writeArgNodes.add(wn);
                     return true;
-                } else if (wn == null && (node instanceof IOExpressionNode && !(node instanceof IOBlockNode || node instanceof IOMethodBodyNode))) {
+                } else if (wn == null && (node instanceof ExpressionNode && !(node instanceof BlockNode || node instanceof MethodBodyNode))) {
                     // A different IO node - we're done.
                     return false;
                 } else {
@@ -155,7 +147,7 @@ public class IORootNode extends RootNode {
                 }
             }
         });
-        return writeArgNodes.toArray(new IOWriteLocalVariableNode[writeArgNodes.size()]);
+        return writeArgNodes.toArray(new WriteLocalVariableNode[writeArgNodes.size()]);
     }
 
 }
