@@ -179,11 +179,12 @@ public final class IOBlockNode extends IOExpressionNode implements BlockNode.Ele
                 }
                 // Write to a variable is a declaration unless it exists already in a parent scope.
                 if (node instanceof IOWriteLocalVariableNode) {
-                    IOWriteLocalVariableNode wn = (IOWriteLocalVariableNode) node;
-                    if (wn.isDeclaration()) {
-                        writeNodes.add(wn);
-                        varsIndex[0]++;
-                    }
+                    throw new NotImplementedException();
+                    // IOWriteLocalVariableNode wn = (IOWriteLocalVariableNode) node;
+                    // if (wn.isDeclaration()) {
+                    //     writeNodes.add(wn);
+                    //     varsIndex[0]++;
+                    // }
                 }
                 if (node instanceof IOScopedNode) {
                     IOScopedNode scopedNode = (IOScopedNode) node;
