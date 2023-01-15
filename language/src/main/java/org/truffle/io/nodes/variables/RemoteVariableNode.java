@@ -82,17 +82,17 @@ public abstract class RemoteVariableNode extends ExpressionNode {
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
         Object call = frame.getArguments()[1];
         assert call instanceof IOCall;
-        IOBlock method = (IOBlock) ((IOCall)call).getActivated();
+        IOBlock block = (IOBlock) ((IOCall)call).getActivated();
         int i = getContextLevel() - 1;
 
         while (i > 0) {
-            method = (IOBlock) method.getOuterFrame();
+            block = (IOBlock) block.getOuterFrame();
             i--;
         }
 
         // Graal needs help here to see that this is always a MaterializedFrame
         // so, we record explicitly a class profile
-        return frameType.profile(method.getFrame());
+        return frameType.profile(block.getLocals().getFrame());
 
     }
 

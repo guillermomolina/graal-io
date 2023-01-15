@@ -108,7 +108,7 @@ import org.truffle.io.runtime.objects.IOPrototype;
 /**
  * The run-time state of IO during execution. The context is created by the
  * {@link IOLanguage}. It is used, for example, by
- * {@link IOBuiltinNode#getFrame() builtin functions}.
+ * {@link IOBuiltinNode#getLocals() builtin functions}.
  * <p>
  * It would be an error to have two different context instances during the
  * execution of one script. However, if two separate scripts run in one Java VM
@@ -403,10 +403,17 @@ public final class IOState {
         return date;
     }
 
-    public IOBlock createMethod(RootCallTarget callTarget, final TruffleString[] argNames,
-            final MaterializedFrame frame) {
+    public IOLocals createLocals(final MaterializedFrame frame) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOBlock method = new IOBlock(callTarget, argNames, frame);
+        IOLocals locals = new IOLocals(frame);
+        allocationReporter.onReturnValue(locals, 0, AllocationReporter.SIZE_UNKNOWN);
+        return locals;
+    }
+
+    public IOBlock createMethod(RootCallTarget callTarget, final TruffleString[] argNames,
+            final IOLocals locals) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IOBlock method = new IOBlock(callTarget, argNames, locals);
         allocationReporter.onReturnValue(method, 0, AllocationReporter.SIZE_UNKNOWN);
         return method;
     }

@@ -45,7 +45,6 @@ package org.truffle.io.runtime.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -56,25 +55,25 @@ public final class IOBlock extends IOInvokable {
 
     /** The current implementation of this method. */
     private final TruffleString[] argNames;
-    private final MaterializedFrame frame;
+    private final IOLocals locals;
 
-    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final MaterializedFrame frame) {
+    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final IOLocals locals) {
         super(IOPrototype.BLOCK, callTarget);
         this.argNames = argNames;
-        this.frame = frame;
+        this.locals = locals;
     }
 
     @Override
     public boolean hasLocals() {
-        return frame != null;
+        return locals != null;
     }
     
-    public MaterializedFrame getFrame() {
-        return frame;
+    public IOLocals getLocals() {
+        return locals;
     }
     
     public Object getOuterFrame() {
-        Object call = getFrame().getArguments()[1];
+        Object call = getLocals().getFrame().getArguments()[1];
         assert call instanceof IOCall;
         return ((IOCall)call).getActivated();
     }

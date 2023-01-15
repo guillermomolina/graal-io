@@ -56,6 +56,7 @@ import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOLocals;
 
 /**
  * Constant literal for a {@link IOBlock method} value, created when a method name occurs as
@@ -88,7 +89,8 @@ public final class MethodLiteralNode extends ExpressionNode {
                 /* We are about to change a @CompilationFinal field. */
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 /* First execution of the node: lookup the method in the method registry. */
-                this.cachedMethod = method = IOState.get(this).createMethod(value.getCallTarget(), argNames, frame.materialize());
+                IOLocals locals = IOState.get(this).createLocals(frame.materialize());
+                this.cachedMethod = method = IOState.get(this).createMethod(value.getCallTarget(), argNames, locals);
             }
         } else {
             /*
@@ -100,7 +102,8 @@ public final class MethodLiteralNode extends ExpressionNode {
             }
             // in the multi-context case we are not allowed to store
             // IOMethod objects in the AST. Instead we always perform the lookup in the hash map.
-            method = IOState.get(this).createMethod(value.getCallTarget(), argNames, frame.materialize());
+            IOLocals locals = IOState.get(this).createLocals(frame.materialize());
+            method = IOState.get(this).createMethod(value.getCallTarget(), argNames, locals);
         }
         return method;
     }
