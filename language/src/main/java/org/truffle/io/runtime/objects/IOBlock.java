@@ -1,5 +1,8 @@
 /*
- * Copyright (c) 2022, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ */
+/*
+ * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,34 +41,66 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
- package org.truffle.io.runtime.objects;
+package org.truffle.io.runtime.objects;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.strings.TruffleString;
 
+@ExportLibrary(InteropLibrary.class)
+public final class IOBlock extends IOInvokable {
 
-public class IOBlock extends IOObject {
+    /** The current implementation of this method. */
+    private final TruffleString[] argNames;
+    private final MaterializedFrame frame;
 
-    private final ExpressionNode blockNode;
-    private final MaterializedFrame context;
-
-    public IOBlock(final ExpressionNode blockNode, final MaterializedFrame context) {
-        super(IOPrototype.BLOCK);
-        this.blockNode = blockNode;
-        this.context = context;
+    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final MaterializedFrame frame) {
+        super(IOPrototype.BLOCK, callTarget);
+        this.argNames = argNames;
+        this.frame = frame;
     }
 
-    public ExpressionNode getblockNode() {
-        return blockNode;
-    }
-
-    public boolean hasContext() {
-        return context != null;
-    }
-    
-    public MaterializedFrame getContext() {
-        return context;
+    @Override
+    public boolean hasLocals() {
+        return frame != null;
     }
     
+    public MaterializedFrame getFrame() {
+        return frame;
+    }
+    
+    public Object getOuterFrame() {
+        Object call = getFrame().getArguments()[1];
+        assert call instanceof IOCall;
+        return ((IOCall)call).getActivated();
+    }
+    
+    public int getNumArgs() {
+        return argNames.length;
+    }
+
+    public TruffleString[] getArgNames() {
+        return argNames;
+    }
+
+    public String toString(int depth) {
+        String string = "method(";
+        if(depth == 0) {
+            string += getSourceLocation().getCharacters().toString();
+        } else {
+            string += "...";
+        }
+        string += ")";
+        return string;
+    }
+
+    @ExportMessage
+    @TruffleBoundary
+    static int identityHashCode(IOBlock receiver) {
+        return System.identityHashCode(receiver);
+    }
 }

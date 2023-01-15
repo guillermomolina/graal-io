@@ -40,10 +40,10 @@
  */
 package org.truffle.io.runtime.objects;
 
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
-
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOCall extends IOObject { 
     private static final TruffleString SENDER = Symbols.constant("sender");
@@ -66,8 +66,8 @@ public class IOCall extends IOObject {
     @DynamicField
     private Object coroutine;
 
-    public IOCall(final IOContext sender, final IOMessage message, final Object target, final IOObject slotContext,
-            final IOMethod activated, final IOObject coroutine) {
+    public IOCall(final IOLocals sender, final IOMessage message, final Object target, final IOObject slotContext,
+            final IOBlock activated, final IOObject coroutine) {
         setSender(sender);
         setMessage(message);
         setTarget(target);
@@ -76,11 +76,11 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public IOContext getSender() {
-        return (IOContext)IOObjectUtil.getProperty(this, SENDER);
+    public IOLocals getSender() {
+        return (IOLocals)IOObjectUtil.getProperty(this, SENDER);
     }
 
-    public void setSender(IOContext sender) {
+    public void setSender(IOLocals sender) {
         IOObjectUtil.putProperty(this, SENDER, sender);
     }
 
@@ -108,11 +108,11 @@ public class IOCall extends IOObject {
         IOObjectUtil.putProperty(this, SLOTCONTEXT, slotcontext);
     }
 
-    public IOMethod getActivated() {
-        return (IOMethod)IOObjectUtil.getProperty(this, ACTIVATED);
+    public IOBlock getActivated() {
+        return (IOBlock)IOObjectUtil.getProperty(this, ACTIVATED);
     }
 
-    public void setActivated(IOMethod activated) {
+    public void setActivated(IOBlock activated) {
         IOObjectUtil.putProperty(this, ACTIVATED, activated);
     }
 

@@ -94,13 +94,13 @@ import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.variables.ReadArgumentNode;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOContext;
 import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.objects.IOEncapsulatedNode;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
-import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOObject;
 import org.truffle.io.runtime.objects.IOPrototype;
@@ -403,10 +403,10 @@ public final class IOState {
         return date;
     }
 
-    public IOMethod createMethod(RootCallTarget callTarget, final TruffleString[] parameters,
+    public IOBlock createMethod(RootCallTarget callTarget, final TruffleString[] argNames,
             final MaterializedFrame frame) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOMethod method = new IOMethod(callTarget, parameters, frame);
+        IOBlock method = new IOBlock(callTarget, argNames, frame);
         allocationReporter.onReturnValue(method, 0, AllocationReporter.SIZE_UNKNOWN);
         return method;
     }
@@ -418,15 +418,15 @@ public final class IOState {
         return function;
     }
 
-    public IOBlock createBlock(final ExpressionNode blockNode, final MaterializedFrame frame) {
+    public IOEncapsulatedNode createEncapsulatedNode(final ExpressionNode blockNode, final MaterializedFrame frame) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOBlock block = new IOBlock(blockNode, frame);
-        allocationReporter.onReturnValue(block, 0, AllocationReporter.SIZE_UNKNOWN);
-        return block;
+        IOEncapsulatedNode encapsulatedNode = new IOEncapsulatedNode(blockNode, frame);
+        allocationReporter.onReturnValue(encapsulatedNode, 0, AllocationReporter.SIZE_UNKNOWN);
+        return encapsulatedNode;
     }
 
-    public IOCall createCall(final IOContext sender, final IOMessage message, final Object target,
-            final IOObject slotContext, final IOMethod activated, final IOObject coroutine) {
+    public IOCall createCall(final IOLocals sender, final IOMessage message, final Object target,
+            final IOObject slotContext, final IOBlock activated, final IOObject coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOCall call = new IOCall(sender, message, target, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);

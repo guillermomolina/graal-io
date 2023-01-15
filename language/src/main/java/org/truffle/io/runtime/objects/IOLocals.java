@@ -42,10 +42,10 @@
 
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
-public class IOContext extends IOObject {
+public class IOLocals extends IOObject {
     private final MaterializedFrame frame;
 
-    public IOContext(final MaterializedFrame frame) {
+    public IOLocals(final MaterializedFrame frame) {
         this.frame = frame;
     }
 

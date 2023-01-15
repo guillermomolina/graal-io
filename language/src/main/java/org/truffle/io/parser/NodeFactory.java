@@ -48,6 +48,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -96,12 +102,6 @@ import org.truffle.io.nodes.variables.WritePropertyNodeGen;
 import org.truffle.io.nodes.variables.WriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.Symbols;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 public class NodeFactory {
 
     static class MethodScope {
@@ -109,7 +109,7 @@ public class NodeFactory {
         protected int methodBodyStartPos; // includes parameter list
         protected int parameterCount;
         protected FrameDescriptor.Builder frameDescriptorBuilder;
-        protected final List<TruffleString> parameters;
+        protected final List<TruffleString> argNames;
         protected final Map<TruffleString, Integer> locals;
         protected boolean inLoop;
 
@@ -118,7 +118,7 @@ public class NodeFactory {
         MethodScope(final MethodScope outer, int methodBodyStartPos) {
             this.outer = outer;
             this.methodBodyStartPos = methodBodyStartPos;
-            this.parameters = new ArrayList<>();
+            this.argNames = new ArrayList<>();
             this.parameterCount = 0;
             this.frameDescriptorBuilder = FrameDescriptor.newBuilder();
             this.methodNodes = new ArrayList<>();
@@ -195,7 +195,7 @@ public class NodeFactory {
         int length = nameToken.getText().length();
         readArg.setSourceSection(startPos, length);
         StringLiteralNode nameNode = createStringLiteral(nameToken, false);
-        methodScope.parameters.add(nameNode.getValue());
+        methodScope.argNames.add(nameNode.getValue());
         ExpressionNode assignmentNode = createWriteVariable(nameNode, readArg, methodScope.parameterCount, startPos,
                 length, true);
         assert assignmentNode != null;
@@ -238,9 +238,9 @@ public class NodeFactory {
             final IORootNode rootNode = new IORootNode(language, methodScope.frameDescriptorBuilder.build(),
                     methodBodyNode,
                     methodSrc);
-            TruffleString[] parameters = methodScope.parameters
-                    .toArray(new TruffleString[methodScope.parameters.size()]);
-            methodLiteralNode = new MethodLiteralNode(rootNode, parameters);
+            TruffleString[] argNames = methodScope.argNames
+                    .toArray(new TruffleString[methodScope.argNames.size()]);
+            methodLiteralNode = new MethodLiteralNode(rootNode, argNames);
             methodLiteralNode.setSourceSection(startPos, length);
         }
 

@@ -43,20 +43,20 @@
  */
 package org.truffle.io.nodes.expression;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IONil;
 
 public final class InvokeNode extends ExpressionNode {
 
@@ -82,8 +82,8 @@ public final class InvokeNode extends ExpressionNode {
             /* The source code did not have a "main" function, so nothing to execute. */
             return IONil.SINGLETON;
         } else {
-            if (invokable instanceof IOMethod) {
-                return executeMethod((IOMethod) invokable, frame);
+            if (invokable instanceof IOBlock) {
+                return executeMethod((IOBlock) invokable, frame);
             } else if (invokable instanceof IOFunction) {
                 return executeFunction((IOFunction) invokable, frame);
             }
@@ -104,7 +104,7 @@ public final class InvokeNode extends ExpressionNode {
     }
 
     @ExplodeLoop
-    protected final Object executeMethod(IOMethod method, VirtualFrame frame) {
+    protected final Object executeMethod(IOBlock method, VirtualFrame frame) {
         int argumentCount = Integer.max(argumentNodes.length, method.getNumArgs());
         CompilerAsserts.compilationConstant(argumentCount);
         Object[] argumentValues = new Object[argumentCount + 2];
@@ -124,7 +124,7 @@ public final class InvokeNode extends ExpressionNode {
                 final MaterializedFrame materializedFrame = frame.materialize();
                 while (argumentNodesIndex < argumentNodes.length) {
                     argumentValues[2 + argumentValuesIndex++] = IOState.get(this)
-                            .createBlock(argumentNodes[argumentNodesIndex++], materializedFrame);
+                            .createEncapsulatedNode(argumentNodes[argumentNodesIndex++], materializedFrame);
                 }
                 throw new NotImplementedException();
             }

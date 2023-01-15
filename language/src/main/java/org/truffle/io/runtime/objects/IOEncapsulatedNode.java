@@ -1,8 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2022, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,37 +38,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+ package org.truffle.io.runtime.objects;
+
+import com.oracle.truffle.api.frame.MaterializedFrame;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IONil;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class EvalArgumentNode extends ExpressionNode {
+public class IOEncapsulatedNode extends IOObject {
 
-    private final int index;
+    private final ExpressionNode blockNode;
+    private final MaterializedFrame context;
 
-    private final BranchProfile outOfBoundsTaken = BranchProfile.create();
-
-    public EvalArgumentNode(int index) {
-        this.index = index;
+    public IOEncapsulatedNode(final ExpressionNode blockNode, final MaterializedFrame context) {
+        super(IOPrototype.BLOCK);
+        this.blockNode = blockNode;
+        this.context = context;
     }
 
-    @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        Object[] args = frame.getArguments();
-        if (index >= 2 && index < args.length) {
-            Object argument = args[index];
-            assert argument instanceof IOBlock;
-            IOBlock block = (IOBlock)argument;
-            Object result = block.getblockNode().executeGeneric(frame);
-            return result;
-        } else {
-            outOfBoundsTaken.enter();
-            return IONil.SINGLETON;
-        }
+    public ExpressionNode getblockNode() {
+        return blockNode;
     }
+
+    public boolean hasContext() {
+        return context != null;
+    }
+    
+    public MaterializedFrame getContext() {
+        return context;
+    }
+    
 }

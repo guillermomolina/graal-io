@@ -51,8 +51,8 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOMethod;
 
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
@@ -82,11 +82,11 @@ public abstract class RemoteVariableNode extends ExpressionNode {
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
         Object call = frame.getArguments()[1];
         assert call instanceof IOCall;
-        IOMethod method = (IOMethod) ((IOCall)call).getActivated();
+        IOBlock method = (IOBlock) ((IOCall)call).getActivated();
         int i = getContextLevel() - 1;
 
         while (i > 0) {
-            method = (IOMethod) method.getOuterFrame();
+            method = (IOBlock) method.getOuterFrame();
             i--;
         }
 
