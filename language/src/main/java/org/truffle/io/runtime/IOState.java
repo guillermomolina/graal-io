@@ -424,9 +424,9 @@ public final class IOState {
         return function;
     }
 
-    public IOMessage createMessage(final ExpressionNode blockNode) {
+    public IOMessage createMessage(final ExpressionNode[] argumentNodes) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOMessage message = new IOMessage(blockNode);
+        IOMessage message = new IOMessage(argumentNodes);
         allocationReporter.onReturnValue(message, 0, AllocationReporter.SIZE_UNKNOWN);
         return message;
     }

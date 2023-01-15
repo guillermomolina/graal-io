@@ -45,15 +45,15 @@ import org.truffle.io.nodes.expression.ExpressionNode;
 
 public class IOMessage extends IOObject {
 
-    private final ExpressionNode blockNode;
+    private final ExpressionNode[] argumentNodes;
 
-    public IOMessage(final ExpressionNode blockNode) {
+    public IOMessage(final ExpressionNode[] argumentNodes) {
         super(IOPrototype.MESSAGE);
-        this.blockNode = blockNode;
+        this.argumentNodes = argumentNodes;
     }
 
-    public ExpressionNode getblockNode() {
-        return blockNode;
+    public ExpressionNode[] getArgumentNodes() {
+        return argumentNodes;
     }
     
 }

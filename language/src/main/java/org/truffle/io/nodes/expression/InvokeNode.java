@@ -48,13 +48,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
-import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOMessage;
 import org.truffle.io.runtime.objects.IONil;
 
 public final class InvokeNode extends ExpressionNode {
@@ -104,30 +104,15 @@ public final class InvokeNode extends ExpressionNode {
 
     @ExplodeLoop
     protected final Object executeMethod(IOBlock method, VirtualFrame frame) {
-        int argumentCount = Integer.max(argumentNodes.length, method.getNumArgs());
-        CompilerAsserts.compilationConstant(argumentCount);
-        Object[] argumentValues = new Object[argumentCount + 2];
-        IOCall call = IOState.get(this).createCall(null, null, receiver, null, method, null);
+        IOMessage message = IOState.get(this).createMessage(argumentNodes);
+        IOCall call = IOState.get(this).createCall(null, message, receiver, null, method, null);
+
+        CompilerAsserts.compilationConstant(argumentNodes.length + 2);
+        Object[] argumentValues = new Object[argumentNodes.length + 2];
         argumentValues[0] = receiver;
         argumentValues[1] = call;
-        if (argumentCount > 0) {
-            int argumentValuesIndex = 0;
-            int argumentNodesIndex = 0;
-            while (argumentValuesIndex < Integer.min(argumentNodes.length, method.getNumArgs())) {
-                argumentValues[2 + argumentValuesIndex++] = argumentNodes[argumentNodesIndex++].executeGeneric(frame);
-            }
-            while (argumentValuesIndex < method.getNumArgs()) {
-                argumentValues[2 + argumentValuesIndex++] = IONil.SINGLETON;
-            }
-            if (argumentNodesIndex < argumentNodes.length) {
-                while (argumentNodesIndex < argumentNodes.length) {
-                    argumentValues[2 + argumentValuesIndex++] = IOState.get(this)
-                            .createMessage(argumentNodes[argumentNodesIndex++]);
-                }
-                throw new NotImplementedException();
-            }
-            assert argumentNodesIndex == argumentNodes.length;
-            assert argumentValuesIndex == argumentCount;
+        for (int i = 0; i < argumentNodes.length; i++) {
+            argumentValues[i + 2] = argumentNodes[i].executeGeneric(frame);
         }
         Object result = DirectCallNode.create(method.getCallTarget()).call(argumentValues);
         return result;
