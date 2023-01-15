@@ -41,11 +41,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
+package org.truffle.io.builtins.lobby;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.truffle.io.builtins.IOBuiltinNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IONil;
 
