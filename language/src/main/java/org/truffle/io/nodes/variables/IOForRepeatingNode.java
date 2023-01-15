@@ -41,9 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.controlflow;
-
-import org.truffle.io.nodes.expression.IOExpressionNode;
+package org.truffle.io.nodes.variables;
 
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -51,6 +49,10 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
+
+import org.truffle.io.nodes.controlflow.IOBreakException;
+import org.truffle.io.nodes.controlflow.IOContinueException;
+import org.truffle.io.nodes.expression.IOExpressionNode;
 
 public final class IOForRepeatingNode extends Node implements RepeatingNode {
 

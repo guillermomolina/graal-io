@@ -41,15 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.controlflow;
-
-import org.truffle.io.nodes.arithmetic.IOAddNodeGen;
-import org.truffle.io.nodes.expression.IOExpressionNode;
-import org.truffle.io.nodes.literals.IOLongLiteralNode;
-import org.truffle.io.nodes.logic.IOLessOrEqualNodeGen;
-import org.truffle.io.nodes.logic.IOLessThanNodeGen;
-import org.truffle.io.nodes.logic.IOLogicalNotNodeGen;
-import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
+package org.truffle.io.nodes.variables;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
@@ -59,8 +51,15 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
+import org.truffle.io.nodes.arithmetic.IOAddNodeGen;
+import org.truffle.io.nodes.expression.IOExpressionNode;
+import org.truffle.io.nodes.literals.IOLongLiteralNode;
+import org.truffle.io.nodes.logic.IOLessOrEqualNodeGen;
+import org.truffle.io.nodes.logic.IOLessThanNodeGen;
+import org.truffle.io.nodes.logic.IOLogicalNotNodeGen;
+
 @NodeInfo(shortName = "for", description = "The node implementing a for loop")
-public final class IOForNode extends IOExpressionNode {
+public final class IOForLocalVariableNode extends IOExpressionNode {
 
     private int slotFrameIndex;
     @Child
@@ -78,7 +77,7 @@ public final class IOForNode extends IOExpressionNode {
     @Child
     private IOExpressionNode isDescendingNode;
 
-    public IOForNode(int slotFrameIndex, IOExpressionNode slotNameNode, IOExpressionNode readControlNode,
+    public IOForLocalVariableNode(int slotFrameIndex, IOExpressionNode slotNameNode, IOExpressionNode readControlNode,
             IOExpressionNode startValueNode, IOExpressionNode endValueNode, IOExpressionNode stepValueNode,
             IOExpressionNode bodyNode) {
         this.slotFrameIndex = slotFrameIndex;
