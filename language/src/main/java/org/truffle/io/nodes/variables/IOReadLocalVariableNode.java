@@ -83,12 +83,17 @@ public abstract class IOReadLocalVariableNode extends IOExpressionNode {
         return frame.getLong(getSlot());
     }
 
+    @Specialization(guards = "frame.isDouble(getSlot())")
+    protected double readDouble(VirtualFrame frame) {
+        return frame.getDouble(getSlot());
+    }
+
     @Specialization(guards = "frame.isBoolean(getSlot())")
     protected boolean readBoolean(VirtualFrame frame) {
         return frame.getBoolean(getSlot());
     }
 
-    @Specialization(replaces = {"readLong", "readBoolean"})
+    @Specialization(replaces = {"readLong", "readDouble", "readBoolean"})
     protected Object readObject(VirtualFrame frame) {
         if (!frame.isObject(getSlot())) {
             /*

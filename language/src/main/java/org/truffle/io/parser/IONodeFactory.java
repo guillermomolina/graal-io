@@ -48,6 +48,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -59,7 +65,6 @@ import org.truffle.io.nodes.arithmetic.IOSubNodeGen;
 import org.truffle.io.nodes.controlflow.IOBreakNode;
 import org.truffle.io.nodes.controlflow.IOContinueNode;
 import org.truffle.io.nodes.controlflow.IODebuggerNode;
-import org.truffle.io.nodes.controlflow.IOForNode;
 import org.truffle.io.nodes.controlflow.IOIfNode;
 import org.truffle.io.nodes.controlflow.IOMethodBodyNode;
 import org.truffle.io.nodes.controlflow.IORepeatNode;
@@ -85,6 +90,7 @@ import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.sequences.IOSequenceAtNodeGen;
 import org.truffle.io.nodes.sequences.IOSequenceAtPutNodeGen;
 import org.truffle.io.nodes.util.IOUnboxNodeGen;
+import org.truffle.io.nodes.variables.IOForLocalVariableNode;
 import org.truffle.io.nodes.variables.IOInvokeLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOInvokePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOInvokeRemoteVariableNodeGen;
@@ -95,12 +101,6 @@ import org.truffle.io.nodes.variables.IOWriteLocalVariableNodeGen;
 import org.truffle.io.nodes.variables.IOWritePropertyNodeGen;
 import org.truffle.io.nodes.variables.IOWriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.IOSymbols;
-
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class IONodeFactory {
 
@@ -329,7 +329,7 @@ public class IONodeFactory {
     public IOExpressionNode createFor(IOExpressionNode slotNameNode, IOExpressionNode startValueNode,
             IOExpressionNode endValueNode, IOExpressionNode stepValueNode, IOExpressionNode bodyNode, int startPos,
             int length) {
-        IOForNode forNode = null;
+        IOForLocalVariableNode forNode = null;
         if (slotNameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
             assert slotNameNode instanceof IOStringLiteralNode;
             TruffleString name = ((IOStringLiteralNode) slotNameNode).executeGeneric(null);
@@ -341,7 +341,7 @@ public class IONodeFactory {
             if (stepValueNode != null) {
                 stepValueNode.addExpressionTag();
             }
-            forNode = new IOForNode(slotFrameIndex, slotNameNode, readControlNode, startValueNode, endValueNode, stepValueNode, bodyNode);
+            forNode = new IOForLocalVariableNode(slotFrameIndex, slotNameNode, readControlNode, startValueNode, endValueNode, stepValueNode, bodyNode);
             forNode.setSourceSection(startPos, length);
         }
         return forNode;
@@ -468,7 +468,7 @@ public class IONodeFactory {
             result = IOWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
         } else {
             assert contextLevel >= 0 && contextLevel < Integer.MAX_VALUE;
-            result = IOWriteRemoteVariableNodeGen.create(valueNode, contextLevel, frameSlot, nameNode);
+            result = IOWriteRemoteVariableNodeGen.create(valueNode, contextLevel, frameSlot);
         }
         result.setSourceSection(startPos, length);
         result.addExpressionTag();

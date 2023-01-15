@@ -48,28 +48,15 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
-import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.profiles.ValueProfile;
-import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.expression.IOExpressionNode;
 import org.truffle.io.nodes.expression.IOInvokeNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOMethod;
 
-@NodeField(name = "contextLevel", type = int.class)
-@NodeField(name = "slot", type = int.class)
 @NodeField(name = "argumentNodes", type = IOExpressionNode[].class)
-public abstract class IOInvokeRemoteVariableNode extends IOExpressionNode {
+public abstract class IOInvokeRemoteVariableNode extends IORemoteVariableNode {
 
-    protected abstract int getContextLevel();
-    protected abstract int getSlot();
     protected abstract IOExpressionNode[] getArgumentNodes();
-
-    private static final ValueProfile frameType = ValueProfile.createClassProfile();
 
     @Specialization(guards = "ctx.isLong(getSlot())")
     protected long readLong(VirtualFrame frame,
@@ -104,36 +91,4 @@ public abstract class IOInvokeRemoteVariableNode extends IOExpressionNode {
         }
         return value;
     }
-
-    @Override
-    public boolean hasTag(Class<? extends Tag> tag) {
-        return tag == ReadVariableTag.class || super.hasTag(tag);
-    }
-
-    @Override
-    public Object getNodeObject() {
-        return NodeObjectDescriptor
-                .readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
-    }
-
-    public final boolean accessesOuterContext() {
-        return getContextLevel() > 0;
-    }
-
-    @ExplodeLoop
-    protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        IOMethod self = (IOMethod) frame.getArguments()[1];
-        int i = getContextLevel() - 1;
-
-        while (i > 0) {
-            self = (IOMethod) self.getOuterContext();
-            i--;
-        }
-
-        // Graal needs help here to see that this is always a MaterializedFrame
-        // so, we record explicitly a class profile
-        return frameType.profile(self.getContext());
-
-    }
-
 }
