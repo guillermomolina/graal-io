@@ -71,6 +71,7 @@ public class IOPrototype extends IOObject {
     public static final IOPrototype LIST = new IOPrototype(OBJECT, Symbols.LIST, (l, v) -> l.hasArrayElements(v));
     public static final IOPrototype DATE = new IOPrototype(OBJECT, Symbols.DATE, (l, v) -> v instanceof IODate);
     public static final IOPrototype SYSTEM = new IOPrototype(OBJECT, Symbols.SYSTEM, (l, v) -> v == IOPrototype.SYSTEM);
+    public static final IOPrototype MESSAGE = new IOPrototype(OBJECT, Symbols.MESSAGE, (l, v) -> v == IOPrototype.MESSAGE);
 
     @CompilationFinal(dimensions = 1)
     public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, DATE, OBJECT };

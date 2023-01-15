@@ -95,7 +95,6 @@ import org.truffle.io.nodes.variables.ReadArgumentNode;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IODate;
-import org.truffle.io.runtime.objects.IOEncapsulatedNode;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOList;
@@ -425,11 +424,11 @@ public final class IOState {
         return function;
     }
 
-    public IOEncapsulatedNode createEncapsulatedNode(final ExpressionNode blockNode, final MaterializedFrame frame) {
+    public IOMessage createMessage(final ExpressionNode blockNode) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOEncapsulatedNode encapsulatedNode = new IOEncapsulatedNode(blockNode, frame);
-        allocationReporter.onReturnValue(encapsulatedNode, 0, AllocationReporter.SIZE_UNKNOWN);
-        return encapsulatedNode;
+        IOMessage message = new IOMessage(blockNode);
+        allocationReporter.onReturnValue(message, 0, AllocationReporter.SIZE_UNKNOWN);
+        return message;
     }
 
     public IOCall createCall(final IOLocals sender, final IOMessage message, final Object target,

@@ -44,7 +44,6 @@
 package org.truffle.io.nodes.expression;
 
 import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -121,10 +120,9 @@ public final class InvokeNode extends ExpressionNode {
                 argumentValues[2 + argumentValuesIndex++] = IONil.SINGLETON;
             }
             if (argumentNodesIndex < argumentNodes.length) {
-                final MaterializedFrame materializedFrame = frame.materialize();
                 while (argumentNodesIndex < argumentNodes.length) {
                     argumentValues[2 + argumentValuesIndex++] = IOState.get(this)
-                            .createEncapsulatedNode(argumentNodes[argumentNodesIndex++], materializedFrame);
+                            .createMessage(argumentNodes[argumentNodesIndex++]);
                 }
                 throw new NotImplementedException();
             }

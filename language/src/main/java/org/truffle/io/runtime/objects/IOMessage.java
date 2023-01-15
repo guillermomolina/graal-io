@@ -38,24 +38,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime.objects;
+ package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.strings.TruffleString;
+import org.truffle.io.nodes.expression.ExpressionNode;
+
 
 public class IOMessage extends IOObject {
 
-    @SuppressWarnings("unused")
-    private final TruffleString name;
-    @SuppressWarnings("unused")
-    private final IOList arguments;
-    final IOMessage next;
+    private final ExpressionNode blockNode;
 
-    public IOMessage(final TruffleString name, final IOList arguments, final IOMessage next) {
-        this.name = name;
-        this.arguments = arguments;
-        this.next = next;
+    public IOMessage(final ExpressionNode blockNode) {
+        super(IOPrototype.MESSAGE);
+        this.blockNode = blockNode;
     }
 
-
+    public ExpressionNode getblockNode() {
+        return blockNode;
+    }
     
 }
