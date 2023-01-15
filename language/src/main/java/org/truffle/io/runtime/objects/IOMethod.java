@@ -56,25 +56,27 @@ public final class IOMethod extends IOInvokable {
 
     /** The current implementation of this method. */
     private final TruffleString[] parameters;
-    private final MaterializedFrame context;
+    private final MaterializedFrame frame;
 
-    public IOMethod(final RootCallTarget callTarget, final TruffleString[] parameters, final MaterializedFrame context) {
+    public IOMethod(final RootCallTarget callTarget, final TruffleString[] parameters, final MaterializedFrame frame) {
         super(IOPrototype.BLOCK, callTarget);
         this.parameters = parameters;
-        this.context = context;
+        this.frame = frame;
     }
 
     @Override
-    public boolean hasContext() {
-        return context != null;
+    public boolean hasFrame() {
+        return frame != null;
     }
     
-    public MaterializedFrame getContext() {
-        return context;
+    public MaterializedFrame getFrame() {
+        return frame;
     }
     
-    public Object getOuterContext() {
-        return getContext().getArguments()[1];
+    public Object getOuterFrame() {
+        Object call = getFrame().getArguments()[1];
+        assert call instanceof IOCall;
+        return ((IOCall)call).getActivated();
     }
     
     public int getNumArgs() {

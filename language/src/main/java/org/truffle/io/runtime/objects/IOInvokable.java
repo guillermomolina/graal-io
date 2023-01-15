@@ -74,7 +74,7 @@ public abstract class IOInvokable extends IOObject {
         return callTarget;
     }
 
-    public boolean hasContext() {
+    public boolean hasFrame() {
         return false;
     }
     

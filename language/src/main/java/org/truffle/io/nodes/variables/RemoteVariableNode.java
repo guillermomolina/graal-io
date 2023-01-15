@@ -40,11 +40,6 @@
  */
 package org.truffle.io.nodes.variables;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOMethod;
-
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -53,6 +48,11 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOMethod;
 
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
@@ -86,13 +86,13 @@ public abstract class RemoteVariableNode extends ExpressionNode {
         int i = getContextLevel() - 1;
 
         while (i > 0) {
-            method = (IOMethod) method.getOuterContext();
+            method = (IOMethod) method.getOuterFrame();
             i--;
         }
 
         // Graal needs help here to see that this is always a MaterializedFrame
         // so, we record explicitly a class profile
-        return frameType.profile(method.getContext());
+        return frameType.profile(method.getFrame());
 
     }
 
