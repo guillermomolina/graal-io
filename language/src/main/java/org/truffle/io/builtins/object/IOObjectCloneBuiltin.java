@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,18 +41,69 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
+package org.truffle.io.builtins.object;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
 
-@NodeInfo(shortName = "isActivatable")
-public abstract class IOObjectIsActivatableBuiltin extends IOBuiltinNode {
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
 
-    @Specialization(limit = "3")
-    public boolean isActivatable(Object obj, @CachedLibrary("obj") InteropLibrary executables) {
-        return executables.isExecutable(obj);
+/**
+ * Built-in function to create a clone object. Objects in IO are simply made up of name/value pairs.
+ */
+@NodeInfo(shortName = "clone")
+@ImportStatic(IOState.class)
+public abstract class IOObjectCloneBuiltin extends IOBuiltinNode {
+
+    @Specialization
+    public long cloneLong(long value) {
+        return value;
     }
+
+    @Specialization
+    public boolean cloneBoolean(boolean value) {
+        return value;
+    }
+
+    @Specialization
+    public Object cloneNil(IONil value) {
+        return value;
+    }
+
+    @Specialization
+    public Object cloneIOPrototype(IOPrototype proto) {
+        if(proto == IOPrototype.DATE) {
+            return IOState.get(this).createDate();
+        }
+        if(proto == IOPrototype.OBJECT) {
+            return IOState.get(this).cloneObject();
+        }
+        throw new NotImplementedException();
+    }
+
+    @Specialization(guards = "!values.isNull(obj)", limit = "3")
+    public Object cloneIOObject(IOObject obj, @CachedLibrary("obj") InteropLibrary values) {
+        return IOState.get(this).cloneObject(obj);
+    }
+
+    @Specialization(guards = "isString(value)")
+    @TruffleBoundary
+    public Object cloneString(Object value) {
+        return value;
+    }
+
+    protected boolean isString(Object value) {
+        return value instanceof TruffleString;
+    }
+
 }

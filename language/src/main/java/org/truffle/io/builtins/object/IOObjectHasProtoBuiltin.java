@@ -41,36 +41,65 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
+package org.truffle.io.builtins.object;
 
+import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOPrototype;
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOObject;
 
 /**
- * Built-in function that returns the type of a guest language value.
+ * Built-in function that returns true if the given operand is of a given meta-object. Meta-objects
+ * may be values of the current or a foreign value.
  */
-@NodeInfo(shortName = "proto")
-public abstract class IOObjectProtoBuiltin extends IOBuiltinNode {
+@NodeInfo(shortName = "hasProto")
+public abstract class IOObjectHasProtoBuiltin extends IOBuiltinNode {
 
-    /*
-     * This returns the IO type for a particular operand value.
-     */
-    @Specialization(limit = "3")
-    @ExplodeLoop
-    public Object doDefault(Object operand,
-                    @CachedLibrary("operand") InteropLibrary interop) {
-        for (IOPrototype type : IOPrototype.PRECEDENCE) {
-            if (type.isInstance(operand, interop)) {
-                return type;
-            }
-        }
-        return IONil.SINGLETON;
+    @Specialization
+    public boolean hasProtoLong(long value, IOObject prototype) {
+        IOObject numberProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(numberProto, prototype);
     }
 
+    @Specialization
+    public boolean hasProtoBoolean(boolean value, IOObject prototype) {
+        IOObject booleanProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(booleanProto, prototype);
+    }
+
+    @Specialization
+    public boolean hasProtoIOObject(IOObject value, IOObject prototype) {
+        return IOObjectUtil.hasPrototype(value, prototype);
+    }
+
+    @Specialization
+    public boolean hasProtoObject(Object value, IOObject prototype) {
+        IOObject objectProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(objectProto, prototype);
+    }
+
+    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = {"hasProtoLong", "hasProtoBoolean", "hasProtoObject", "hasProtoIOObject"})
+    @TruffleBoundary
+    public boolean hasProtoMetaObject(Object value, Object metaObject,
+                    @CachedLibrary("metaObject") InteropLibrary metaLib) {
+        try {
+            return metaLib.isMetaInstance(metaObject, value);
+        } catch (UnsupportedMessageException e) {
+            throw shouldNotReachHere(e);
+        }
+    }
+
+    @Specialization
+    public boolean hasProto(Object value, Object metaObject) {
+        return false;
+    }
 }

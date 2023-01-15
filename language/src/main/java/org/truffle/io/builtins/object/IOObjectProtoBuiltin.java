@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,44 +41,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins;
+package org.truffle.io.builtins.object;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOPrototype;
 
-@NodeInfo(shortName = "slotNames")
-@ImportStatic(IOState.class)
-public abstract class IOObjectSlotNamesBuiltin extends IOBuiltinNode {
+/**
+ * Built-in function that returns the type of a guest language value.
+ */
+@NodeInfo(shortName = "proto")
+public abstract class IOObjectProtoBuiltin extends IOBuiltinNode {
 
-    @Specialization(guards = "objInterop.hasMembers(receiver)")
-    @TruffleBoundary
-    public Object slotNames(Object receiver,
-            @CachedLibrary(limit = "3") InteropLibrary objInterop) {
-         try {
-            assert objInterop.hasMembers(receiver);
-            Object keys = objInterop.getMembers(receiver);
-            InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
-            long keyCount = keysInterop.getArraySize(keys);
-            Object[] argumentValues = new Object[(int)keyCount];
-            for (int i = 0; i < keyCount; i++) {
-                try {
-                    argumentValues[i] = keysInterop.readArrayElement(keys, i);
-                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-                    throw new NotImplementedException();
-                }
+    /*
+     * This returns the IO type for a particular operand value.
+     */
+    @Specialization(limit = "3")
+    @ExplodeLoop
+    public Object doDefault(Object operand,
+                    @CachedLibrary("operand") InteropLibrary interop) {
+        for (IOPrototype type : IOPrototype.PRECEDENCE) {
+            if (type.isInstance(operand, interop)) {
+                return type;
             }
-            return IOState.get(this).createList(argumentValues);
-        } catch (UnsupportedMessageException e) {
         }
-        return IOState.get(this).createList(new Object[0]);
+        return IONil.SINGLETON;
     }
+
 }

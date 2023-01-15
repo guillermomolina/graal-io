@@ -74,18 +74,18 @@ import org.graalvm.polyglot.Context;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.builtins.IOObjectCloneBuiltinFactory;
-import org.truffle.io.builtins.IOObjectHasProtoBuiltinFactory;
-import org.truffle.io.builtins.IOObjectIsActivatableBuiltinFactory;
-import org.truffle.io.builtins.IOObjectIsNilBuiltinFactory;
-import org.truffle.io.builtins.IOObjectPrintlnBuiltin;
-import org.truffle.io.builtins.IOObjectPrintlnBuiltinFactory;
-import org.truffle.io.builtins.IOObjectProtoBuiltinFactory;
-import org.truffle.io.builtins.IOObjectSlotNamesBuiltinFactory;
 import org.truffle.io.builtins.date.IODateNowBuiltinFactory;
 import org.truffle.io.builtins.date.IODateSecondsSinceBuiltinFactory;
 import org.truffle.io.builtins.list.IOListSizeBuiltinFactory;
 import org.truffle.io.builtins.lobby.IOLobbyExitBuiltinFactory;
+import org.truffle.io.builtins.object.IOObjectCloneBuiltinFactory;
+import org.truffle.io.builtins.object.IOObjectHasProtoBuiltinFactory;
+import org.truffle.io.builtins.object.IOObjectIsActivatableBuiltinFactory;
+import org.truffle.io.builtins.object.IOObjectIsNilBuiltinFactory;
+import org.truffle.io.builtins.object.IOObjectPrintlnBuiltin;
+import org.truffle.io.builtins.object.IOObjectPrintlnBuiltinFactory;
+import org.truffle.io.builtins.object.IOObjectProtoBuiltinFactory;
+import org.truffle.io.builtins.object.IOObjectSlotNamesBuiltinFactory;
 import org.truffle.io.builtins.system.IOSystemRegisterShutdownHookBuiltinFactory;
 import org.truffle.io.builtins.system.IOSystemSleepBuiltinFactory;
 import org.truffle.io.builtins.system.IOSystemStackTraceBuiltinFactory;
@@ -198,7 +198,6 @@ public final class IOState {
 
         IOObjectUtil.putProperty(lobby, IOSymbols.LOBBY, lobby);
         IOObjectUtil.putProperty(lobby, IOSymbols.PROTOS, protos);
-        installBuiltin(IOLobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
     }
 
     private void installBuiltins() {
@@ -216,6 +215,7 @@ public final class IOState {
         installBuiltin(IOSystemSleepBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
         installBuiltin(IOSystemStackTraceBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
         installBuiltin(IOSystemRegisterShutdownHookBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(IOLobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
     }
 
     public void installBuiltin(NodeFactory<? extends IOBuiltinNode> factory) {
