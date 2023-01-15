@@ -50,6 +50,7 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -72,6 +73,8 @@ public class IOPrototype extends IOObject {
     public static final IOPrototype DATE = new IOPrototype(OBJECT, Symbols.DATE, (l, v) -> v instanceof IODate);
     public static final IOPrototype SYSTEM = new IOPrototype(OBJECT, Symbols.SYSTEM, (l, v) -> v == IOPrototype.SYSTEM);
     public static final IOPrototype MESSAGE = new IOPrototype(OBJECT, Symbols.MESSAGE, (l, v) -> v == IOPrototype.MESSAGE);
+    public static final IOPrototype CALL = new IOPrototype(OBJECT, Symbols.CALL, (l, v) -> v == IOPrototype.CALL);
+    public static final IOPrototype LOCALS = new IOPrototype(OBJECT, Symbols.LOCALS, (l, v) -> v == IOPrototype.LOCALS);
 
     @CompilationFinal(dimensions = 1)
     public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, DATE, OBJECT };
@@ -124,7 +127,12 @@ public class IOPrototype extends IOObject {
 
     @Override
     public String toString(int depth) {
-        return "IOType[" + getType() + "]";
+        try {
+            return InteropLibrary.getUncached().asString(getType());
+        } catch(UnsupportedMessageException e) {
+            return "<UNKNOWN>";
+        }
+        
     }
 
     @ExportMessage

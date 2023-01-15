@@ -68,6 +68,7 @@ public class IOCall extends IOObject {
 
     public IOCall(final IOLocals sender, final IOMessage message, final Object target, final IOObject slotContext,
             final IOBlock activated, final IOObject coroutine) {
+        super(IOPrototype.CALL);
         setSender(sender);
         setMessage(message);
         setTarget(target);

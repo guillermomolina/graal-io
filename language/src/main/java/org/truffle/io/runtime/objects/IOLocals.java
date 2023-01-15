@@ -46,6 +46,7 @@ public class IOLocals extends IOObject {
     private final MaterializedFrame frame;
 
     public IOLocals(final MaterializedFrame frame) {
+        super(IOPrototype.LOCALS);
         this.frame = frame;
     }
 

@@ -70,6 +70,7 @@ public final class Symbols {
     public static final TruffleString LOBBY = constant("Lobby");
     public static final TruffleString PROTOS = constant("Protos");
     public static final TruffleString SYSTEM = constant("System");
+    public static final TruffleString LOCALS = constant("Locals");
 
     public static TruffleString constant(String s) {
         return fromJavaString(s);

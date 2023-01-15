@@ -197,6 +197,10 @@ public final class IOState {
         IOObjectUtil.putProperty(protos, Symbols.LIST, IOPrototype.LIST);
         IOObjectUtil.putProperty(protos, Symbols.DATE, IOPrototype.DATE);
         IOObjectUtil.putProperty(protos, Symbols.SYSTEM, IOPrototype.SYSTEM);
+        IOObjectUtil.putProperty(protos, Symbols.CALL, IOPrototype.CALL);
+        IOObjectUtil.putProperty(protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
+        IOObjectUtil.putProperty(protos, Symbols.BLOCK, IOPrototype.BLOCK);
+        IOObjectUtil.putProperty(protos, Symbols.LOCALS, IOPrototype.LOCALS);
 
         IOObjectUtil.putProperty(lobby, Symbols.LOBBY, lobby);
         IOObjectUtil.putProperty(lobby, Symbols.PROTOS, protos);

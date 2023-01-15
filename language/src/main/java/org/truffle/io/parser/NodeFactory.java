@@ -221,6 +221,17 @@ public class NodeFactory {
 
     public void addContextParameter() {
         assert methodScope.parameterCount == 1;
+        final ReadArgumentNode readArg = new ReadArgumentNode(methodScope.parameterCount);
+        final StringLiteralNode callNode;
+        if (isAtLobby()) {
+            callNode = new StringLiteralNode(Symbols.fromJavaString("$"));
+        } else {
+            callNode = new StringLiteralNode(Symbols.fromJavaString("call"));
+        }
+        ExpressionNode assignmentNode = createWriteVariable(callNode, readArg, methodScope.parameterCount, 0, 0,
+                true);
+        assert assignmentNode != null;
+        methodScope.methodNodes.add(assignmentNode);
         methodScope.parameterCount++;
     }
 
