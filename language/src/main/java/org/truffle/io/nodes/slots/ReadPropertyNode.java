@@ -1,5 +1,8 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ */
+/*
+ * Copyright (c) 2013, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,71 +41,80 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
-
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.strings.TruffleString;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOObject;
 
-@NodeChild("recevierNode")
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
+
+/**
+ * The node for reading a property of an object. When executed, this node:
+ * <ol>
+ * <li>evaluates the object expression on the left hand side of the object
+ * access operator</li>
+ * <li>evaluated the property name</li>
+ * <li>reads the named property</li>
+ * </ol>
+ */
+@NodeInfo(shortName = ".")
+@NodeChild("receiverNode")
 @NodeChild("nameNode")
-@NodeField(name = "argumentNodes", type = ExpressionNode[].class)
-public abstract class InvokePropertyNode extends ExpressionNode {
+public abstract class ReadPropertyNode extends ExpressionNode {
 
-    protected abstract ExpressionNode[] getArgumentNodes();
-
-    @Specialization
-    protected Object invokeIOObject(VirtualFrame frame, IOObject receiver, Object name,
+    static final int LIBRARY_LIMIT = 3;
+ 
+    @Specialization(limit = "LIBRARY_LIMIT")
+    protected Object readIOObject(IOObject receiver, Object name,
+            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        return getOrInvoke(frame, receiver, nameTS, receiver);
-    }
-
-    @Specialization
-    protected Object invokeGeneric(VirtualFrame frame, Object receiver, Object name,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
-        IOObject prototype = IOState.get(this).getPrototype(receiver);
-        TruffleString nameTS = toTruffleStringNode.execute(name);
-        return getOrInvoke(frame, receiver, nameTS, prototype);
-    }
-
-    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, final TruffleString nameTS,
-            final IOObject prototype) {
-        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
+        Object value = IOObjectUtil.getOrDefault(receiver, nameTS, null);
         if (value == null) {
             throw UndefinedNameException.undefinedProperty(this, nameTS);
-        }
-        if (value instanceof IOInvokable) {
-            final IOInvokable invokable = (IOInvokable) value;
-            MessageLiteralNode messageNode = new MessageLiteralNode(nameTS, getArgumentNodes());
-            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);
-            Object result = invokeNode.executeGeneric(frame);
-            return result;
         }
         return value;
     }
 
-    @Override
-    public boolean hasTag(Class<? extends Tag> tag) {
-        if (tag == StandardTags.CallTag.class) {
-            return true;
+    @Specialization(guards = "!isIOObject(receiver)", limit = "LIBRARY_LIMIT")
+    protected Object readObject(Object receiver, Object name,
+            @CachedLibrary("receiver") InteropLibrary objects,
+            @Cached ToMemberNode asMember) {
+        try {
+            return objects.readMember(receiver, asMember.execute(name));
+        } catch (UnsupportedMessageException | UnknownIdentifierException e) {
+            throw UndefinedNameException.undefinedProperty(this, name);
         }
-        return super.hasTag(tag);
+    }
+
+    @Specialization
+    protected Object read(Object receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        IOObject prototype = IOState.get(this).getPrototype(receiver);
+        TruffleString nameTS = toTruffleStringNode.execute(name);
+        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
+        if (value == null) {
+            throw UndefinedNameException.undefinedProperty(this, nameTS);
+        }
+        return value;    
+    }
+
+    static boolean isIOObject(Object receiver) {
+        return receiver instanceof IOObject;
     }
 
 }

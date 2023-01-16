@@ -48,10 +48,10 @@ import java.util.List;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.controlflow.MethodBodyNode;
-import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.BlockNode;
-import org.truffle.io.nodes.variables.ReadArgumentNode;
-import org.truffle.io.nodes.variables.WriteLocalVariableNode;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.slots.ReadArgumentNode;
+import org.truffle.io.nodes.slots.WriteLocalSlotNode;
 import org.truffle.io.runtime.IOState;
 
 import com.oracle.truffle.api.CompilerDirectives;
@@ -73,7 +73,7 @@ public class IORootNode extends RootNode {
 
     private final SourceSection sourceSection;
 
-    @CompilerDirectives.CompilationFinal(dimensions = 1) private volatile WriteLocalVariableNode[] argumentNodesCache;
+    @CompilerDirectives.CompilationFinal(dimensions = 1) private volatile WriteLocalSlotNode[] argumentNodesCache;
 
     public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, ExpressionNode bodyNode, SourceSection sourceSection) {
         super(language, frameDescriptor);
@@ -110,8 +110,8 @@ public class IORootNode extends RootNode {
         return "root";
     }
 
-    public final WriteLocalVariableNode[] getDeclaredArguments() {
-        WriteLocalVariableNode[] argumentNodes = argumentNodesCache;
+    public final WriteLocalSlotNode[] getDeclaredArguments() {
+        WriteLocalSlotNode[] argumentNodes = argumentNodesCache;
         if (argumentNodes == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
             argumentNodesCache = argumentNodes = findArgumentNodes();
@@ -119,11 +119,11 @@ public class IORootNode extends RootNode {
         return argumentNodes;
     }
 
-    private WriteLocalVariableNode[] findArgumentNodes() {
-        List<WriteLocalVariableNode> writeArgNodes = new ArrayList<>(4);
+    private WriteLocalSlotNode[] findArgumentNodes() {
+        List<WriteLocalSlotNode> writeArgNodes = new ArrayList<>(4);
         NodeUtil.forEachChild(this.getBodyNode(), new NodeVisitor() {
 
-            private WriteLocalVariableNode wn; // The current write node containing a slot
+            private WriteLocalSlotNode wn; // The current write node containing a slot
 
             @Override
             public boolean visit(Node node) {
@@ -131,8 +131,8 @@ public class IORootNode extends RootNode {
                 if (node instanceof InstrumentableNode.WrapperNode) {
                     return NodeUtil.forEachChild(node, this);
                 }
-                if (node instanceof WriteLocalVariableNode) {
-                    wn = (WriteLocalVariableNode) node;
+                if (node instanceof WriteLocalSlotNode) {
+                    wn = (WriteLocalSlotNode) node;
                     boolean all = NodeUtil.forEachChild(node, this);
                     wn = null;
                     return all;
@@ -147,7 +147,7 @@ public class IORootNode extends RootNode {
                 }
             }
         });
-        return writeArgNodes.toArray(new WriteLocalVariableNode[writeArgNodes.size()]);
+        return writeArgNodes.toArray(new WriteLocalSlotNode[writeArgNodes.size()]);
     }
 
 }

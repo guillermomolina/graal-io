@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
@@ -65,7 +65,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 @NodeChild("valueNode")
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "nameNode", type = ExpressionNode.class)
-public abstract class WriteLocalVariableNode extends ExpressionNode {
+public abstract class WriteLocalSlotNode extends ExpressionNode {
 
     /**
      * Returns the descriptor of the accessed local variable. The implementation of this method is

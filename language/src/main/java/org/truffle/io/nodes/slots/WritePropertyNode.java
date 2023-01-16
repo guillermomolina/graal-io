@@ -41,13 +41,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.UndefinedNameException;
 import org.truffle.io.runtime.objects.IOObject;
 
@@ -57,64 +55,41 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.strings.TruffleString;
 
-/**
- * The node for reading a property of an object. When executed, this node:
- * <ol>
- * <li>evaluates the object expression on the left hand side of the object
- * access operator</li>
- * <li>evaluated the property name</li>
- * <li>reads the named property</li>
- * </ol>
- */
-@NodeInfo(shortName = ".")
+@NodeInfo(shortName = "setSlot")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
-public abstract class ReadPropertyNode extends ExpressionNode {
+@NodeChild("valueNode")
+public abstract class WritePropertyNode extends ExpressionNode {
 
     static final int LIBRARY_LIMIT = 3;
- 
+
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object readIOObject(IOObject receiver, Object name,
-            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
-        TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefault(receiver, nameTS, null);
-        if (value == null) {
-            throw UndefinedNameException.undefinedProperty(this, nameTS);
-        }
+    protected Object writeIOObject(IOObject receiver, Object name, Object value,
+                    @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
+                    @Cached ToTruffleStringNode toTruffleStringNode) {
+        objectLibrary.put(receiver, toTruffleStringNode.execute(name), value);
         return value;
     }
 
     @Specialization(guards = "!isIOObject(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object readObject(Object receiver, Object name,
-            @CachedLibrary("receiver") InteropLibrary objects,
-            @Cached ToMemberNode asMember) {
+    protected Object writeObject(Object receiver, Object name, Object value,
+                    @CachedLibrary("receiver") InteropLibrary objectLibrary,
+                    @Cached ToMemberNode asMember) {
         try {
-            return objects.readMember(receiver, asMember.execute(name));
-        } catch (UnsupportedMessageException | UnknownIdentifierException e) {
+            objectLibrary.writeMember(receiver, asMember.execute(name), value);
+        } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
+            // write was not successful. In IO we only have basic support for errors.
             throw UndefinedNameException.undefinedProperty(this, name);
         }
-    }
-
-    @Specialization
-    protected Object read(Object receiver, Object name,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
-        IOObject prototype = IOState.get(this).getPrototype(receiver);
-        TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
-        if (value == null) {
-            throw UndefinedNameException.undefinedProperty(this, nameTS);
-        }
-        return value;    
+        return value;
     }
 
     static boolean isIOObject(Object receiver) {
         return receiver instanceof IOObject;
     }
-
 }

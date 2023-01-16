@@ -41,7 +41,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.slots;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.expression.BlockNode;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.root.FunctionRootNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.objects.IONil;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -63,15 +72,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.BlockNode;
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.root.FunctionRootNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IONil;
 
 @ExportLibrary(value = NodeLibrary.class)
 public abstract class ScopedNode extends Node {
@@ -289,7 +289,7 @@ public abstract class ScopedNode extends Node {
          */
         @ExportMessage
         Object getMembers(boolean includeInternal) {
-            WriteLocalVariableNode[] writeNodes = root.getDeclaredArguments();
+            WriteLocalSlotNode[] writeNodes = root.getDeclaredArguments();
             return new KeysArray(writeNodes, writeNodes.length, writeNodes.length);
         }
 
@@ -447,9 +447,9 @@ public abstract class ScopedNode extends Node {
 
         int findArgumentIndex(String member) {
             TruffleString memberTS = Symbols.fromJavaString(member);
-            WriteLocalVariableNode[] writeNodes = root.getDeclaredArguments();
+            WriteLocalSlotNode[] writeNodes = root.getDeclaredArguments();
             for (int i = 0; i < writeNodes.length; i++) {
-                WriteLocalVariableNode writeNode = writeNodes[i];
+                WriteLocalSlotNode writeNode = writeNodes[i];
                 if (memberTS.equalsUncached(writeNode.getSlotName(), IOLanguage.STRING_ENCODING)) {
                     return i;
                 }
@@ -700,7 +700,7 @@ public abstract class ScopedNode extends Node {
                         static void doCached(VariablesObject receiver, String member, Object value,
                             @Cached("member") String cachedMember,
                             // We cache the member's write node for fast-path access
-                            @Cached(value = "receiver.findWriteNode(member)", adopt = false) WriteLocalVariableNode writeNode) throws UnknownIdentifierException, UnsupportedMessageException {
+                            @Cached(value = "receiver.findWriteNode(member)", adopt = false) WriteLocalSlotNode writeNode) throws UnknownIdentifierException, UnsupportedMessageException {
                 doWrite(receiver, cachedMember, writeNode, value);
             }
 
@@ -710,11 +710,11 @@ public abstract class ScopedNode extends Node {
             @Specialization(replaces = "doCached")
             @TruffleBoundary
             static void doGeneric(VariablesObject receiver, String member, Object value) throws UnknownIdentifierException, UnsupportedMessageException {
-                WriteLocalVariableNode writeNode = receiver.findWriteNode(member);
+                WriteLocalSlotNode writeNode = receiver.findWriteNode(member);
                 doWrite(receiver, member, writeNode, value);
             }
 
-            private static void doWrite(VariablesObject receiver, String member, WriteLocalVariableNode writeNode, Object value) throws UnknownIdentifierException, UnsupportedMessageException {
+            private static void doWrite(VariablesObject receiver, String member, WriteLocalSlotNode writeNode, Object value) throws UnknownIdentifierException, UnsupportedMessageException {
                 if (writeNode == null) {
                     throw UnknownIdentifierException.create(member);
                 }
@@ -731,7 +731,7 @@ public abstract class ScopedNode extends Node {
          */
         @ExportMessage
         Object getMembers(boolean includeInternal,
-                        @Cached(value = "this.block.getDeclaredLocalVariables()", adopt = false, dimensions = 1, allowUncached = true) WriteLocalVariableNode[] writeNodes,
+                        @Cached(value = "this.block.getDeclaredLocalVariables()", adopt = false, dimensions = 1, allowUncached = true) WriteLocalSlotNode[] writeNodes,
                         @Cached(value = "this.getVisibleVariablesIndex()", allowUncached = true) int visibleVariablesIndex,
                         @Cached(value = "this.block.getParentBlockIndex()", allowUncached = true) int parentBlockIndex) {
             return new KeysArray(writeNodes, visibleVariablesIndex, parentBlockIndex);
@@ -748,7 +748,7 @@ public abstract class ScopedNode extends Node {
         }
 
         int findSlot(String member) {
-            WriteLocalVariableNode writeNode = findWriteNode(member);
+            WriteLocalSlotNode writeNode = findWriteNode(member);
             if (writeNode != null) {
                 return writeNode.getSlot();
             } else {
@@ -762,19 +762,19 @@ public abstract class ScopedNode extends Node {
          *
          * @param member the variable name
          */
-        WriteLocalVariableNode findWriteNode(String member) {
+        WriteLocalSlotNode findWriteNode(String member) {
             TruffleString memberTS = Symbols.fromJavaString(member);
-            WriteLocalVariableNode[] writeNodes = block.getDeclaredLocalVariables();
+            WriteLocalSlotNode[] writeNodes = block.getDeclaredLocalVariables();
             int parentBlockIndex = block.getParentBlockIndex();
             int index = getVisibleVariablesIndex();
             for (int i = 0; i < index; i++) {
-                WriteLocalVariableNode writeNode = writeNodes[i];
+                WriteLocalSlotNode writeNode = writeNodes[i];
                 if (memberTS.equalsUncached(writeNode.getSlotName(), IOLanguage.STRING_ENCODING)) {
                     return writeNode;
                 }
             }
             for (int i = parentBlockIndex; i < writeNodes.length; i++) {
-                WriteLocalVariableNode writeNode = writeNodes[i];
+                WriteLocalSlotNode writeNode = writeNodes[i];
                 if (memberTS.equalsUncached(writeNode.getSlotName(), IOLanguage.STRING_ENCODING)) {
                     return writeNode;
                 }
@@ -790,7 +790,7 @@ public abstract class ScopedNode extends Node {
     @ExportLibrary(InteropLibrary.class)
     static final class KeysArray implements TruffleObject {
 
-        @CompilationFinal(dimensions = 1) private final WriteLocalVariableNode[] writeNodes;
+        @CompilationFinal(dimensions = 1) private final WriteLocalSlotNode[] writeNodes;
         private final int variableIndex;
         private final int parentBlockIndex;
 
@@ -805,7 +805,7 @@ public abstract class ScopedNode extends Node {
          *            block's scope (from <code>parentBlockIndex</code> to the end of the
          *            <code>writeNodes</code> array).
          */
-        KeysArray(WriteLocalVariableNode[] writeNodes, int variableIndex, int parentBlockIndex) {
+        KeysArray(WriteLocalSlotNode[] writeNodes, int variableIndex, int parentBlockIndex) {
             this.writeNodes = writeNodes;
             this.variableIndex = variableIndex;
             this.parentBlockIndex = parentBlockIndex;
@@ -845,7 +845,7 @@ public abstract class ScopedNode extends Node {
     }
 
     /**
-     * Representation of a variable based on a {@link WriteLocalVariableNode write node} that
+     * Representation of a variable based on a {@link WriteLocalSlotNode write node} that
      * declares the variable. It provides the variable name as a {@link Key#asString() string} and
      * the name node associated with the variable's write node as a {@link Key#getSourceLocation()
      * source location}.
@@ -853,9 +853,9 @@ public abstract class ScopedNode extends Node {
     @ExportLibrary(InteropLibrary.class)
     static final class Key implements TruffleObject {
 
-        private final WriteLocalVariableNode writeNode;
+        private final WriteLocalSlotNode writeNode;
 
-        Key(WriteLocalVariableNode writeNode) {
+        Key(WriteLocalSlotNode writeNode) {
             this.writeNode = writeNode;
         }
 

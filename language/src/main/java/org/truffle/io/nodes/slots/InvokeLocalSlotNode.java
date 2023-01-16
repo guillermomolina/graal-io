@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,52 +38,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.runtime.objects.IOInvokable;
 
-import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.strings.TruffleString;
 
-@NodeChild(value = "valueNode", type = ExpressionNode.class)
-public abstract class WriteRemoteVariableNode extends RemoteVariableNode {
+@NodeField(name = "slot", type = int.class)
+@NodeField(name = "argumentNodes", type = ExpressionNode[].class)
+public abstract class InvokeLocalSlotNode extends ExpressionNode {
 
-    @Specialization(guards = "isLongOrIllegal(frame)")
-    protected long writeLong(VirtualFrame frame, long value) {
-        final MaterializedFrame context = determineContext(frame);
-        context.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Long);
-        context.setLong(getSlot(), value);
+    protected abstract int getSlot();
+
+    protected abstract ExpressionNode[] getArgumentNodes();
+
+    @Specialization(guards = "frame.isLong(getSlot())")
+    protected long invokeLong(VirtualFrame frame) {
+        return frame.getLong(getSlot());
+    }
+
+    @Specialization(guards = "frame.isBoolean(getSlot())")
+    protected boolean invokeBoolean(VirtualFrame frame) {
+        return frame.getBoolean(getSlot());
+    }
+
+    @Specialization(replaces = { "invokeLong", "invokeBoolean" })
+    protected Object invokeObject(VirtualFrame frame) {
+        Object value;
+        if (!frame.isObject(getSlot())) {
+            CompilerDirectives.transferToInterpreter();
+            value = frame.getValue(getSlot());
+            frame.setObject(getSlot(), value);
+        } else {
+            value = frame.getObject(getSlot());
+        }
+        if (value instanceof IOInvokable) {
+            MessageLiteralNode messageNode = new MessageLiteralNode(getSlotName(frame), getArgumentNodes());
+            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0), messageNode);
+            value = invokeNode.executeGeneric(frame);
+        }
         return value;
     }
 
-    @Specialization(guards = "isBooleanOrIllegal(frame)")
-    protected boolean writeBoolean(VirtualFrame frame, boolean value) {
-        final MaterializedFrame context = determineContext(frame);
-        context.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Boolean);
-        context.setBoolean(getSlot(), value);
-        return value;
+    protected TruffleString getSlotName(VirtualFrame frame) {
+        return (TruffleString)frame.getFrameDescriptor().getSlotName(getSlot());
     }
 
-    @Specialization(replaces = { "writeLong", "writeBoolean" })
-    protected Object write(VirtualFrame frame, Object value) {
-        final MaterializedFrame context = determineContext(frame);
-        context.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Object);
-        context.setObject(getSlot(), value);
-        return value;
+    @Override
+    public Object getNodeObject() {
+        return NodeObjectDescriptor
+                .readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
     }
 
-    public abstract void executeWrite(VirtualFrame frame, Object value);
-
-    protected boolean isLongOrIllegal(VirtualFrame frame) {
-        final FrameSlotKind kind = determineContext(frame).getFrameDescriptor().getSlotKind(getSlot());
-        return kind == FrameSlotKind.Long || kind == FrameSlotKind.Illegal;
-    }
-
-    protected boolean isBooleanOrIllegal(VirtualFrame frame) {
-        final FrameSlotKind kind = determineContext(frame).getFrameDescriptor().getSlotKind(getSlot());
-        return kind == FrameSlotKind.Boolean || kind == FrameSlotKind.Illegal;
-    }
 }

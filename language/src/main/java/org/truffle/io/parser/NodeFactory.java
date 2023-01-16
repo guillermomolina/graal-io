@@ -48,12 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -89,18 +83,24 @@ import org.truffle.io.nodes.logic.LogicalOrNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.sequences.SequenceAtNodeGen;
 import org.truffle.io.nodes.sequences.SequenceAtPutNodeGen;
+import org.truffle.io.nodes.slots.ForLocalSlotNode;
+import org.truffle.io.nodes.slots.InvokeLocalSlotNodeGen;
+import org.truffle.io.nodes.slots.InvokePropertyNodeGen;
+import org.truffle.io.nodes.slots.InvokeRemoteSlotNodeGen;
+import org.truffle.io.nodes.slots.ReadArgumentNode;
+import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
+import org.truffle.io.nodes.slots.ReadPropertyNodeGen;
+import org.truffle.io.nodes.slots.WriteLocalSlotNodeGen;
+import org.truffle.io.nodes.slots.WritePropertyNodeGen;
+import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
-import org.truffle.io.nodes.variables.ForLocalVariableNode;
-import org.truffle.io.nodes.variables.InvokeLocalVariableNodeGen;
-import org.truffle.io.nodes.variables.InvokePropertyNodeGen;
-import org.truffle.io.nodes.variables.InvokeRemoteVariableNodeGen;
-import org.truffle.io.nodes.variables.ReadArgumentNode;
-import org.truffle.io.nodes.variables.ReadLocalVariableNodeGen;
-import org.truffle.io.nodes.variables.ReadPropertyNodeGen;
-import org.truffle.io.nodes.variables.WriteLocalVariableNodeGen;
-import org.truffle.io.nodes.variables.WritePropertyNodeGen;
-import org.truffle.io.nodes.variables.WriteRemoteVariableNodeGen;
 import org.truffle.io.runtime.Symbols;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -196,7 +196,7 @@ public class NodeFactory {
         readArg.setSourceSection(startPos, length);
         StringLiteralNode nameNode = createStringLiteral(nameToken, false);
         methodScope.argNames.add(nameNode.getValue());
-        ExpressionNode assignmentNode = createWriteVariable(nameNode, readArg, methodScope.parameterCount, startPos,
+        ExpressionNode assignmentNode = createWriteSlot(nameNode, readArg, methodScope.parameterCount, startPos,
                 length, true);
         assert assignmentNode != null;
         methodScope.methodNodes.add(assignmentNode);
@@ -212,7 +212,7 @@ public class NodeFactory {
         } else {
             selfNode = new StringLiteralNode(Symbols.SELF);
         }
-        ExpressionNode assignmentNode = createWriteVariable(selfNode, readArg, methodScope.parameterCount, 0, 0,
+        ExpressionNode assignmentNode = createWriteSlot(selfNode, readArg, methodScope.parameterCount, 0, 0,
                 true);
         assert assignmentNode != null;
         methodScope.methodNodes.add(assignmentNode);
@@ -228,7 +228,7 @@ public class NodeFactory {
         } else {
             callNode = new StringLiteralNode(Symbols.fromJavaString("call"));
         }
-        ExpressionNode assignmentNode = createWriteVariable(callNode, readArg, methodScope.parameterCount, 0, 0,
+        ExpressionNode assignmentNode = createWriteSlot(callNode, readArg, methodScope.parameterCount, 0, 0,
                 true);
         assert assignmentNode != null;
         methodScope.methodNodes.add(assignmentNode);
@@ -439,12 +439,12 @@ public class NodeFactory {
         return result;
     }
 
-    public ExpressionNode createWriteVariable(ExpressionNode nameNode, ExpressionNode valueNode, int startPos,
+    public ExpressionNode createWriteSlot(ExpressionNode nameNode, ExpressionNode valueNode, int startPos,
             int length, boolean forceLocal) {
-        return createWriteVariable(nameNode, valueNode, null, startPos, length, forceLocal);
+        return createWriteSlot(nameNode, valueNode, null, startPos, length, forceLocal);
     }
 
-    public ExpressionNode createWriteVariable(ExpressionNode nameNode, ExpressionNode valueNode,
+    public ExpressionNode createWriteSlot(ExpressionNode nameNode, ExpressionNode valueNode,
             Integer argumentIndex, int startPos, int length, boolean forceLocal) {
         if (nameNode == null || valueNode == null) {
             return null;
@@ -460,17 +460,17 @@ public class NodeFactory {
         final ExpressionNode result;
         assert frameSlot != -1;
         if (contextLevel == 0) {
-            result = WriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode);
+            result = WriteLocalSlotNodeGen.create(valueNode, frameSlot, nameNode);
         } else {
             assert contextLevel >= 0 && contextLevel < Integer.MAX_VALUE;
-            result = WriteRemoteVariableNodeGen.create(valueNode, contextLevel, frameSlot);
+            result = WriteRemoteSlotNodeGen.create(valueNode, contextLevel, frameSlot);
         }
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    // public IOExpressionNode createReadVariable(IOExpressionNode nameNode) {
+    // public IOExpressionNode createReadSlot(IOExpressionNode nameNode) {
     //     if (nameNode != null) {
     //         assert nameNode instanceof IOStringLiteralNode; 
     //         TruffleString name = ((IOStringLiteralNode) nameNode).executeGeneric(null);
@@ -480,9 +480,9 @@ public class NodeFactory {
     //             int contextLevel = foundSlot.a;
     //             int frameSlot = foundSlot.b;
     //             if (contextLevel == 0) {
-    //                 result = ReadLocalVariableNodeGen.create(frameSlot);
+    //                 result = ReadLocalSlotNodeGen.create(frameSlot);
     //             } else {
-    //                 result = ReadRemoteVariableNodeGen.create(contextLevel, frameSlot);
+    //                 result = ReadRemoteSlotNodeGen.create(contextLevel, frameSlot);
     //             }
     //             if (nameNode.hasSource()) {
     //                 result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
@@ -494,12 +494,12 @@ public class NodeFactory {
     //     return null;
     // }
 
-    public ExpressionNode createReadLocalVariable(StringLiteralNode nameNode) {
+    public ExpressionNode createReadLocalSlot(StringLiteralNode nameNode) {
         assert nameNode != null;
         TruffleString name = nameNode.executeGeneric(null);
         if (methodScope.locals.containsKey(name)) {
             int frameSlot = methodScope.locals.get(name);
-            final ExpressionNode result = ReadLocalVariableNodeGen.create(frameSlot);
+            final ExpressionNode result = ReadLocalSlotNodeGen.create(frameSlot);
             if (nameNode.hasSource()) {
                 result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
             }
@@ -509,17 +509,17 @@ public class NodeFactory {
         return null;
     }
 
-    public ExpressionNode createReadLocalVariable(ExpressionNode nameNode, int startPos, int length) {
+    public ExpressionNode createReadLocalSlot(ExpressionNode nameNode, int startPos, int length) {
         if (isAtLobby()) {
             return null;
         }
         if (nameNode instanceof StringLiteralNode) {
-            return createReadLocalVariable((StringLiteralNode) nameNode);
+            return createReadLocalSlot((StringLiteralNode) nameNode);
         }
         throw new NotImplementedException();
     }
 
-    public ExpressionNode createInvokeVariable(ExpressionNode slotNameNode, List<ExpressionNode> argumentNodes,
+    public ExpressionNode createInvokeSlot(ExpressionNode slotNameNode, List<ExpressionNode> argumentNodes,
             int startPos, int length) {
         if (slotNameNode != null) {
             assert slotNameNode instanceof StringLiteralNode;
@@ -530,10 +530,10 @@ public class NodeFactory {
                 int frameSlot = foundSlot.b;
                 final ExpressionNode result;
                 if (contextLevel == 0) {
-                    result = InvokeLocalVariableNodeGen.create(frameSlot,
+                    result = InvokeLocalSlotNodeGen.create(frameSlot,
                             argumentNodes.toArray(new ExpressionNode[argumentNodes.size()]));
                 } else {
-                    result = InvokeRemoteVariableNodeGen.create(contextLevel, frameSlot,
+                    result = InvokeRemoteSlotNodeGen.create(contextLevel, frameSlot,
                             argumentNodes.toArray(new ExpressionNode[argumentNodes.size()]));
                 }
                 result.setSourceSection(startPos, length);
@@ -544,10 +544,10 @@ public class NodeFactory {
         return null;
     }
 
-    public ExpressionNode createForVariable(ExpressionNode slotNameNode, ExpressionNode startValueNode,
+    public ExpressionNode createForSlot(ExpressionNode slotNameNode, ExpressionNode startValueNode,
             ExpressionNode endValueNode, ExpressionNode stepValueNode, ExpressionNode bodyNode, int startPos,
             int length) {
-        ForLocalVariableNode forNode = null;
+        ForLocalSlotNode forNode = null;
         if (slotNameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
             assert slotNameNode instanceof StringLiteralNode;
             TruffleString name = ((StringLiteralNode) slotNameNode).executeGeneric(null);
@@ -561,11 +561,11 @@ public class NodeFactory {
             }
             final ExpressionNode result;
             if (contextLevel == 0) {
-                result = new ForLocalVariableNode(slotFrameIndex, slotNameNode, startValueNode, endValueNode,
+                result = new ForLocalSlotNode(slotFrameIndex, slotNameNode, startValueNode, endValueNode,
                         stepValueNode, bodyNode);
             } else {
                 throw new NotImplementedException();
-                //result = new IOForRemoteVariableNode(contextLevel, slotFrameIndex, slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode);
+                //result = new IOForRemoteSlotNode(contextLevel, slotFrameIndex, slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode);
             }
             result.setSourceSection(startPos, length);
             result.addExpressionTag();
@@ -581,7 +581,7 @@ public class NodeFactory {
         } else {
             selfNode = new StringLiteralNode(Symbols.SELF);
         }
-        final ExpressionNode result = createReadLocalVariable(selfNode);
+        final ExpressionNode result = createReadLocalSlot(selfNode);
         assert result != null;
         return result;
     }
@@ -697,7 +697,7 @@ public class NodeFactory {
             int length) {
         ExpressionNode result = null;
         if (receiverNode == null) {
-            result = createReadLocalVariable(nameNode, startPos, length);
+            result = createReadLocalSlot(nameNode, startPos, length);
             if (result == null) {
                 receiverNode = createReadSelf();
             }
@@ -741,7 +741,7 @@ public class NodeFactory {
             List<ExpressionNode> argumentNodes, int startPos, int length) {
         ExpressionNode result = null;
         if (receiverNode == null) {
-            result = createInvokeVariable(identifierNode, argumentNodes, startPos, length);
+            result = createInvokeSlot(identifierNode, argumentNodes, startPos, length);
             if (result == null) {
                 receiverNode = createReadSelf();
             }
@@ -757,7 +757,7 @@ public class NodeFactory {
             ExpressionNode valueNode, int startPos, int length) {
         ExpressionNode result = null;
         if (receiverNode == null) {
-            result = createWriteVariable(assignmentNameNode, valueNode, startPos, length, false);
+            result = createWriteSlot(assignmentNameNode, valueNode, startPos, length, false);
             if (result == null) {
                 receiverNode = createReadSelf();
             }

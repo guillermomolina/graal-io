@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.parser.NodeFactory;

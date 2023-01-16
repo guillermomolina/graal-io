@@ -38,58 +38,67 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
-
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Bind;
-import com.oracle.truffle.api.dsl.Cached.Shared;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameSlotTypeException;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.literals.MessageLiteralNode;
-import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOCall;
 
-@NodeField(name = "argumentNodes", type = ExpressionNode[].class)
-public abstract class InvokeRemoteVariableNode extends RemoteVariableNode {
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
+import com.oracle.truffle.api.instrumentation.Tag;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.profiles.ValueProfile;
+import com.oracle.truffle.api.strings.TruffleString;
 
-    protected abstract ExpressionNode[] getArgumentNodes();
+@NodeField(name = "contextLevel", type = int.class)
+@NodeField(name = "slot", type = int.class)
+public abstract class RemoteSlotNode extends ExpressionNode {
 
-    @Specialization(guards = "ctx.isLong(getSlot())")
-    protected long readLong(VirtualFrame frame,
-            @Shared("all") @Bind("determineContext(frame)") final MaterializedFrame ctx)
-            throws FrameSlotTypeException {
-        return ctx.getLong(getSlot());
+    protected abstract int getContextLevel();
+
+    protected abstract int getSlot();
+
+    private static final ValueProfile frameType = ValueProfile.createClassProfile();
+
+    @Override
+    public boolean hasTag(Class<? extends Tag> tag) {
+        return tag == ReadVariableTag.class || super.hasTag(tag);
     }
 
-    @Specialization(guards = "ctx.isBoolean(getSlot())")
-    protected boolean readBoolean(VirtualFrame frame,
-            @Shared("all") @Bind("determineContext(frame)") final MaterializedFrame ctx)
-            throws FrameSlotTypeException {
-        return ctx.getBoolean(getSlot());
+    protected TruffleString getSlotName(final MaterializedFrame ctx) {
+        return (TruffleString) ctx.getFrameDescriptor().getSlotName(getSlot());
     }
 
-    @Specialization(replaces = { "readLong", "readBoolean" })
-    protected Object readObject(VirtualFrame frame,
-            @Shared("all") @Bind("determineContext(frame)") final MaterializedFrame ctx)
-            throws FrameSlotTypeException {
-        Object value;
-        if (!ctx.isObject(getSlot())) {
-            CompilerDirectives.transferToInterpreter();
-            value = ctx.getValue(getSlot());
-            ctx.setObject(getSlot(), value);
-        } else {
-            value = ctx.getObject(getSlot());
+    @Override
+    public Object getNodeObject() {
+        return NodeObjectDescriptor
+                .readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
+    }
+
+    public final boolean accessesOuterContext() {
+        return getContextLevel() > 0;
+    }
+
+    @ExplodeLoop
+    protected final MaterializedFrame determineContext(final VirtualFrame frame) {
+        Object call = frame.getArguments()[1];
+        assert call instanceof IOCall;
+        IOBlock block = (IOBlock) ((IOCall) call).getActivated();
+        int i = getContextLevel() - 1;
+
+        while (i > 0) {
+            block = (IOBlock) block.getOuterFrame();
+            i--;
         }
-        if (value instanceof IOInvokable) {
-            MessageLiteralNode messageNode = new MessageLiteralNode(getSlotName(ctx), getArgumentNodes());
-            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0), messageNode);
-            value = invokeNode.executeGeneric(frame);
-        }
-        return value;
+
+        // Graal needs help here to see that this is always a MaterializedFrame
+        // so, we record explicitly a class profile
+        return frameType.profile(block.getLocals().getFrame());
+
     }
+
 }

@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.slots;
 
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Bind;
@@ -51,7 +51,7 @@ import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-public abstract class ReadRemoteVariableNode extends RemoteVariableNode {
+public abstract class ReadRemoteSlotNode extends RemoteSlotNode {
 
     @Specialization(guards = "ctx.isLong(getSlot())")
     protected long readLong(VirtualFrame frame,

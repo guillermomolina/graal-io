@@ -483,7 +483,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<ExpressionNode>
         ExpressionNode bodyNode = visitExpression(ctx.body);
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
-        ExpressionNode result = factory.createForVariable(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
+        ExpressionNode result = factory.createForSlot(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
                 startPos, length);
         assert result != null;
         return factory.createLoopBlock(result, startPos, length);

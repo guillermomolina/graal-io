@@ -38,64 +38,71 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
-
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.strings.TruffleString;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.UndefinedNameException;
 import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOObject;
 
-@NodeField(name = "slot", type = int.class)
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
+import com.oracle.truffle.api.strings.TruffleString;
+
+@NodeChild("recevierNode")
+@NodeChild("nameNode")
 @NodeField(name = "argumentNodes", type = ExpressionNode[].class)
-public abstract class InvokeLocalVariableNode extends ExpressionNode {
-
-    protected abstract int getSlot();
+public abstract class InvokePropertyNode extends ExpressionNode {
 
     protected abstract ExpressionNode[] getArgumentNodes();
 
-    @Specialization(guards = "frame.isLong(getSlot())")
-    protected long invokeLong(VirtualFrame frame) {
-        return frame.getLong(getSlot());
+    @Specialization
+    protected Object invokeIOObject(VirtualFrame frame, IOObject receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        TruffleString nameTS = toTruffleStringNode.execute(name);
+        return getOrInvoke(frame, receiver, nameTS, receiver);
     }
 
-    @Specialization(guards = "frame.isBoolean(getSlot())")
-    protected boolean invokeBoolean(VirtualFrame frame) {
-        return frame.getBoolean(getSlot());
+    @Specialization
+    protected Object invokeGeneric(VirtualFrame frame, Object receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        IOObject prototype = IOState.get(this).getPrototype(receiver);
+        TruffleString nameTS = toTruffleStringNode.execute(name);
+        return getOrInvoke(frame, receiver, nameTS, prototype);
     }
 
-    @Specialization(replaces = { "invokeLong", "invokeBoolean" })
-    protected Object invokeObject(VirtualFrame frame) {
-        Object value;
-        if (!frame.isObject(getSlot())) {
-            CompilerDirectives.transferToInterpreter();
-            value = frame.getValue(getSlot());
-            frame.setObject(getSlot(), value);
-        } else {
-            value = frame.getObject(getSlot());
+    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, final TruffleString nameTS,
+            final IOObject prototype) {
+        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
+        if (value == null) {
+            throw UndefinedNameException.undefinedProperty(this, nameTS);
         }
         if (value instanceof IOInvokable) {
-            MessageLiteralNode messageNode = new MessageLiteralNode(getSlotName(frame), getArgumentNodes());
-            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0), messageNode);
-            value = invokeNode.executeGeneric(frame);
+            final IOInvokable invokable = (IOInvokable) value;
+            MessageLiteralNode messageNode = new MessageLiteralNode(nameTS, getArgumentNodes());
+            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);
+            Object result = invokeNode.executeGeneric(frame);
+            return result;
         }
         return value;
     }
 
-    protected TruffleString getSlotName(VirtualFrame frame) {
-        return (TruffleString)frame.getFrameDescriptor().getSlotName(getSlot());
-    }
-
     @Override
-    public Object getNodeObject() {
-        return NodeObjectDescriptor
-                .readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
+    public boolean hasTag(Class<? extends Tag> tag) {
+        if (tag == StandardTags.CallTag.class) {
+            return true;
+        }
+        return super.hasTag(tag);
     }
 
 }

@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.variables;
+package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.controlflow.BreakException;
 import org.truffle.io.nodes.controlflow.ContinueException;
@@ -58,15 +58,15 @@ public final class ForRepeatingNode extends Node implements RepeatingNode {
 
     @Child private ExpressionNode hasEndedNode;
     @Child private ExpressionNode bodyNode;
-    @Child private ExpressionNode stepVariableNode;
+    @Child private ExpressionNode stepSlotNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
 
-    public ForRepeatingNode(ExpressionNode hasEndedNode, ExpressionNode bodyNode, ExpressionNode stepVariableNode) {
+    public ForRepeatingNode(ExpressionNode hasEndedNode, ExpressionNode bodyNode, ExpressionNode stepSlotNode) {
         this.hasEndedNode = hasEndedNode;
         this.bodyNode = bodyNode;
-        this.stepVariableNode = stepVariableNode;
+        this.stepSlotNode = stepSlotNode;
     }
 
     @Override
@@ -77,7 +77,7 @@ public final class ForRepeatingNode extends Node implements RepeatingNode {
 
         try {
             bodyNode.executeGeneric(frame);
-            stepVariableNode.executeGeneric(frame);
+            stepSlotNode.executeGeneric(frame);
             return true;
 
         } catch (ContinueException ex) {

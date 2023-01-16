@@ -45,7 +45,7 @@ package org.truffle.io.nodes.expression;
 
 import org.truffle.io.nodes.IOTypes;
 import org.truffle.io.nodes.IOTypesGen;
-import org.truffle.io.nodes.variables.ScopedNode;
+import org.truffle.io.nodes.slots.ScopedNode;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
