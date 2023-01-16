@@ -73,6 +73,7 @@ import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOCoroutine;
 import org.truffle.io.runtime.objects.IODate;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
@@ -128,6 +129,7 @@ public final class IOState {
 
     private final IOObject lobby;
     private final IOObject protos;
+    private final IOCoroutine currentCoroutine;
 
     public IOState(IOLanguage language, TruffleLanguage.Env env,
             List<NodeFactory<? extends IOBuiltinNode>> externalBuiltins) {
@@ -139,6 +141,7 @@ public final class IOState {
 
         this.protos = cloneObject();
         this.lobby = cloneObject(protos);
+        this.currentCoroutine = createCoroutine();
         setupLobby();
         installBuiltins();
         for (NodeFactory<? extends IOBuiltinNode> builtin : externalBuiltins) {
@@ -188,6 +191,10 @@ public final class IOState {
         return lobby;
     }
 
+    public IOCoroutine getCurrentCoroutine() {
+        return currentCoroutine;
+    }
+
     private void setupLobby() {
         IOPrototype.OBJECT.setPrototype(lobby);
 
@@ -201,6 +208,7 @@ public final class IOState {
         IOObjectUtil.putProperty(protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
         IOObjectUtil.putProperty(protos, Symbols.BLOCK, IOPrototype.BLOCK);
         IOObjectUtil.putProperty(protos, Symbols.LOCALS, IOPrototype.LOCALS);
+        IOObjectUtil.putProperty(protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
 
         IOObjectUtil.putProperty(lobby, Symbols.LOBBY, lobby);
         IOObjectUtil.putProperty(lobby, Symbols.PROTOS, protos);
@@ -436,10 +444,17 @@ public final class IOState {
     }
 
     public IOCall createCall(final IOObject sender, final Object target, final IOMessage message,
-            final IOObject slotContext, final IOBlock activated, final IOObject coroutine) {
+            final IOObject slotContext, final IOBlock activated, final IOCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOCall call = new IOCall(sender, target, message, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);
         return call;
+    }
+
+    public IOCoroutine createCoroutine() {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IOCoroutine coroutine = new IOCoroutine();
+        allocationReporter.onReturnValue(coroutine, 0, AllocationReporter.SIZE_UNKNOWN);
+        return coroutine;
     }
 }

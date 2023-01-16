@@ -43,13 +43,13 @@
  */
 package org.truffle.io.runtime;
 
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.root.EvalRootNode;
 import org.truffle.io.nodes.root.FunctionRootNode;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public final class Symbols {
 
@@ -71,6 +71,7 @@ public final class Symbols {
     public static final TruffleString PROTOS = constant("Protos");
     public static final TruffleString SYSTEM = constant("System");
     public static final TruffleString LOCALS = constant("Locals");
+    public static final TruffleString COROUTINE = constant("Coroutine");
 
     public static TruffleString constant(String s) {
         return fromJavaString(s);

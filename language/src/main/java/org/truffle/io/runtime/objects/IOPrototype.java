@@ -43,6 +43,10 @@
  */
 package org.truffle.io.runtime.objects;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.Symbols;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -54,10 +58,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOPrototype extends IOObject {
@@ -74,6 +74,7 @@ public class IOPrototype extends IOObject {
     public static final IOPrototype MESSAGE = new IOPrototype(OBJECT, Symbols.MESSAGE, (l, v) -> v == IOPrototype.MESSAGE);
     public static final IOPrototype CALL = new IOPrototype(OBJECT, Symbols.CALL, (l, v) -> v == IOPrototype.CALL);
     public static final IOPrototype LOCALS = new IOPrototype(OBJECT, Symbols.LOCALS, (l, v) -> v == IOPrototype.LOCALS);
+    public static final IOPrototype COROUTINE = new IOPrototype(OBJECT, Symbols.COROUTINE, (l, v) -> v == IOPrototype.COROUTINE);
 
     @CompilationFinal(dimensions = 1)
     public static final IOPrototype[] PRECEDENCE = new IOPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, DATE, OBJECT };
