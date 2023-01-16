@@ -50,7 +50,6 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -121,18 +120,15 @@ public class IOPrototype extends IOObject {
 
     @ExportMessage(name = "toDisplayString")
     Object toDisplayString(boolean allowSideEffects) {
-        String string = String.format("%s_0x%X: %s", getType(), hashCode(), IOObjectUtil.toString(this));
-        return string;
+        return Symbols.fromJavaString(toString());
     }
 
     @Override
     public String toString(int depth) {
-        try {
-            return InteropLibrary.getUncached().asString(getType());
-        } catch(UnsupportedMessageException e) {
-            return "<UNKNOWN>";
+        if(depth == 0) {
+            return String.format("%s_0x%X: %s", getType(), hashCode(), IOObjectUtil.toString(this));
         }
-        
+        return String.format("%s_0x%X", getType(), hashCode());
     }
 
     @ExportMessage

@@ -135,14 +135,17 @@ public class IOObject extends DynamicObject {
     }
 
     public String toString(int depth) {
-        String string = String.format("Object_0x%X%s", hashCode(), IOObjectUtil.toString(this, depth));
+        String string = String.format("Object_0x%X", hashCode());
+        if(depth == 0) {
+            string += ":" + IOObjectUtil.toString(this);
+        }
         return string;
     }
 
     @ExportMessage
     @TruffleBoundary
     Object toDisplayString(boolean allowSideEffects) {
-        return toString();
+        return Symbols.fromJavaString(toString());
     }
 
     @ExportMessage
