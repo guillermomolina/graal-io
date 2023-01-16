@@ -421,10 +421,9 @@ public final class IOState {
         return locals;
     }
 
-    public IOBlock createMethod(RootCallTarget callTarget, final TruffleString[] argNames,
-            final IOLocals locals) {
+    public IOBlock createMethod(RootCallTarget callTarget, final TruffleString[] argNames) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOBlock method = new IOBlock(callTarget, argNames, locals);
+        IOBlock method = new IOBlock(callTarget, argNames);
         allocationReporter.onReturnValue(method, 0, AllocationReporter.SIZE_UNKNOWN);
         return method;
     }
@@ -444,7 +443,7 @@ public final class IOState {
     }
 
     public IOCall createCall(final IOLocals sender, final Object target, final IOMessage message,
-            final IOObject slotContext, final IOBlock activated, final IOCoroutine coroutine) {
+            final IOLocals slotContext, final IOBlock activated, final IOCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOCall call = new IOCall(sender, target, message, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);

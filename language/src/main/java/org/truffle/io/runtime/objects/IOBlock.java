@@ -55,27 +55,10 @@ public final class IOBlock extends IOInvokable {
 
     /** The current implementation of this method. */
     private final TruffleString[] argNames;
-    private final IOLocals locals;
 
-    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final IOLocals locals) {
+    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames) {
         super(IOPrototype.BLOCK, callTarget);
         this.argNames = argNames;
-        this.locals = locals;
-    }
-
-    @Override
-    public boolean hasLocals() {
-        return locals != null;
-    }
-    
-    public IOLocals getLocals() {
-        return locals;
-    }
-    
-    public Object getOuterFrame() {
-        Object call = getLocals().getFrame().getArguments()[1];
-        assert call instanceof IOCall;
-        return ((IOCall)call).getActivated();
     }
     
     public int getNumArgs() {

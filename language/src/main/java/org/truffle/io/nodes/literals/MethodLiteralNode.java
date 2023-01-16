@@ -43,6 +43,12 @@
  */
 package org.truffle.io.nodes.literals;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOBlock;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -50,13 +56,6 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOLocals;
 
 /**
  * Constant literal for a {@link IOBlock method} value, created when a method name occurs as
@@ -89,8 +88,7 @@ public final class MethodLiteralNode extends ExpressionNode {
                 /* We are about to change a @CompilationFinal field. */
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 /* First execution of the node: lookup the method in the method registry. */
-                IOLocals locals = IOState.get(this).createLocals(frame.materialize());
-                this.cachedMethod = method = IOState.get(this).createMethod(value.getCallTarget(), argNames, locals);
+                this.cachedMethod = method = IOState.get(this).createMethod(value.getCallTarget(), argNames);
             }
         } else {
             /*
@@ -102,8 +100,7 @@ public final class MethodLiteralNode extends ExpressionNode {
             }
             // in the multi-context case we are not allowed to store
             // IOMethod objects in the AST. Instead we always perform the lookup in the hash map.
-            IOLocals locals = IOState.get(this).createLocals(frame.materialize());
-            method = IOState.get(this).createMethod(value.getCallTarget(), argNames, locals);
+            method = IOState.get(this).createMethod(value.getCallTarget(), argNames);
         }
         return method;
     }
