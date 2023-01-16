@@ -73,5 +73,13 @@ public class IOMessage extends IOObject {
     public ExpressionNode[] getArgumentNodes() {
         return argumentNodes;
     }
+
+    public String toString(int depth) {
+        TruffleString name = getName();
+        if(name == null) {
+            return "[unnamed]";
+        }
+        return String.format("%s", name);
+    }
     
 }
