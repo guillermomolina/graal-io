@@ -66,7 +66,7 @@ public class IOCall extends IOObject {
     @DynamicField
     private Object coroutine;
 
-    public IOCall(final IOLocals sender, final IOMessage message, final Object target, final IOObject slotContext,
+    public IOCall(final IOObject sender, final IOMessage message, final Object target, final IOObject slotContext,
             final IOBlock activated, final IOObject coroutine) {
         super(IOPrototype.CALL);
         setSender(sender);
@@ -77,11 +77,11 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public IOLocals getSender() {
-        return (IOLocals)IOObjectUtil.getProperty(this, SENDER);
+    public IOObject getSender() {
+        return (IOObject)IOObjectUtil.getProperty(this, SENDER);
     }
 
-    protected void setSender(IOLocals sender) {
+    protected void setSender(IOObject sender) {
         IOObjectUtil.putProperty(this, SENDER, sender);
     }
 

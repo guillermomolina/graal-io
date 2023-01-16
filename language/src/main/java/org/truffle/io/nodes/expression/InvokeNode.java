@@ -56,6 +56,7 @@ import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOMessage;
+import org.truffle.io.runtime.objects.IONil;
 
 public final class InvokeNode extends ExpressionNode {
 
@@ -101,7 +102,7 @@ public final class InvokeNode extends ExpressionNode {
     @ExplodeLoop
     protected final Object executeMethod(IOBlock method, VirtualFrame frame) {
         IOMessage message = messageNode.executeGeneric(frame);
-        IOCall call = IOState.get(this).createCall(null, message, receiver, null, method, null);
+        IOCall call = IOState.get(this).createCall(IONil.SINGLETON, message, receiver, IONil.SINGLETON, method, IONil.SINGLETON);
         ExpressionNode[] argumentNodes = messageNode.getArgumentNodes();
         CompilerAsserts.compilationConstant(argumentNodes.length + 2);
         Object[] argumentValues = new Object[argumentNodes.length + 2];

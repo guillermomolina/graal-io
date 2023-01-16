@@ -435,7 +435,7 @@ public final class IOState {
         return message;
     }
 
-    public IOCall createCall(final IOLocals sender, final IOMessage message, final Object target,
+    public IOCall createCall(final IOObject sender, final IOMessage message, final Object target,
             final IOObject slotContext, final IOBlock activated, final IOObject coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOCall call = new IOCall(sender, message, target, slotContext, activated, coroutine);
