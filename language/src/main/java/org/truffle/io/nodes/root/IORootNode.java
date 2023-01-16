@@ -47,9 +47,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.controlflow.MethodBodyNode;
 import org.truffle.io.nodes.expression.BlockNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
 import org.truffle.io.runtime.IOState;

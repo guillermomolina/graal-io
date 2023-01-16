@@ -43,14 +43,14 @@ package org.truffle.io.builtins.system;
 import java.util.concurrent.TimeUnit;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "sleep")
-public abstract class SystemSleepBuiltin extends IOBuiltinNode {
+public abstract class SystemSleepBuiltin extends FunctionBodyNode {
 
     @Specialization
     public Object doDate(Object self, long number) {

@@ -44,7 +44,7 @@
 package org.truffle.io.builtins.list;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -57,7 +57,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * <link>Messages.GET_SIZE</link>.
  */
 @NodeInfo(shortName = "getSize")
-public abstract class ListSizeBuiltin extends IOBuiltinNode {
+public abstract class ListSizeBuiltin extends FunctionBodyNode {
 
     @Specialization(limit = "3")
     public Object getSize(Object obj, @CachedLibrary("obj") InteropLibrary arrays) {

@@ -43,7 +43,7 @@
  */
 package org.truffle.io.builtins.object;
 
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOPrototype;
 
@@ -57,7 +57,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * Built-in function that returns the type of a guest language value.
  */
 @NodeInfo(shortName = "proto")
-public abstract class ObjectProtoBuiltin extends IOBuiltinNode {
+public abstract class ObjectProtoBuiltin extends FunctionBodyNode {
 
     /*
      * This returns the IO type for a particular operand value.

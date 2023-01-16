@@ -44,9 +44,9 @@
 package org.truffle.io.nodes.root;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.builtins.IOBuiltinNode;
-import org.truffle.io.nodes.controlflow.MethodBodyNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.nodes.expression.MethodBodyNode;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -57,7 +57,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 /**
  * The root of all IO execution trees. It is a Truffle requirement that the tree root extends the
  * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
- * builtin functions, the {@link #bodyNode} is a subclass of {@link IOBuiltinNode}. For user-defined
+ * builtin functions, the {@link #bodyNode} is a subclass of {@link FunctionBodyNode}. For user-defined
  * functions, the {@link #bodyNode} is a {@link MethodBodyNode}.
  */
 @NodeInfo(language = "IO", description = "The root of all IO execution trees")

@@ -41,9 +41,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.controlflow;
+package org.truffle.io.nodes.expression;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.controlflow.ReturnException;
+import org.truffle.io.nodes.controlflow.ReturnNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.objects.IONil;
 

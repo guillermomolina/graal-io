@@ -44,7 +44,7 @@
 package org.truffle.io.builtins.object;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IOState;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -60,7 +60,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "slotNames")
 @ImportStatic(IOState.class)
-public abstract class ObjectSlotNamesBuiltin extends IOBuiltinNode {
+public abstract class ObjectSlotNamesBuiltin extends FunctionBodyNode {
 
     @Specialization(guards = "objInterop.hasMembers(receiver)")
     @TruffleBoundary

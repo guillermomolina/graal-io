@@ -84,7 +84,7 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.InitializationError;
 import org.truffle.io.IOLanguage;
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.test.TestRunner.TestCase;
 
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -289,9 +289,9 @@ public class TestRunner extends ParentRunner<TestCase> {
         return outFile.toString();
     }
 
-    private static final List<NodeFactory<? extends IOBuiltinNode>> builtins = new ArrayList<>();
+    private static final List<NodeFactory<? extends FunctionBodyNode>> builtins = new ArrayList<>();
 
-    public static void installBuiltin(NodeFactory<? extends IOBuiltinNode> builtin) {
+    public static void installBuiltin(NodeFactory<? extends FunctionBodyNode> builtin) {
         builtins.add(builtin);
     }
 
@@ -302,7 +302,7 @@ public class TestRunner extends ParentRunner<TestCase> {
         Context context = null;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            for (NodeFactory<? extends IOBuiltinNode> builtin : builtins) {
+            for (NodeFactory<? extends FunctionBodyNode> builtin : builtins) {
                 IOLanguage.installBuiltin(builtin);
             }
 

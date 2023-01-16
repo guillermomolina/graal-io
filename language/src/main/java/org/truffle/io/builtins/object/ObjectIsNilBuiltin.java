@@ -43,7 +43,7 @@
  */
 package org.truffle.io.builtins.object;
 
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -55,7 +55,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * <link>Messages.IS_NULL</link>.
  */
 @NodeInfo(shortName = "isNil")
-public abstract class ObjectIsNilBuiltin extends IOBuiltinNode {
+public abstract class ObjectIsNilBuiltin extends FunctionBodyNode {
 
     @Specialization(limit = "3")
     public boolean isNull(Object obj, @CachedLibrary("obj") InteropLibrary values) {

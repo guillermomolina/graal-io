@@ -43,7 +43,7 @@
  */
 package org.truffle.io.builtins.object;
 
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.interop.IOLanguageView;
 
@@ -63,7 +63,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * {@link TruffleBoundary} annotations.
  */
 @NodeInfo(shortName = "println")
-public abstract class ObjectPrintlnBuiltin extends IOBuiltinNode {
+public abstract class ObjectPrintlnBuiltin extends FunctionBodyNode {
 
     @Specialization
     @TruffleBoundary

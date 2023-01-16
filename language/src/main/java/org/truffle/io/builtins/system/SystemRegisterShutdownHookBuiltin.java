@@ -44,7 +44,7 @@
 package org.truffle.io.builtins.system;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IONil;
@@ -54,7 +54,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "registerShutdownHook")
-public abstract class SystemRegisterShutdownHookBuiltin extends IOBuiltinNode {
+public abstract class SystemRegisterShutdownHookBuiltin extends FunctionBodyNode {
 
     @Specialization
     public Object doMethod(Object self, IOInvokable shutdownHook) {

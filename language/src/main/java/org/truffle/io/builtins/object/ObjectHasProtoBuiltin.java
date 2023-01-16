@@ -45,7 +45,7 @@ package org.truffle.io.builtins.object;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOObject;
@@ -62,7 +62,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * may be values of the current or a foreign value.
  */
 @NodeInfo(shortName = "hasProto")
-public abstract class ObjectHasProtoBuiltin extends IOBuiltinNode {
+public abstract class ObjectHasProtoBuiltin extends FunctionBodyNode {
 
     /*@Specialization
     public boolean hasProtoLong(long value, IOObject prototype) {

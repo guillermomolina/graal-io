@@ -43,7 +43,7 @@ package org.truffle.io.builtins.date;
 import java.util.Date;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.objects.IODate;
 
 import com.oracle.truffle.api.dsl.Fallback;
@@ -55,7 +55,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * <link>Messages.GET_SIZE</link>.
  */
 @NodeInfo(shortName = "secondsSince")
-public abstract class DateSecondsSinceBuiltin extends IOBuiltinNode {
+public abstract class DateSecondsSinceBuiltin extends FunctionBodyNode {
 
     @Specialization
     public long doDate(Date self, Date other) {

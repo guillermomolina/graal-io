@@ -43,7 +43,7 @@
  */
 package org.truffle.io.builtins.object;
 
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -51,7 +51,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "isActivatable")
-public abstract class ObjectIsActivatableBuiltin extends IOBuiltinNode {
+public abstract class ObjectIsActivatableBuiltin extends FunctionBodyNode {
 
     @Specialization(limit = "3")
     public boolean isActivatable(Object obj, @CachedLibrary("obj") InteropLibrary executables) {

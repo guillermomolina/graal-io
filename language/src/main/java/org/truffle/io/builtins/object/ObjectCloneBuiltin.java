@@ -44,7 +44,7 @@
 package org.truffle.io.builtins.object;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOObject;
@@ -63,7 +63,7 @@ import com.oracle.truffle.api.strings.TruffleString;
  */
 @NodeInfo(shortName = "clone")
 @ImportStatic(IOState.class)
-public abstract class ObjectCloneBuiltin extends IOBuiltinNode {
+public abstract class ObjectCloneBuiltin extends FunctionBodyNode {
 
     @Specialization
     public long cloneLong(long value) {

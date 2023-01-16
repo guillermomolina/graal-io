@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.truffle.io.builtins.IOBuiltinNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.EvalRootNode;
 import org.truffle.io.parser.IOLanguageNodeVisitor;
 import org.truffle.io.runtime.IOState;
@@ -155,9 +155,9 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
         return REFERENCE.get(node);
     }
 
-    private static final List<NodeFactory<? extends IOBuiltinNode>> EXTERNAL_BUILTINS = Collections.synchronizedList(new ArrayList<>());
+    private static final List<NodeFactory<? extends FunctionBodyNode>> EXTERNAL_BUILTINS = Collections.synchronizedList(new ArrayList<>());
 
-    public static void installBuiltin(NodeFactory<? extends IOBuiltinNode> builtin) {
+    public static void installBuiltin(NodeFactory<? extends FunctionBodyNode> builtin) {
         EXTERNAL_BUILTINS.add(builtin);
     }
 

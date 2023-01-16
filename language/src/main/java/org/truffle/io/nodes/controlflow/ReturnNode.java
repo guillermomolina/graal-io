@@ -44,6 +44,7 @@
 package org.truffle.io.nodes.controlflow;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.runtime.objects.IONil;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
