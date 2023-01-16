@@ -43,17 +43,6 @@
  */
 package org.truffle.io.nodes.sequences;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.literals.LongLiteralNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.OutOfBoundsException;
-import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -64,6 +53,18 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.literals.LongLiteralNode;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.OutOfBoundsException;
+import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOObject;
 
 @NodeInfo(shortName = "at")
 @NodeChild("receiverNode")
@@ -142,7 +143,8 @@ public abstract class SequenceAtNode extends ExpressionNode {
             final IOInvokable invokable = (IOInvokable) value;
             final ExpressionNode[] argumentNodes = new ExpressionNode[1];
             argumentNodes[0] = new LongLiteralNode(index);
-            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, argumentNodes);
+            final MessageLiteralNode messageNode = new MessageLiteralNode(AT, argumentNodes);
+            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);
             Object result = invokeNode.executeGeneric(frame);
             return result;
         }

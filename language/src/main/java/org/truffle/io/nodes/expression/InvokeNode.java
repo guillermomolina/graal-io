@@ -49,64 +49,60 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOMessage;
-import org.truffle.io.runtime.objects.IONil;
 
 public final class InvokeNode extends ExpressionNode {
 
     @Child
     private DirectCallNode callNode;
 
-    @Children
-    private ExpressionNode[] argumentNodes;
+    @Child
+    private MessageLiteralNode messageNode;
 
     private IOInvokable invokable;
     private Object receiver;
 
-    public InvokeNode(final IOInvokable invokable, final Object receiver, final ExpressionNode[] argumentNodes) {
+    public InvokeNode(final IOInvokable invokable, final Object receiver, final MessageLiteralNode messageNode) {
         this.invokable = invokable;
         this.receiver = receiver;
-        this.argumentNodes = argumentNodes;
-        this.callNode = invokable != null ? DirectCallNode.create(invokable.getCallTarget()) : null;
+        this.messageNode = messageNode;
+        this.callNode = DirectCallNode.create(invokable.getCallTarget());
     }
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        if (callNode == null) {
-            /* The source code did not have a "main" function, so nothing to execute. */
-            return IONil.SINGLETON;
-        } else {
-            if (invokable instanceof IOBlock) {
-                return executeMethod((IOBlock) invokable, frame);
-            } else if (invokable instanceof IOFunction) {
-                return executeFunction((IOFunction) invokable, frame);
-            }
-            throw new ShouldNotBeHereException();
+        if (invokable instanceof IOBlock) {
+            return executeMethod((IOBlock) invokable, frame);
+        } else if (invokable instanceof IOFunction) {
+            return executeFunction((IOFunction) invokable, frame);
         }
+        throw new ShouldNotBeHereException();
     }
 
     @ExplodeLoop
     protected final Object executeFunction(IOFunction function, VirtualFrame frame) {
+        ExpressionNode[] argumentNodes = messageNode.getArgumentNodes();
         CompilerAsserts.compilationConstant(argumentNodes.length + 1);
         Object[] argumentValues = new Object[argumentNodes.length + 1];
         argumentValues[0] = receiver;
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
         }
-        Object result = DirectCallNode.create(invokable.getCallTarget()).call(argumentValues);
+        Object result = callNode.call(argumentValues);
         return result;
     }
 
     @ExplodeLoop
     protected final Object executeMethod(IOBlock method, VirtualFrame frame) {
-        IOMessage message = IOState.get(this).createMessage(argumentNodes);
+        IOMessage message = messageNode.executeGeneric(frame);
         IOCall call = IOState.get(this).createCall(null, message, receiver, null, method, null);
-
+        ExpressionNode[] argumentNodes = messageNode.getArgumentNodes();
         CompilerAsserts.compilationConstant(argumentNodes.length + 2);
         Object[] argumentValues = new Object[argumentNodes.length + 2];
         argumentValues[0] = receiver;
@@ -114,7 +110,7 @@ public final class InvokeNode extends ExpressionNode {
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i + 2] = argumentNodes[i].executeGeneric(frame);
         }
-        Object result = DirectCallNode.create(method.getCallTarget()).call(argumentValues);
+        Object result = callNode.call(argumentValues);
         return result;
     }
 

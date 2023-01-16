@@ -59,6 +59,7 @@ import org.truffle.io.runtime.objects.IOCall;
 public abstract class RemoteVariableNode extends ExpressionNode {
 
     protected abstract int getContextLevel();
+
     protected abstract int getSlot();
 
     private static final ValueProfile frameType = ValueProfile.createClassProfile();
@@ -66,6 +67,10 @@ public abstract class RemoteVariableNode extends ExpressionNode {
     @Override
     public boolean hasTag(Class<? extends Tag> tag) {
         return tag == ReadVariableTag.class || super.hasTag(tag);
+    }
+
+    protected TruffleString getSlotName(final MaterializedFrame ctx) {
+        return (TruffleString) ctx.getFrameDescriptor().getSlotName(getSlot());
     }
 
     @Override
@@ -82,7 +87,7 @@ public abstract class RemoteVariableNode extends ExpressionNode {
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
         Object call = frame.getArguments()[1];
         assert call instanceof IOCall;
-        IOBlock block = (IOBlock) ((IOCall)call).getActivated();
+        IOBlock block = (IOBlock) ((IOCall) call).getActivated();
         int i = getContextLevel() - 1;
 
         while (i > 0) {

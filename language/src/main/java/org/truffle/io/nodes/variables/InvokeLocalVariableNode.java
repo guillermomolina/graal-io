@@ -40,16 +40,17 @@
  */
 package org.truffle.io.nodes.variables;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOInvokable;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.runtime.objects.IOInvokable;
 
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "argumentNodes", type = ExpressionNode[].class)
@@ -80,11 +81,15 @@ public abstract class InvokeLocalVariableNode extends ExpressionNode {
             value = frame.getObject(getSlot());
         }
         if (value instanceof IOInvokable) {
-            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0),
-                    getArgumentNodes());
+            MessageLiteralNode messageNode = new MessageLiteralNode(getSlotName(frame), getArgumentNodes());
+            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0), messageNode);
             value = invokeNode.executeGeneric(frame);
         }
         return value;
+    }
+
+    protected TruffleString getSlotName(VirtualFrame frame) {
+        return (TruffleString)frame.getFrameDescriptor().getSlotName(getSlot());
     }
 
     @Override

@@ -40,15 +40,6 @@
  */
 package org.truffle.io.nodes.variables;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -57,6 +48,16 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOObject;
 
 @NodeChild("recevierNode")
 @NodeChild("nameNode")
@@ -80,14 +81,16 @@ public abstract class InvokePropertyNode extends ExpressionNode {
         return getOrInvoke(frame, receiver, nameTS, prototype);
     }
 
-    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, final TruffleString nameTS, final IOObject prototype) {
+    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, final TruffleString nameTS,
+            final IOObject prototype) {
         Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
         if (value == null) {
             throw UndefinedNameException.undefinedProperty(this, nameTS);
         }
         if (value instanceof IOInvokable) {
             final IOInvokable invokable = (IOInvokable) value;
-            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, getArgumentNodes());
+            MessageLiteralNode messageNode = new MessageLiteralNode(nameTS, getArgumentNodes());
+            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);
             Object result = invokeNode.executeGeneric(frame);
             return result;
         }

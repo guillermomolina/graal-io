@@ -81,7 +81,7 @@ public class IOCall extends IOObject {
         return (IOLocals)IOObjectUtil.getProperty(this, SENDER);
     }
 
-    public void setSender(IOLocals sender) {
+    protected void setSender(IOLocals sender) {
         IOObjectUtil.putProperty(this, SENDER, sender);
     }
 
@@ -89,7 +89,7 @@ public class IOCall extends IOObject {
         return (IOMessage)IOObjectUtil.getProperty(this, MESSAGE);
     }
 
-    public void setMessage(IOMessage message) {
+    protected void setMessage(IOMessage message) {
         IOObjectUtil.putProperty(this, MESSAGE, message);
     }
 
@@ -97,7 +97,7 @@ public class IOCall extends IOObject {
         return IOObjectUtil.getProperty(this, TARGET);
     }
 
-    public void setTarget(Object target) {
+    protected void setTarget(Object target) {
         IOObjectUtil.putProperty(this, TARGET, target);
     }
 
@@ -105,7 +105,7 @@ public class IOCall extends IOObject {
         return (IOObject)IOObjectUtil.getProperty(this, SLOTCONTEXT);
     }
 
-    public void setSlotContext(IOObject slotcontext) {
+    protected void setSlotContext(IOObject slotcontext) {
         IOObjectUtil.putProperty(this, SLOTCONTEXT, slotcontext);
     }
 
@@ -113,7 +113,7 @@ public class IOCall extends IOObject {
         return (IOBlock)IOObjectUtil.getProperty(this, ACTIVATED);
     }
 
-    public void setActivated(IOBlock activated) {
+    protected void setActivated(IOBlock activated) {
         IOObjectUtil.putProperty(this, ACTIVATED, activated);
     }
 
@@ -121,7 +121,7 @@ public class IOCall extends IOObject {
         return (IOObject)IOObjectUtil.getProperty(this, COROUTINE);
     }
 
-    public void setCoroutine(IOObject coroutine) {
+    protected void setCoroutine(IOObject coroutine) {
         IOObjectUtil.putProperty(this, COROUTINE, coroutine);
     }
 }

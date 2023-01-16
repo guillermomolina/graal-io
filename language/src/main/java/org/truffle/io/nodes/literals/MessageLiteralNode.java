@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2012, 2019, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,40 +38,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
- package org.truffle.io.runtime.objects;
 
+package org.truffle.io.nodes.literals;
+
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOMessage;
 
-
-public class IOMessage extends IOObject {
-
-    private static final TruffleString NAME = Symbols.constant("name");
-
-    @DynamicField
-    private Object name;
-
+@NodeInfo(shortName = "message")
+public final class MessageLiteralNode extends ExpressionNode {
+    
+    private final TruffleString name;
+    @Children
     private final ExpressionNode[] argumentNodes;
 
-    public IOMessage(final TruffleString name, final ExpressionNode[] argumentNodes) {
-        super(IOPrototype.MESSAGE);
-        setName(name);
+    public MessageLiteralNode(final TruffleString name, final ExpressionNode[] argumentNodes) {
+        this.name = name;
         this.argumentNodes = argumentNodes;
     }
 
-    public TruffleString getName() {
-        return (TruffleString)IOObjectUtil.getProperty(this, NAME);
-    }
-
-    protected void setName(final TruffleString name) {
-        IOObjectUtil.putProperty(this, NAME, name);
+    @Override
+    public IOMessage executeGeneric(VirtualFrame frame) {
+        return IOState.get(this).createMessage(name, argumentNodes);
     }
 
     public ExpressionNode[] getArgumentNodes() {
         return argumentNodes;
     }
-    
 }

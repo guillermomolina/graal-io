@@ -40,10 +40,6 @@
  */
 package org.truffle.io.nodes.variables;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.runtime.objects.IOInvokable;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.Bind;
 import com.oracle.truffle.api.dsl.Cached.Shared;
@@ -52,6 +48,11 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.runtime.objects.IOInvokable;
 
 @NodeField(name = "argumentNodes", type = ExpressionNode[].class)
 public abstract class InvokeRemoteVariableNode extends RemoteVariableNode {
@@ -85,8 +86,8 @@ public abstract class InvokeRemoteVariableNode extends RemoteVariableNode {
             value = ctx.getObject(getSlot());
         }
         if (value instanceof IOInvokable) {
-            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0),
-                    getArgumentNodes());
+            MessageLiteralNode messageNode = new MessageLiteralNode(getSlotName(ctx), getArgumentNodes());
+            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0), messageNode);
             value = invokeNode.executeGeneric(frame);
         }
         return value;
