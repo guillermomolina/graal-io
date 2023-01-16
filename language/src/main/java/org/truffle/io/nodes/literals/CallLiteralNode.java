@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2012, 2019, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,66 +38,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.slots;
+package org.truffle.io.nodes.literals;
 
 import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOCoroutine;
 import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IOMessage;
 
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
-import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.profiles.ValueProfile;
-import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeField(name = "contextLevel", type = int.class)
-@NodeField(name = "slot", type = int.class)
-public abstract class RemoteSlotNode extends ExpressionNode {
+@NodeInfo(shortName = "Call with")
+public final class CallLiteralNode extends ExpressionNode {
 
-    protected abstract int getContextLevel();
+    @Child
+    private ExpressionNode targetNode;
+    @Child
+    private ExpressionNode messageNode;
+    @Child
+    private ExpressionNode senderNode;
+    @Child
+    private ExpressionNode activatedNode;
+    @Child
+    private ExpressionNode coroutineNode;
 
-    protected abstract int getSlot();
-
-    private static final ValueProfile frameType = ValueProfile.createClassProfile();
+    public CallLiteralNode(final ExpressionNode targetNode, final ExpressionNode messageNode,
+            final ExpressionNode senderNode, final ExpressionNode activatedNode,
+            final ExpressionNode coroutineNode) {
+        this.targetNode = targetNode;
+        this.messageNode = messageNode;
+        this.senderNode = senderNode;
+        this.activatedNode = activatedNode;
+        this.coroutineNode = coroutineNode;
+    }
 
     @Override
-    public boolean hasTag(Class<? extends Tag> tag) {
-        return tag == ReadVariableTag.class || super.hasTag(tag);
+    public IOCall executeGeneric(VirtualFrame frame) {
+        IOLocals sender = (IOLocals) senderNode.executeGeneric(frame);
+        Object target = targetNode.executeGeneric(frame);
+        IOMessage message = (IOMessage) messageNode.executeGeneric(frame);
+        IOLocals slotContext = IOState.get(this).createLocals(frame.materialize());
+        IOBlock activated = (IOBlock) activatedNode.executeGeneric(frame);
+        IOCoroutine coroutine = (IOCoroutine) coroutineNode.executeGeneric(frame);
+        return IOState.get(this).createCall(sender, target, message, slotContext, activated, coroutine);
     }
-
-    protected TruffleString getSlotName(final MaterializedFrame ctx) {
-        return (TruffleString) ctx.getFrameDescriptor().getSlotName(getSlot());
-    }
-
-    @Override
-    public Object getNodeObject() {
-        return NodeObjectDescriptor
-                .readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
-    }
-
-    public final boolean accessesOuterContext() {
-        return getContextLevel() > 0;
-    }
-
-    @ExplodeLoop
-    protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        Object argument2 = frame.getArguments()[IOLocals.SENDER_ARGUMENT_INDEX];
-        assert argument2 instanceof IOLocals;
-        IOLocals locals = (IOLocals)argument2;
-
-        int i = getContextLevel() - 1;
-        while (i > 0) {
-            locals = locals.getOuterFrame();
-            i--;
-        }
-
-        // Graal needs help here to see that this is always a MaterializedFrame
-        // so, we record explicitly a class profile
-        return frameType.profile(locals.getFrame());
-
-    }
-
 }

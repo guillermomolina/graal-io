@@ -15,7 +15,7 @@ import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.literals.MethodLiteralNode;
+import org.truffle.io.nodes.literals.FunctionLiteralNode;
 import org.truffle.io.nodes.literals.NilLiteralNode;
 import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;
 import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
@@ -73,10 +73,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<ExpressionNode>
             String message, RecognitionException e) {
         if (token == null) {
             LexerNoViableAltException lexerException = (LexerNoViableAltException) e;
-            // int start = lexerException.getStartIndex();
-            // CharSequence line = lineNumber <= source.getLineCount() ? source.getCharacters(lineNumber) : "";
-            // String substring = line.subSequence(0, Math.min(line.length(), start - source.getLineStartOffset(lineNumber) + 1)).toString();
-            // String contents = token == null ? (substring.length() == 0 ? "" : substring.substring(substring.length() - 1)) : token.getText();
             int lineNr = lineNumber > source.getLineCount() ? source.getLineCount() : lineNumber;
             if (lexerException.getInputStream().LA(1) == IntStream.EOF) {
                 throw new IncompleteSourceException(message, e, lineNr, source);
@@ -84,9 +80,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<ExpressionNode>
                 throwParseError(source, lineNr, charPositionInLine, token, message);
             }
         } else {
-            // CharSequence line = lineNumber <= source.getLineCount() ? source.getCharacters(lineNumber) : "";
-            // String substring = line.subSequence(0, Math.min(line.length(), token.getCharPositionInLine() + 1)).toString();
-            // String contents = token == null ? (substring.length() == 0 ? "" : substring.substring(substring.length() - 1)) : token.getText();
             int lineNr = lineNumber > source.getLineCount() ? source.getLineCount() : lineNumber;
             if (token.getType() == Token.EOF) {
                 throw new IncompleteSourceException(message, e, lineNr, source);
@@ -114,14 +107,14 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<ExpressionNode>
         parser.addErrorListener(listener);
         this.factory = new NodeFactory(language, source);
         this.source = source;
-        MethodLiteralNode methodMessageNode = (MethodLiteralNode) visitIolanguage(parser.iolanguage());
-        return methodMessageNode.getValue().getCallTarget();
+        FunctionLiteralNode functionNode = (FunctionLiteralNode) visitIolanguage(parser.iolanguage());
+        return functionNode.getValue().getCallTarget();
     }
 
     @Override
     public ExpressionNode visitIolanguage(IolanguageContext ctx) {
         LOGGER.fine("Started visitIolanguage()");
-        factory.startMethod(ctx.start);
+        factory.startDo(ctx.start);
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
         ExpressionNode bodyNode = null;
@@ -130,7 +123,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<ExpressionNode>
         } else {
             bodyNode = visitEmptyExpression(startPos, length);
         }
-        final ExpressionNode result = factory.finishMethod(bodyNode, startPos, length);
+        final ExpressionNode result = factory.finishDo(bodyNode, startPos, length);
         assert result != null;
         LOGGER.fine("Ended visitIolanguage()");
         return result;

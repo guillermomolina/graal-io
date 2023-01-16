@@ -443,7 +443,7 @@ public final class IOState {
         return message;
     }
 
-    public IOCall createCall(final IOObject sender, final Object target, final IOMessage message,
+    public IOCall createCall(final IOLocals sender, final Object target, final IOMessage message,
             final IOObject slotContext, final IOBlock activated, final IOCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOCall call = new IOCall(sender, target, message, slotContext, activated, coroutine);

@@ -64,7 +64,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "hasProto")
 public abstract class ObjectHasProtoBuiltin extends IOBuiltinNode {
 
-    @Specialization
+    /*@Specialization
     public boolean hasProtoLong(long value, IOObject prototype) {
         IOObject numberProto = IOState.get(this).getPrototype(value);
         return IOObjectUtil.hasPrototype(numberProto, prototype);
@@ -79,15 +79,15 @@ public abstract class ObjectHasProtoBuiltin extends IOBuiltinNode {
     @Specialization
     public boolean hasProtoIOObject(IOObject value, IOObject prototype) {
         return IOObjectUtil.hasPrototype(value, prototype);
-    }
+    }*/
 
     @Specialization
-    public boolean hasProtoObject(Object value, IOObject prototype) {
+    public boolean hasProtoIOObject(Object value, IOObject prototype) {
         IOObject objectProto = IOState.get(this).getPrototype(value);
         return IOObjectUtil.hasPrototype(objectProto, prototype);
     }
 
-    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = {"hasProtoLong", "hasProtoBoolean", "hasProtoObject", "hasProtoIOObject"})
+    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = /*{"hasProtoLong", "hasProtoBoolean", "hasProtoObject",*/ "hasProtoIOObject"/* } */)
     @TruffleBoundary
     public boolean hasProtoMetaObject(Object value, Object metaObject,
                     @CachedLibrary("metaObject") InteropLibrary metaLib) {
@@ -99,7 +99,13 @@ public abstract class ObjectHasProtoBuiltin extends IOBuiltinNode {
     }
 
     @Specialization
+    public boolean hasProtoObject(Object value, Object prototype) {
+        IOObject objectProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(objectProto, prototype);
+    }
+   
+    /*@Specialization
     public boolean hasProto(Object value, Object metaObject) {
         return false;
-    }
+    }*/
 }
