@@ -40,10 +40,10 @@
  */
 package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
+
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOCall extends IOObject { 
     private static final TruffleString SENDER = Symbols.constant("sender");
@@ -66,7 +66,7 @@ public class IOCall extends IOObject {
     @DynamicField
     private Object coroutine;
 
-    public IOCall(final IOObject sender, final IOMessage message, final Object target, final IOObject slotContext,
+    public IOCall(final IOObject sender, final Object target, final IOMessage message, final IOObject slotContext,
             final IOBlock activated, final IOObject coroutine) {
         super(IOPrototype.CALL);
         setSender(sender);
