@@ -58,8 +58,8 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class DateSecondsSinceBuiltin extends FunctionBodyNode {
 
     @Specialization
-    public long doDate(Date self, Date other) {
-        return (self.getTime()-other.getTime())/1000;
+    public double doDate(Date self, Date other) {
+        return (self.getTime()-other.getTime())/1000.0;
     }
 
     @Specialization
