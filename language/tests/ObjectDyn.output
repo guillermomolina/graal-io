@@ -5,4 +5,4 @@ zzz
 zzz
 4
 512
-Undefined property: x
+Object does not respond to 'x'

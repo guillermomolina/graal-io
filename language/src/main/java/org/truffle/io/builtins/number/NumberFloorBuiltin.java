@@ -40,17 +40,13 @@
  */
 package org.truffle.io.builtins.number;
 
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Built-in function that queries the size property of a foreign object. See
- * <link>Messages.GET_SIZE</link>.
- */
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+
 @NodeInfo(shortName = "floor")
 public abstract class NumberFloorBuiltin extends FunctionBodyNode {
 

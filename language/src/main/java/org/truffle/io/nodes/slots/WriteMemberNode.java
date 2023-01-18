@@ -43,12 +43,6 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.util.ToMemberNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -60,11 +54,17 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.util.ToMemberNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IOObject;
+
 @NodeInfo(shortName = "setSlot")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
 @NodeChild("valueNode")
-public abstract class WritePropertyNode extends ExpressionNode {
+public abstract class WriteMemberNode extends ExpressionNode {
 
     static final int LIBRARY_LIMIT = 3;
 
@@ -84,7 +84,7 @@ public abstract class WritePropertyNode extends ExpressionNode {
             objectLibrary.writeMember(receiver, asMember.execute(name), value);
         } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
             // write was not successful. In IO we only have basic support for errors.
-            throw UndefinedNameException.undefinedProperty(this, name);
+            throw UndefinedNameException.undefinedField(this, name);
         }
         return value;
     }

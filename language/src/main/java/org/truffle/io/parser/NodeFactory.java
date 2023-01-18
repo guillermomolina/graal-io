@@ -92,13 +92,13 @@ import org.truffle.io.nodes.sequences.SequenceAtNodeGen;
 import org.truffle.io.nodes.sequences.SequenceAtPutNodeGen;
 import org.truffle.io.nodes.slots.ForLocalSlotNode;
 import org.truffle.io.nodes.slots.InvokeLocalSlotNodeGen;
-import org.truffle.io.nodes.slots.InvokePropertyNodeGen;
+import org.truffle.io.nodes.slots.InvokeMemberNodeGen;
 import org.truffle.io.nodes.slots.InvokeRemoteSlotNodeGen;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
-import org.truffle.io.nodes.slots.ReadPropertyNodeGen;
+import org.truffle.io.nodes.slots.ReadMemberNodeGen;
 import org.truffle.io.nodes.slots.WriteLocalSlotNodeGen;
-import org.truffle.io.nodes.slots.WritePropertyNodeGen;
+import org.truffle.io.nodes.slots.WriteMemberNodeGen;
 import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
@@ -674,7 +674,7 @@ public class NodeFactory {
             return null;
         }
 
-        final ExpressionNode result = ReadPropertyNodeGen.create(receiverNode, nameNode);
+        final ExpressionNode result = ReadMemberNodeGen.create(receiverNode, nameNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
@@ -728,7 +728,7 @@ public class NodeFactory {
             return null;
         }
 
-        final ExpressionNode result = WritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
+        final ExpressionNode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
@@ -741,7 +741,7 @@ public class NodeFactory {
             return null;
         }
 
-        final ExpressionNode result = InvokePropertyNodeGen.create(receiverNode, identifierNode,
+        final ExpressionNode result = InvokeMemberNodeGen.create(receiverNode, identifierNode,
                 argumentNodes.toArray(new ExpressionNode[argumentNodes.size()]));
         result.setSourceSection(startPos, length);
         result.addExpressionTag();

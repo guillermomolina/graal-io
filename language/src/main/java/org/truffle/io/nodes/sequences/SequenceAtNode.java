@@ -91,7 +91,7 @@ public abstract class SequenceAtNode extends ExpressionNode {
         try {
             return (long) readByteNode.execute(receiver, (int) numbers.asInt(index));
         } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedProperty(this, AT);
+            throw UndefinedNameException.undefinedField(this, AT);
         } catch (IndexOutOfBoundsException e) {
             throw OutOfBoundsException.outOfBoundsInteger(this, index);
         }
@@ -106,7 +106,7 @@ public abstract class SequenceAtNode extends ExpressionNode {
             Object value = arrays.readArrayElement(receiver, indexasLong);
             return getOrInvoke(frame, receiver, indexasLong, value);
         } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedProperty(this, AT);
+            throw UndefinedNameException.undefinedField(this, AT);
         } catch (InvalidArrayIndexException e) {
             throw OutOfBoundsException.outOfBoundsInteger(this, index);
         }
@@ -119,7 +119,7 @@ public abstract class SequenceAtNode extends ExpressionNode {
         try {
             return getOrInvoke(frame, receiver, numbers.asLong(index), value);
         } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedProperty(this, AT);
+            throw UndefinedNameException.undefinedField(this, AT);
         }
     }
 
@@ -131,13 +131,13 @@ public abstract class SequenceAtNode extends ExpressionNode {
         try {
             return getOrInvoke(frame, receiver, numbers.asLong(index), value);
         } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedProperty(this, AT);
+            throw UndefinedNameException.undefinedField(this, AT);
         }
     }
 
     protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, long index, final Object value) {
         if (value == null) {
-            throw UndefinedNameException.undefinedProperty(this, AT);
+            throw UndefinedNameException.undefinedField(this, AT);
         }
         if (value instanceof IOInvokable) {
             final IOInvokable invokable = (IOInvokable) value;

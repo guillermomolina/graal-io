@@ -77,7 +77,7 @@ public abstract class RemoteSlotNode extends ExpressionNode {
     @Override
     public Object getNodeObject() {
         return NodeObjectDescriptor
-                .readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
+                .readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
     }
 
     public final boolean accessesOuterContext() {

@@ -43,9 +43,6 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -53,6 +50,9 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 
 /**
  * Node to read a local variable from a function's {@link VirtualFrame frame}. The Truffle frame API
@@ -119,7 +119,7 @@ public abstract class ReadLocalSlotNode extends ExpressionNode {
 
     @Override
     public Object getNodeObject() {
-        return NodeObjectDescriptor.readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
+        return NodeObjectDescriptor.readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
     }
 
 }

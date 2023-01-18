@@ -42,18 +42,14 @@ package org.truffle.io.builtins.date;
 
 import java.util.Date;
 
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.objects.IODate;
-
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Built-in function that queries the size property of a foreign object. See
- * <link>Messages.GET_SIZE</link>.
- */
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.objects.IODate;
+
 @NodeInfo(shortName = "now")
 public abstract class DateNowBuiltin extends FunctionBodyNode {
 

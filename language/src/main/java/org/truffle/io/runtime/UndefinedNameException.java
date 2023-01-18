@@ -43,18 +43,18 @@
  */
 package org.truffle.io.runtime;
 
-import org.truffle.io.IOLanguageException;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
+
+import org.truffle.io.IOLanguageException;
 
 public final class UndefinedNameException extends IOLanguageException {
 
     private static final long serialVersionUID = 1L;
 
     @TruffleBoundary
-    public static UndefinedNameException undefinedProperty(Node location, Object name) {
-        throw new UndefinedNameException("Undefined property: " + name, location);
+    public static UndefinedNameException undefinedField(Node location, Object name) {
+        throw new UndefinedNameException("Object does not respond to '" + name + "'", location);
     }
 
     private UndefinedNameException(String message, Node node) {

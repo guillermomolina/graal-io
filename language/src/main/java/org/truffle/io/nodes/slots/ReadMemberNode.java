@@ -43,14 +43,6 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.util.ToMemberNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -62,19 +54,18 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 
-/**
- * The node for reading a property of an object. When executed, this node:
- * <ol>
- * <li>evaluates the object expression on the left hand side of the object
- * access operator</li>
- * <li>evaluated the property name</li>
- * <li>reads the named property</li>
- * </ol>
- */
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.util.ToMemberNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IOObject;
+
 @NodeInfo(shortName = ".")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
-public abstract class ReadPropertyNode extends ExpressionNode {
+public abstract class ReadMemberNode extends ExpressionNode {
 
     static final int LIBRARY_LIMIT = 3;
  
@@ -85,7 +76,7 @@ public abstract class ReadPropertyNode extends ExpressionNode {
         TruffleString nameTS = toTruffleStringNode.execute(name);
         Object value = IOObjectUtil.getOrDefault(receiver, nameTS, null);
         if (value == null) {
-            throw UndefinedNameException.undefinedProperty(this, nameTS);
+            throw UndefinedNameException.undefinedField(this, nameTS);
         }
         return value;
     }
@@ -97,7 +88,7 @@ public abstract class ReadPropertyNode extends ExpressionNode {
         try {
             return objects.readMember(receiver, asMember.execute(name));
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            throw UndefinedNameException.undefinedProperty(this, name);
+            throw UndefinedNameException.undefinedField(this, name);
         }
     }
 
@@ -108,7 +99,7 @@ public abstract class ReadPropertyNode extends ExpressionNode {
         TruffleString nameTS = toTruffleStringNode.execute(name);
         Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
         if (value == null) {
-            throw UndefinedNameException.undefinedProperty(this, nameTS);
+            throw UndefinedNameException.undefinedField(this, nameTS);
         }
         return value;    
     }

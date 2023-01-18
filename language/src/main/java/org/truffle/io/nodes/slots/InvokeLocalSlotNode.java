@@ -40,17 +40,17 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.nodes.literals.MessageLiteralNode;
-import org.truffle.io.runtime.objects.IOInvokable;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.runtime.objects.IOInvokable;
 
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "argumentNodes", type = ExpressionNode[].class)
@@ -95,7 +95,7 @@ public abstract class InvokeLocalSlotNode extends ExpressionNode {
     @Override
     public Object getNodeObject() {
         return NodeObjectDescriptor
-                .readVariable((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
+                .readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
     }
 
 }

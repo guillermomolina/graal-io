@@ -85,7 +85,7 @@ public abstract class SequenceAtPutNode extends ExpressionNode {
             Object value = getValueNode().executeGeneric(frame);
             arrays.writeArrayElement(receiver, numbers.asLong(index), value);
         } catch (UnsupportedMessageException | UnsupportedTypeException | InvalidArrayIndexException e) {
-            throw UndefinedNameException.undefinedProperty(this, index);
+            throw UndefinedNameException.undefinedField(this, index);
         }
         return receiver;
     }
@@ -94,10 +94,10 @@ public abstract class SequenceAtPutNode extends ExpressionNode {
     protected Object atIOObjectPut(VirtualFrame frame, IOObject receiver, Object index,
             @CachedLibrary("index") InteropLibrary numbers) {
         try {
-            Object property = IOObjectUtil.getOrDefault(receiver, AT_PUT, null);
-            return getOrInvoke(frame, receiver, numbers.asLong(index), property);
+            Object member = IOObjectUtil.getOrDefault(receiver, AT_PUT, null);
+            return getOrInvoke(frame, receiver, numbers.asLong(index), member);
         } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedProperty(this, AT_PUT);
+            throw UndefinedNameException.undefinedField(this, AT_PUT);
         }
     }
 
@@ -106,19 +106,19 @@ public abstract class SequenceAtPutNode extends ExpressionNode {
             @CachedLibrary("index") InteropLibrary numbers) {
         try {
             IOObject prototype = IOState.get(this).getPrototype(receiver);
-            Object property = IOObjectUtil.getOrDefault(prototype, AT_PUT, null);
-            return getOrInvoke(frame, receiver, numbers.asLong(index), property);
+            Object member = IOObjectUtil.getOrDefault(prototype, AT_PUT, null);
+            return getOrInvoke(frame, receiver, numbers.asLong(index), member);
         } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedProperty(this, AT_PUT);
+            throw UndefinedNameException.undefinedField(this, AT_PUT);
         }
     }
 
-    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, long index, final Object property) {
-        if (property == null) {
-            throw UndefinedNameException.undefinedProperty(this, AT_PUT);
+    protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, long index, final Object member) {
+        if (member == null) {
+            throw UndefinedNameException.undefinedField(this, AT_PUT);
         }
-        if (property instanceof IOInvokable) {
-            final IOInvokable invokable = (IOInvokable) property;
+        if (member instanceof IOInvokable) {
+            final IOInvokable invokable = (IOInvokable) member;
             final ExpressionNode[] argumentNodes = new ExpressionNode[2];
             argumentNodes[0] = new LongLiteralNode(index);
             argumentNodes[1] = getValueNode();
@@ -127,6 +127,6 @@ public abstract class SequenceAtPutNode extends ExpressionNode {
             Object result = invokeNode.executeGeneric(frame);
             return result;
         }
-        return property;
+        return member;
     }
 }

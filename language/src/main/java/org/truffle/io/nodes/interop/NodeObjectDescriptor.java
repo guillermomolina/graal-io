@@ -69,11 +69,11 @@ public abstract class NodeObjectDescriptor implements TruffleObject {
         this.name = name;
     }
 
-    public static NodeObjectDescriptor readVariable(TruffleString name) {
+    public static NodeObjectDescriptor readMember(TruffleString name) {
         return new ReadDescriptor(name);
     }
 
-    public static NodeObjectDescriptor writeVariable(TruffleString name, SourceSection sourceSection) {
+    public static NodeObjectDescriptor writeMember(TruffleString name, SourceSection sourceSection) {
         return new WriteDescriptor(name, sourceSection);
     }
 

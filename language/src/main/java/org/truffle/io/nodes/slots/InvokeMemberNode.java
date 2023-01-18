@@ -40,6 +40,15 @@
  */
 package org.truffle.io.nodes.slots;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
@@ -50,19 +59,10 @@ import org.truffle.io.runtime.UndefinedNameException;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOObject;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.instrumentation.StandardTags;
-import com.oracle.truffle.api.instrumentation.Tag;
-import com.oracle.truffle.api.strings.TruffleString;
-
 @NodeChild("recevierNode")
 @NodeChild("nameNode")
 @NodeField(name = "argumentNodes", type = ExpressionNode[].class)
-public abstract class InvokePropertyNode extends ExpressionNode {
+public abstract class InvokeMemberNode extends ExpressionNode {
 
     protected abstract ExpressionNode[] getArgumentNodes();
 
@@ -85,7 +85,7 @@ public abstract class InvokePropertyNode extends ExpressionNode {
             final IOObject prototype) {
         Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
         if (value == null) {
-            throw UndefinedNameException.undefinedProperty(this, nameTS);
+            throw UndefinedNameException.undefinedField(this, nameTS);
         }
         if (value instanceof IOInvokable) {
             final IOInvokable invokable = (IOInvokable) value;
