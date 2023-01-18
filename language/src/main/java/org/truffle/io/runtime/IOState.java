@@ -79,7 +79,6 @@ import org.truffle.io.runtime.objects.IODate;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
@@ -200,20 +199,20 @@ public final class IOState {
     private void setupLobby() {
         IOPrototype.OBJECT.setPrototype(lobby);
 
-        IOObjectUtil.putProperty(protos, Symbols.OBJECT, IOPrototype.OBJECT);
-        IOObjectUtil.putProperty(protos, Symbols.NUMBER, IOPrototype.NUMBER);
-        IOObjectUtil.putProperty(protos, Symbols.SEQUENCE, IOPrototype.SEQUENCE);
-        IOObjectUtil.putProperty(protos, Symbols.LIST, IOPrototype.LIST);
-        IOObjectUtil.putProperty(protos, Symbols.DATE, IOPrototype.DATE);
-        IOObjectUtil.putProperty(protos, Symbols.SYSTEM, IOPrototype.SYSTEM);
-        IOObjectUtil.putProperty(protos, Symbols.CALL, IOPrototype.CALL);
-        IOObjectUtil.putProperty(protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
-        IOObjectUtil.putProperty(protos, Symbols.BLOCK, IOPrototype.BLOCK);
-        IOObjectUtil.putProperty(protos, Symbols.LOCALS, IOPrototype.LOCALS);
-        IOObjectUtil.putProperty(protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
+        IOObjectUtil.setSlot(protos, Symbols.OBJECT, IOPrototype.OBJECT);
+        IOObjectUtil.setSlot(protos, Symbols.NUMBER, IOPrototype.NUMBER);
+        IOObjectUtil.setSlot(protos, Symbols.SEQUENCE, IOPrototype.SEQUENCE);
+        IOObjectUtil.setSlot(protos, Symbols.LIST, IOPrototype.LIST);
+        IOObjectUtil.setSlot(protos, Symbols.DATE, IOPrototype.DATE);
+        IOObjectUtil.setSlot(protos, Symbols.SYSTEM, IOPrototype.SYSTEM);
+        IOObjectUtil.setSlot(protos, Symbols.CALL, IOPrototype.CALL);
+        IOObjectUtil.setSlot(protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
+        IOObjectUtil.setSlot(protos, Symbols.BLOCK, IOPrototype.BLOCK);
+        IOObjectUtil.setSlot(protos, Symbols.LOCALS, IOPrototype.LOCALS);
+        IOObjectUtil.setSlot(protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
 
-        IOObjectUtil.putProperty(lobby, Symbols.LOBBY, lobby);
-        IOObjectUtil.putProperty(lobby, Symbols.PROTOS, protos);
+        IOObjectUtil.setSlot(lobby, Symbols.LOBBY, lobby);
+        IOObjectUtil.setSlot(lobby, Symbols.PROTOS, protos);
     }
 
     private void installBuiltins() {
@@ -277,7 +276,7 @@ public final class IOState {
                 BUILTIN_SOURCE.createUnavailableSection());
         String functionName = targetName + "_" + name;
         IOFunction function = createFunction(rootNode.getCallTarget(), Symbols.fromJavaString(functionName));
-        IOObjectUtil.putProperty(target, Symbols.fromJavaString(name), function);
+        IOObjectUtil.setSlot(target, Symbols.fromJavaString(name), function);
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {
@@ -300,6 +299,8 @@ public final class IOState {
             return IOPrototype.SEQUENCE;
         } else if (obj instanceof TruffleString) {
             return IOPrototype.SEQUENCE;
+        } else if (obj instanceof MaterializedFrame) {
+            return IOPrototype.LOCALS;
         } else if (interop.fitsInLong(obj)) {
             return IOPrototype.NUMBER;
         } else if (interop.fitsInDouble(obj)) {
@@ -412,13 +413,6 @@ public final class IOState {
         return date;
     }
 
-    public IOLocals createLocals(final MaterializedFrame frame) {
-        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOLocals locals = new IOLocals(frame);
-        allocationReporter.onReturnValue(locals, 0, AllocationReporter.SIZE_UNKNOWN);
-        return locals;
-    }
-
     public IOMethod createBlock(RootCallTarget callTarget, final TruffleString[] argNames) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOMethod block = new IOMethod(callTarget, argNames);
@@ -447,8 +441,8 @@ public final class IOState {
         return message;
     }
 
-    public IOCall createCall(final IOLocals sender, final Object target, final IOMessage message,
-            final IOLocals slotContext, final IOMethod activated, final IOCoroutine coroutine) {
+    public IOCall createCall(final MaterializedFrame sender, final Object target, final IOMessage message,
+            final MaterializedFrame slotContext, final IOMethod activated, final IOCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOCall call = new IOCall(sender, target, message, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);

@@ -14,3 +14,12 @@ b(2) println
 Test accept(getSlot("b")) println
 m(2) println
 Test accept(getSlot("m")) println
+
+m1 := method(
+    m2 := method(
+        m3 := method(x)
+        m3
+    )
+    m2
+)
+m1 println

@@ -63,11 +63,11 @@ public class IOMessage extends IOObject {
     }
 
     public TruffleString getName() {
-        return (TruffleString)IOObjectUtil.getProperty(this, NAME);
+        return (TruffleString)IOObjectUtil.getSlot(this, NAME);
     }
 
     protected void setName(final TruffleString name) {
-        IOObjectUtil.putProperty(this, NAME, name);
+        IOObjectUtil.setSlot(this, NAME, name);
     }
 
     public IONode[] getArgumentNodes() {

@@ -27,15 +27,15 @@ public final class IOObjectUtil {
     private IOObjectUtil() {
     }
 
-    public static void putProperty(DynamicObject obj, Object key, Object value) {
+    public static void setSlot(DynamicObject obj, Object key, Object value) {
         DynamicObjectLibrary.getUncached().put(obj, key, value);
     }
 
-    public static Object getProperty(DynamicObject obj, Object key) {
+    public static Object getSlot(DynamicObject obj, Object key) {
         return DynamicObjectLibrary.getUncached().getOrDefault(obj, key, null);
     }
 
-    public static boolean hasProperty(DynamicObject obj, Object key) {
+    public static boolean hasSlot(DynamicObject obj, Object key) {
         return DynamicObjectLibrary.getUncached().containsKey(obj, key);
     }
 
@@ -44,8 +44,8 @@ public final class IOObjectUtil {
         IOObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
-            if (IOObjectUtil.hasProperty(object, key)) {
-                return IOObjectUtil.getProperty(object, key);
+            if (IOObjectUtil.hasSlot(object, key)) {
+                return IOObjectUtil.getSlot(object, key);
             }
             visitedProtos.add(object);
             object = object.getPrototype();

@@ -40,6 +40,12 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOInvokable;
+
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -48,12 +54,6 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOLocals;
 
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
@@ -86,27 +86,27 @@ public abstract class RemoteSlotNode extends IONode {
 
     @ExplodeLoop
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        Object argument = frame.getArguments()[IOLocals.CALL_ARGUMENT_INDEX];
+        Object argument = frame.getArguments()[IOInvokable.CALL_ARGUMENT_INDEX];
         if (!(argument instanceof IOCall)) {
             // sender is not a block
             throw new NotImplementedException();
         }
         IOCall call = (IOCall) argument;
-        IOLocals locals = call.getSender();
+        MaterializedFrame context = call.getSender();
 
         int i = getContextLevel() - 1;
         while (i > 0) {
-            call = (IOCall) locals.getCall();           
+            call = (IOCall) context.getArguments()[IOInvokable.CALL_ARGUMENT_INDEX];
             if (call == null) {
                 throw new NotImplementedException();
             }
-            locals = call.getSender();
+            context = call.getSender();
             i--;
         }
 
         // Graal needs help here to see that this is always a MaterializedFrame
         // so, we record explicitly a class profile
-        return frameType.profile(locals.getFrame());
+        return frameType.profile(context);
 
     }
 

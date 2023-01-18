@@ -78,6 +78,11 @@ public class IOObject extends DynamicObject {
         this.prototype = IOPrototype.OBJECT;
     }
 
+    public IOObject(final Shape shape, IOObject prototype) {
+        super(shape);
+        this.prototype = prototype;
+    }
+
     public IOObject(IOObject prototype) {
         super(SHAPE);
         this.prototype = prototype;

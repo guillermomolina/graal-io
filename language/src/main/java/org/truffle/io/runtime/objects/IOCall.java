@@ -43,6 +43,7 @@ package org.truffle.io.runtime.objects;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
 
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOCall extends IOObject { 
@@ -66,7 +67,7 @@ public class IOCall extends IOObject {
     @DynamicField
     private Object coroutine;
 
-    public IOCall(final IOLocals sender, final Object target, final IOMessage message, final IOLocals slotContext,
+    public IOCall(final MaterializedFrame sender, final Object target, final IOMessage message, final MaterializedFrame slotContext,
             final IOMethod activated, final IOCoroutine coroutine) {
         super(IOPrototype.CALL);
         setSender(sender);
@@ -77,51 +78,51 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public IOLocals getSender() {
-        return (IOLocals)IOObjectUtil.getProperty(this, SENDER);
+    public MaterializedFrame getSender() {
+        return (MaterializedFrame)IOObjectUtil.getSlot(this, SENDER);
     }
 
-    protected void setSender(IOLocals sender) {
-        IOObjectUtil.putProperty(this, SENDER, sender);
+    protected void setSender(MaterializedFrame sender) {
+        IOObjectUtil.setSlot(this, SENDER, sender);
     }
 
     public IOMessage getMessage() {
-        return (IOMessage)IOObjectUtil.getProperty(this, MESSAGE);
+        return (IOMessage)IOObjectUtil.getSlot(this, MESSAGE);
     }
 
     protected void setMessage(IOMessage message) {
-        IOObjectUtil.putProperty(this, MESSAGE, message);
+        IOObjectUtil.setSlot(this, MESSAGE, message);
     }
 
     public Object getTarget() {
-        return IOObjectUtil.getProperty(this, TARGET);
+        return IOObjectUtil.getSlot(this, TARGET);
     }
 
     protected void setTarget(Object target) {
-        IOObjectUtil.putProperty(this, TARGET, target);
+        IOObjectUtil.setSlot(this, TARGET, target);
     }
 
-    public IOLocals getSlotContext() {
-        return (IOLocals)IOObjectUtil.getProperty(this, SLOTCONTEXT);
+    public MaterializedFrame getSlotContext() {
+        return (MaterializedFrame)IOObjectUtil.getSlot(this, SLOTCONTEXT);
     }
 
-    protected void setSlotContext(IOLocals slotcontext) {
-        IOObjectUtil.putProperty(this, SLOTCONTEXT, slotcontext);
+    protected void setSlotContext(MaterializedFrame slotcontext) {
+        IOObjectUtil.setSlot(this, SLOTCONTEXT, slotcontext);
     }
 
     public IOMethod getActivated() {
-        return (IOMethod)IOObjectUtil.getProperty(this, ACTIVATED);
+        return (IOMethod)IOObjectUtil.getSlot(this, ACTIVATED);
     }
 
     protected void setActivated(IOMethod activated) {
-        IOObjectUtil.putProperty(this, ACTIVATED, activated);
+        IOObjectUtil.setSlot(this, ACTIVATED, activated);
     }
 
     public IOCoroutine getCoroutine() {
-        return (IOCoroutine)IOObjectUtil.getProperty(this, COROUTINE);
+        return (IOCoroutine)IOObjectUtil.getSlot(this, COROUTINE);
     }
 
     protected void setCoroutine(IOCoroutine coroutine) {
-        IOObjectUtil.putProperty(this, COROUTINE, coroutine);
+        IOObjectUtil.setSlot(this, COROUTINE, coroutine);
     }
 }

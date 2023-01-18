@@ -97,7 +97,7 @@ import org.truffle.io.nodes.slots.WriteMemberNodeGen;
 import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IOInvokable;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -171,6 +171,10 @@ public class NodeFactory {
         }
     }
 
+    private final static TruffleString CALL_SYMBOL = Symbols.constant("call");
+    private final static TruffleString TARGET_SYMBOL = Symbols.constant("target");
+    private final static TruffleString SENDER_SYMBOL = Symbols.constant("sender");
+
     private final Source source;
     private final TruffleString sourceString;
     private final IOLanguage language;
@@ -212,7 +216,7 @@ public class NodeFactory {
     }
 
     public void addFormalParameter(Token nameToken) {
-        assert currentScope.parameterCount >= IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        assert currentScope.parameterCount >= IOInvokable.FIRST_PARAMETER_ARGUMENT_INDEX;
         final ReadArgumentNode readArg = new ReadArgumentNode(currentScope.parameterCount);
         int startPos = nameToken.getStartIndex();
         int length = nameToken.getText().length();
@@ -228,17 +232,17 @@ public class NodeFactory {
 
     public void setupLocals() {
         assert currentScope.parameterCount == 0;
-        final ReadArgumentNode readCallArgumentNode = new ReadArgumentNode(IOLocals.CALL_ARGUMENT_INDEX);
-        currentScope.parameterCount = IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        final ReadArgumentNode readCallArgumentNode = new ReadArgumentNode(IOInvokable.CALL_ARGUMENT_INDEX);
+        currentScope.parameterCount = IOInvokable.FIRST_PARAMETER_ARGUMENT_INDEX;
 
-        final StringLiteralNode callIdentifierNode = new StringLiteralNode(Symbols.fromJavaString("call"));
+        final StringLiteralNode callIdentifierNode = new StringLiteralNode(CALL_SYMBOL);
         IONode callAssignmentNode = createWriteSlot(callIdentifierNode, readCallArgumentNode, 0, 0, 0,
                 true);
         assert callAssignmentNode != null;
         currentScope.initializationNodes.add(callAssignmentNode);
 
-        final StringLiteralNode targetIdentifierNode = new StringLiteralNode(Symbols.fromJavaString("target"));
-        IONode readTargetNode = createReadProperty(callAssignmentNode, targetIdentifierNode, 0, 0);
+        final StringLiteralNode targetIdentifierNode = new StringLiteralNode(TARGET_SYMBOL);
+        IONode readTargetNode = createReadProperty(createReadCall(), targetIdentifierNode, 0, 0);
         final StringLiteralNode selfIdentifierNode = new StringLiteralNode(Symbols.SELF);
         IONode selfAssignmentNode = createWriteSlot(selfIdentifierNode, readTargetNode, 0, 0,
                 true);
@@ -588,11 +592,24 @@ public class NodeFactory {
     }
 
     public IONode createReadSelf() {
-        if (!hasLocals()) {
-            return new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
-        }
+        assert hasLocals() == true;
         final StringLiteralNode selfNode = new StringLiteralNode(Symbols.SELF);
         final IONode result = createReadLocalSlot(selfNode);
+        assert result != null;
+        return result;
+    }
+
+    public IONode createReadCall() {
+        assert hasLocals() == true;
+        final StringLiteralNode callNode = new StringLiteralNode(CALL_SYMBOL);
+        final IONode result = createReadLocalSlot(callNode);
+        assert result != null;
+        return result;
+    }
+
+    public IONode createReadCallSender() {
+        final StringLiteralNode senderNode = new StringLiteralNode(SENDER_SYMBOL);
+        final IONode result = createReadProperty(createReadCall(), senderNode, 0, 0);
         assert result != null;
         return result;
     }
@@ -754,11 +771,15 @@ public class NodeFactory {
         if (receiverNode == null) {
             result = createInvokeSlot(identifierNode, argumentNodes, startPos, length);
             if (result == null) {
-                receiverNode = createReadSelf();
+                if (hasLocals()) {
+                    receiverNode = createReadCallSender();
+                } else {
+                    receiverNode = new ReadArgumentNode(IOInvokable.TARGET_ARGUMENT_INDEX);
+                    ;
+                }
             }
         }
         if (result == null) {
-            assert receiverNode != null;
             result = createInvokeProperty(receiverNode, identifierNode, argumentNodes, startPos, length);
         }
         return result;
@@ -770,11 +791,15 @@ public class NodeFactory {
         if (receiverNode == null) {
             result = createWriteSlot(assignmentNameNode, valueNode, startPos, length, false);
             if (result == null) {
-                receiverNode = createReadSelf();
+                if (hasLocals()) {
+                    receiverNode = createReadCallSender();
+                } else {
+                    receiverNode = new ReadArgumentNode(IOInvokable.TARGET_ARGUMENT_INDEX);
+                    ;
+                }
             }
         }
         if (result == null) {
-            assert receiverNode != null;
             result = createWriteProperty(receiverNode, assignmentNameNode, valueNode, startPos, length);
         }
         assert result != null;

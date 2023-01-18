@@ -52,11 +52,11 @@ import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOCoroutine;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
 import org.truffle.io.runtime.objects.IOMethod;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -106,28 +106,28 @@ public final class InvokeNode extends IONode {
 
     @ExplodeLoop
     protected final Object executeBlock(IOBlock block, VirtualFrame frame) {
-        IOLocals sender = IOState.get(this).createLocals(block.getFrame());
+        MaterializedFrame sender = block.getFrame();
         return executeBlock(block, frame, sender);
     }
 
     @ExplodeLoop
     protected final Object executeMethod(IOMethod method, VirtualFrame frame) {
-        IOLocals sender = IOState.get(this).createLocals(frame.materialize());
+        MaterializedFrame sender = frame.materialize();
         return executeBlock(method, frame, sender);
     }
 
     @ExplodeLoop
-    protected final Object executeBlock(IOMethod block, VirtualFrame frame, IOLocals sender) {
+    protected final Object executeBlock(IOMethod block, VirtualFrame frame, MaterializedFrame sender) {
         IOMessage message = messageNode.executeGeneric(frame);
         IONode[] argumentNodes = messageNode.getArgumentNodes();
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
         IOCall call = IOState.get(this).createCall(sender, target, message, null, block, currentCoroutine);
-        int argumentsCount = block.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        int argumentsCount = block.getNumArgs() + IOInvokable.FIRST_PARAMETER_ARGUMENT_INDEX;
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];
         argumentValues[0] = call;
         for (int i = 0; i < block.getNumArgs(); i++) {
-            argumentValues[i + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX] = argumentNodes[i].executeGeneric(frame);
+            argumentValues[i + IOInvokable.FIRST_PARAMETER_ARGUMENT_INDEX] = argumentNodes[i].executeGeneric(frame);
         }
         Object result = DirectCallNode.create(block.getCallTarget()).call(argumentValues);
         return result;
