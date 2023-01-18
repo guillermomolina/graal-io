@@ -40,11 +40,11 @@
  */
  package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
+
+import com.oracle.truffle.api.strings.TruffleString;
 
 
 public class IOMessage extends IOObject {
@@ -74,6 +74,7 @@ public class IOMessage extends IOObject {
         return argumentNodes;
     }
 
+    @Override
     public String toString(int depth) {
         TruffleString name = getName();
         if(name == null) {

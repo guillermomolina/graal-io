@@ -45,38 +45,29 @@ package org.truffle.io.runtime.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
 
 @ExportLibrary(InteropLibrary.class)
-public class IOBlock extends IOInvokable {
+public final class IOBlock extends IOMethod {
 
-    private final TruffleString[] argNames;
+    protected final MaterializedFrame frame;
 
-    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames) {
-        super(IOPrototype.BLOCK, callTarget);
-        this.argNames = argNames;
+    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final MaterializedFrame frame) {
+        super(callTarget, argNames);
+        this.frame = frame;
     }
-    
-    public int getNumArgs() {
-        return argNames.length;
+   
+    public MaterializedFrame getFrame() {
+        return frame;
     }
-
-    public TruffleString[] getArgNames() {
-        return argNames;
-    }
-
+ 
+    @Override
     public String toString(int depth) {
-        String string = "method(";
-        if(depth == 0) {
-            string += getSourceLocation().getCharacters().toString();
-        } else {
-            string += "...";
-        }
-        string += ")";
-        return string;
+        return "block(" + printSource(depth) + ")";
     }
 
     @ExportMessage

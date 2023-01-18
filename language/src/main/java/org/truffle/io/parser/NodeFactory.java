@@ -67,6 +67,7 @@ import org.truffle.io.nodes.controlflow.WhileNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
+import org.truffle.io.nodes.literals.BlockLiteralNode;
 import org.truffle.io.nodes.literals.BooleanLiteralNode;
 import org.truffle.io.nodes.literals.DoubleLiteralNode;
 import org.truffle.io.nodes.literals.FunctionLiteralNode;
@@ -185,31 +186,29 @@ public class NodeFactory {
         return currentScope.hasLocals();
     }
 
-    public void startDo(Token bodyStartToken) {
-        currentScope = new SlotScope(currentScope, bodyStartToken.getStartIndex());
+    public void enterNewScope(int startPos) {
+        currentScope = new SlotScope(currentScope, startPos);
     }
 
-    public FunctionLiteralNode finishDo(IONode bodyNode, int startPos, int length) {
-        FunctionLiteralNode functionLiteralNode = null;
-        if (bodyNode != null) {
-            assert !hasLocals();
-            final int bodyEndPos = bodyNode.getSourceEndIndex();
-            int methodBodyLength = bodyEndPos - currentScope.bodyStartPos;
-            final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
-            final MethodBodyNode methodBodyNode = new MethodBodyNode(bodyNode);
-            methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
-            final IORootNode rootNode = new IORootNode(language, currentScope.frameDescriptorBuilder.build(),
-                    methodBodyNode, methodSrc);
-            functionLiteralNode = new FunctionLiteralNode(Symbols.fromJavaString("do"), rootNode);
-            functionLiteralNode.setSourceSection(startPos, length);
-        }
+    public void leaveCurrentScope() {
         currentScope = currentScope.outer;
-        return functionLiteralNode;
     }
 
-    public void startMethod(Token bodyStartToken) {
-        currentScope = new SlotScope(currentScope, bodyStartToken.getStartIndex());
-        setupLocals();
+    public FunctionLiteralNode createFunction(IONode bodyNode, int startPos, int length) {
+        if (bodyNode == null) {
+            return null;
+        }
+        assert !hasLocals();
+        final int bodyEndPos = bodyNode.getSourceEndIndex();
+        int methodBodyLength = bodyEndPos - currentScope.bodyStartPos;
+        final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
+        final MethodBodyNode methodBodyNode = new MethodBodyNode(bodyNode);
+        methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
+        final IORootNode rootNode = new IORootNode(language, currentScope.frameDescriptorBuilder.build(),
+                methodBodyNode, methodSrc);
+        final FunctionLiteralNode functionLiteralNode = new FunctionLiteralNode(Symbols.fromJavaString("do"), rootNode);
+        functionLiteralNode.setSourceSection(startPos, length);
+        return functionLiteralNode;
     }
 
     public void addFormalParameter(Token nameToken) {
@@ -248,46 +247,50 @@ public class NodeFactory {
 
     }
 
-    public MethodLiteralNode finishMethod(IONode bodyNode, int startPos, int length) {
-        MethodLiteralNode methodLiteralNode = null;
-        if (bodyNode != null) {
-            currentScope.initializationNodes.add(bodyNode);
-            final int bodyEndPos = bodyNode.getSourceEndIndex();
-            int methodBodyLength = bodyEndPos - currentScope.bodyStartPos;
-            final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
-            final IONode methodBlock = createBlock(currentScope.initializationNodes,
-                    currentScope.parameterCount,
-                    currentScope.bodyStartPos, methodBodyLength);
-            final MethodBodyNode methodBodyNode = new MethodBodyNode(methodBlock);
-            methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
-            final IORootNode rootNode = new IORootNode(language, currentScope.frameDescriptorBuilder.build(),
-                    methodBodyNode,
-                    methodSrc);
-            TruffleString[] argNames = currentScope.argumentsNames
-                    .toArray(new TruffleString[currentScope.argumentsNames.size()]);
-            methodLiteralNode = new MethodLiteralNode(rootNode, argNames);
-            methodLiteralNode.setSourceSection(startPos, length);
-        }
+    public IORootNode createRoot(IONode bodyNode, int startPos, int length) {
+        assert bodyNode != null;
+        currentScope.initializationNodes.add(bodyNode);
+        final int bodyEndPos = bodyNode.getSourceEndIndex();
+        int methodBodyLength = bodyEndPos - currentScope.bodyStartPos;
+        final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
+        final IONode methodBlock = createExpression(currentScope.initializationNodes, currentScope.bodyStartPos,
+                methodBodyLength);
+        final MethodBodyNode methodBodyNode = new MethodBodyNode(methodBlock);
+        methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
+        final IORootNode rootNode = new IORootNode(language, currentScope.frameDescriptorBuilder.build(),
+                methodBodyNode, methodSrc);
+        return rootNode;
+    }
 
-        currentScope = currentScope.outer;
+    public BlockLiteralNode createBlock(IONode bodyNode, int startPos, int length) {
+        final IORootNode rootNode = createRoot(bodyNode, startPos, length);
+        TruffleString[] argNames = currentScope.argumentsNames
+                .toArray(new TruffleString[currentScope.argumentsNames.size()]);
+        final BlockLiteralNode blockLiteralNode = new BlockLiteralNode(rootNode, argNames);
+        blockLiteralNode.setSourceSection(startPos, length);
+        return blockLiteralNode;
+    }
+
+    public MethodLiteralNode createMethod(IONode bodyNode, int startPos, int length) {
+        final IORootNode rootNode = createRoot(bodyNode, startPos, length);
+        TruffleString[] argNames = currentScope.argumentsNames
+                .toArray(new TruffleString[currentScope.argumentsNames.size()]);
+        final MethodLiteralNode methodLiteralNode = new MethodLiteralNode(rootNode, argNames);
+        methodLiteralNode.setSourceSection(startPos, length);
         return methodLiteralNode;
     }
 
-    protected IONode createBlock(List<IONode> bodyNodes, int startPos, int length) {
-        return createBlock(bodyNodes, 0, startPos, length);
-    }
-
-    protected IONode createBlock(List<IONode> bodyNodes, int skipCount, int startPos, int length) {
+    protected IONode createExpression(List<IONode> bodyNodes, int startPos, int length) {
         if (containsNull(bodyNodes)) {
             return null;
         }
 
         List<IONode> flattenedNodes = new ArrayList<>(bodyNodes.size());
-        flattenBlocks(bodyNodes, flattenedNodes);
+        flattenNodes(bodyNodes, flattenedNodes);
         int n = flattenedNodes.size();
-        for (int i = skipCount; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             IONode expression = flattenedNodes.get(i);
-            if (expression.hasSource() && !isHaltInCondition(expression)) {
+            if (expression.hasSource()) {
                 expression.addExpressionTag();
             }
         }
@@ -300,20 +303,16 @@ public class NodeFactory {
         currentScope.inLoop = true;
     }
 
-    public IONode createLoopBlock(IONode loopNode, int startPos, int length) {
+    public IONode createLoopExpression(IONode loopNode, int startPos, int length) {
         List<IONode> bodyNodes = new ArrayList<>();
         bodyNodes.add(loopNode);
-        return createBlock(bodyNodes, 0, startPos, length);
+        return createExpression(bodyNodes, startPos, length);
     }
 
-    private static boolean isHaltInCondition(IONode expression) {
-        return (expression instanceof IfNode) || (expression instanceof WhileNode);
-    }
-
-    private void flattenBlocks(Iterable<? extends IONode> bodyNodes, List<IONode> flattenedNodes) {
+    private void flattenNodes(Iterable<? extends IONode> bodyNodes, List<IONode> flattenedNodes) {
         for (IONode n : bodyNodes) {
             if (n instanceof ExpressionNode) {
-                flattenBlocks(((ExpressionNode) n).getExpressions(), flattenedNodes);
+                flattenNodes(((ExpressionNode) n).getExpressions(), flattenedNodes);
             } else {
                 flattenedNodes.add(n);
             }

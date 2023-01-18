@@ -64,6 +64,7 @@ public final class IOFunction extends IOInvokable {
         return name;
     }
 
+    @Override
     public String toString(int depth) {
         String string = name.toJavaStringUncached() + "()";
         return string;

@@ -19,6 +19,7 @@ import org.truffle.io.nodes.literals.FunctionLiteralNode;
 import org.truffle.io.nodes.literals.NilLiteralNode;
 import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;
 import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
+import org.truffle.io.parser.IOLanguageParser.BlockMessageContext;
 import org.truffle.io.parser.IOLanguageParser.DecimalContext;
 import org.truffle.io.parser.IOLanguageParser.ExpressionContext;
 import org.truffle.io.parser.IOLanguageParser.ForMessageContext;
@@ -30,7 +31,6 @@ import org.truffle.io.parser.IOLanguageParser.ListMessageContext;
 import org.truffle.io.parser.IOLanguageParser.LiteralContext;
 import org.truffle.io.parser.IOLanguageParser.LiteralMessageContext;
 import org.truffle.io.parser.IOLanguageParser.MessageContext;
-import org.truffle.io.parser.IOLanguageParser.MethodMessageContext;
 import org.truffle.io.parser.IOLanguageParser.NumberContext;
 import org.truffle.io.parser.IOLanguageParser.OperationContext;
 import org.truffle.io.parser.IOLanguageParser.PseudoVariableContext;
@@ -114,7 +114,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     @Override
     public IONode visitIolanguage(IolanguageContext ctx) {
         LOGGER.fine("Started visitIolanguage()");
-        factory.startDo(ctx.start);
+        factory.enterNewScope(ctx.start.getStartIndex());
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
         IONode bodyNode = null;
@@ -123,7 +123,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         } else {
             bodyNode = visitEmptyExpression(startPos, length);
         }
-        final IONode result = factory.finishDo(bodyNode, startPos, length);
+        final IONode result = factory.createFunction(bodyNode, startPos, length);
+        factory.leaveCurrentScope();
         assert result != null;
         LOGGER.fine("Ended visitIolanguage()");
         return result;
@@ -139,7 +140,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
                 body.add(operationNode);
             }
         }
-        final IONode result = factory.createBlock(body, ctx.start.getStartIndex(),
+        final IONode result = factory.createExpression(body, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
         assert result != null;
         return result;
@@ -148,7 +149,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     public IONode visitEmptyExpression(int startPos, int length) {
         List<IONode> body = new ArrayList<>();
         body.add(new NilLiteralNode());
-        final IONode result = factory.createBlock(body, startPos, length);
+        final IONode result = factory.createExpression(body, startPos, length);
         assert result != null;
         return result;
     }
@@ -254,8 +255,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.listMessage() != null) {
             return visitListMessage(ctx.listMessage());
         }
-        if (ctx.methodMessage() != null) {
-            return visitMethodMessage(ctx.methodMessage());
+        if (ctx.blockMessage() != null) {
+            return visitBlockMessage(ctx.blockMessage());
         }
         if (ctx.ifMessage() != null) {
             return visitIfMessage(ctx.ifMessage());
@@ -458,7 +459,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         IONode conditionNode = visitExpression(ctx.condition);
         IONode bodyNode = visitExpression(ctx.body);
         IONode result = factory.createWhile(ctx.WHILE().getSymbol(), conditionNode, bodyNode);
-        return factory.createLoopBlock(result, ctx.start.getStartIndex(),
+        return factory.createLoopExpression(result, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
     }
 
@@ -479,7 +480,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         IONode result = factory.createForSlot(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
                 startPos, length);
         assert result != null;
-        return factory.createLoopBlock(result, startPos, length);
+        return factory.createLoopExpression(result, startPos, length);
     }
 
     @Override
@@ -495,14 +496,15 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     }
 
     @Override
-    public IONode visitMethodMessage(MethodMessageContext ctx) {
-        final Token bodyStartToken;
+    public IONode visitBlockMessage(BlockMessageContext ctx) {
+        final int blockStartPos;
         if (ctx.expression() == null) {
-            bodyStartToken = ctx.CLOSE().getSymbol();
+            blockStartPos = ctx.CLOSE().getSymbol().getStartIndex();
         } else {
-            bodyStartToken = ctx.expression().start;
+            blockStartPos = ctx.expression().start.getStartIndex();
         }
-        factory.startMethod(bodyStartToken);
+        factory.enterNewScope(blockStartPos);
+        factory.setupLocals();
         if (ctx.parameterList() != null) {
             for (final IdentifierContext identifierCtx : ctx.parameterList().identifier()) {
                 factory.addFormalParameter(identifierCtx.start);
@@ -514,10 +516,18 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.expression() != null) {
             bodyNode = visitExpression(ctx.expression());
         } else {
-            bodyNode = visitEmptyExpression(bodyStartToken.getStartIndex(), length);
+            bodyNode = visitEmptyExpression(blockStartPos, length);
         }
-        final IONode result = factory.finishMethod(bodyNode, startPos, length);
+        final IONode result;
+        if (ctx.BLOCK() != null) {
+            result = factory.createBlock(bodyNode, startPos, length);
+        } else if (ctx.METHOD() != null) {
+            result = factory.createMethod(bodyNode, startPos, length);
+        } else {
+            throw new ShouldNotBeHereException();
+        }
         assert result != null;
+        factory.leaveCurrentScope();
         return result;
     }
 

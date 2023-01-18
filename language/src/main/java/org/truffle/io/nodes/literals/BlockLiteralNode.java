@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,49 +41,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime.objects;
+package org.truffle.io.nodes.literals;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOMethod;
+
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-@ExportLibrary(InteropLibrary.class)
-public class IOMethod extends IOInvokable {
+@NodeInfo(shortName = "block")
+public final class BlockLiteralNode extends IONode {
 
+    @Child private IORootNode value;
     private final TruffleString[] argNames;
 
-    public IOMethod(final RootCallTarget callTarget, final TruffleString[] argNames) {
-        super(IOPrototype.BLOCK, callTarget);
+    @CompilationFinal private IOMethod cachedBlock;
+
+    public BlockLiteralNode(final IORootNode value, TruffleString[] argNames) {
+        this.value = value;
         this.argNames = argNames;
     }
 
-    public int getNumArgs() {
-        return argNames.length;
-    }
-
-    public TruffleString[] getArgNames() {
-        return argNames;
-    }
-
     @Override
-    public String toString(int depth) {
-        return "method(" + printSource(depth) + ")";
-    }
+    public IOMethod executeGeneric(VirtualFrame frame) {
+        IOLanguage l = IOLanguage.get(this);
+        CompilerAsserts.partialEvaluationConstant(l);
 
-    public String printSource(int depth) {
-        if (depth == 0) {
-            return getSourceLocation().getCharacters().toString();
+        IOMethod block;
+        if (l.isSingleContext()) {
+            block = this.cachedBlock;
+            if (block == null) {
+                /* We are about to change a @CompilationFinal field. */
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                /* First execution of the node: lookup the block in the block registry. */
+                this.cachedBlock = block = IOState.get(this).createBlock(value.getCallTarget(), argNames);
+            }
         } else {
-            return "...";
+            /*
+             * We need to rest the cached block otherwise it might cause a memory leak.
+             */
+            if (this.cachedBlock != null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                this.cachedBlock = null;
+            }
+            // in the multi-context case we are not allowed to store
+            // IOBlock objects in the AST. Instead we always perform the lookup in the hash map.
+            block = IOState.get(this).createBlock(value.getCallTarget(), argNames);
         }
+        return block;
     }
 
-    @ExportMessage
-    @TruffleBoundary
-    static int identityHashCode(IOMethod receiver) {
-        return System.identityHashCode(receiver);
+    public IORootNode getValue() {
+        return value;
     }
 }

@@ -77,11 +77,8 @@ public abstract class IOInvokable extends IOObject {
     public boolean hasLocals() {
         return false;
     }
-    
-    public String toString() {
-        return toString(0);
-    }
 
+    @Override
     public abstract String toString(int depth);
     
     @ExportMessage

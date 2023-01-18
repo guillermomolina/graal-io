@@ -47,9 +47,8 @@ import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOMethod;
 
-import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -57,19 +56,13 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-/**
- * Constant literal for a {@link IOBlock method} value, created when a method name occurs as
- * a literal in IO source code. Note that method redefinition can change the {@link CallTarget
- * call target} that is executed when calling the method, but the {@link IOBlock} for a name
- * never changes. This is guaranteed by the {@link IOMethodRegistry}.
- */
 @NodeInfo(shortName = "method")
 public final class MethodLiteralNode extends IONode {
 
     @Child private IORootNode value;
     private final TruffleString[] argNames;
 
-    @CompilationFinal private IOBlock cachedMethod;
+    @CompilationFinal private IOMethod cachedMethod;
 
     public MethodLiteralNode(final IORootNode value, TruffleString[] argNames) {
         this.value = value;
@@ -77,11 +70,11 @@ public final class MethodLiteralNode extends IONode {
     }
 
     @Override
-    public IOBlock executeGeneric(VirtualFrame frame) {
+    public IOMethod executeGeneric(VirtualFrame frame) {
         IOLanguage l = IOLanguage.get(this);
         CompilerAsserts.partialEvaluationConstant(l);
 
-        IOBlock method;
+        IOMethod method;
         if (l.isSingleContext()) {
             method = this.cachedMethod;
             if (method == null) {

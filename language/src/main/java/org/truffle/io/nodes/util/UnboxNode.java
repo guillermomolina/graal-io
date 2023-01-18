@@ -45,6 +45,12 @@ package org.truffle.io.nodes.util;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IOTypes;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -53,12 +59,6 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IONil;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
@@ -97,7 +97,7 @@ public abstract class UnboxNode extends IONode {
     }
 
     @Specialization
-    protected static IOBlock fromMethod(IOBlock value) {
+    protected static IOMethod fromMethod(IOMethod value) {
         return value;
     }
 

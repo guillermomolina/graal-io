@@ -43,6 +43,10 @@
  */
 package org.truffle.io.runtime.objects;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.Symbols;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -61,10 +65,6 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOObject extends DynamicObject {
@@ -130,6 +130,7 @@ public class IOObject extends DynamicObject {
         return getPrototype();
     }
 
+    @Override
     public String toString() {
         return toString(0);
     }

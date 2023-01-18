@@ -43,11 +43,6 @@
  */
 package org.truffle.io.nodes.expression;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
@@ -59,6 +54,12 @@ import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
+import org.truffle.io.runtime.objects.IOMethod;
+
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 public final class InvokeNode extends IONode {
 
@@ -81,7 +82,9 @@ public final class InvokeNode extends IONode {
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         if (invokable instanceof IOBlock) {
-            return executeMethod((IOBlock) invokable, frame);
+            return executeBlock((IOBlock) invokable, frame);
+        } else if (invokable instanceof IOMethod) {
+            return executeMethod((IOMethod) invokable, frame);
         } else if (invokable instanceof IOFunction) {
             return executeFunction((IOFunction) invokable, frame);
         }
@@ -102,20 +105,31 @@ public final class InvokeNode extends IONode {
     }
 
     @ExplodeLoop
-    protected final Object executeMethod(IOBlock method, VirtualFrame frame) {
+    protected final Object executeBlock(IOBlock block, VirtualFrame frame) {
+        IOLocals sender = IOState.get(this).createLocals(block.getFrame());
+        return executeBlock(block, frame, sender);
+    }
+
+    @ExplodeLoop
+    protected final Object executeMethod(IOMethod method, VirtualFrame frame) {
+        IOLocals sender = IOState.get(this).createLocals(frame.materialize());
+        return executeBlock(method, frame, sender);
+    }
+
+    @ExplodeLoop
+    protected final Object executeBlock(IOMethod block, VirtualFrame frame, IOLocals sender) {
         IOMessage message = messageNode.executeGeneric(frame);
         IONode[] argumentNodes = messageNode.getArgumentNodes();
-        IOLocals sender = IOState.get(this).createLocals(frame.materialize());
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
-        IOCall call = IOState.get(this).createCall(sender, target, message, null, method, currentCoroutine);
-        int argumentsCount = method.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        IOCall call = IOState.get(this).createCall(sender, target, message, null, block, currentCoroutine);
+        int argumentsCount = block.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];
         argumentValues[0] = call;
-        for (int i = 0; i < method.getNumArgs(); i++) {
+        for (int i = 0; i < block.getNumArgs(); i++) {
             argumentValues[i + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX] = argumentNodes[i].executeGeneric(frame);
         }
-        Object result = DirectCallNode.create(method.getCallTarget()).call(argumentValues);
+        Object result = DirectCallNode.create(block.getCallTarget()).call(argumentValues);
         return result;
     }
 

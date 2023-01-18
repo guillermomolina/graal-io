@@ -47,8 +47,8 @@ import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOMethod;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
@@ -59,9 +59,9 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
 /**
- * Constant literal for a {@link IOBlock method} value, created when a method name occurs as
+ * Constant literal for a {@link IOMethod method} value, created when a method name occurs as
  * a literal in IO source code. Note that method redefinition can change the {@link CallTarget
- * call target} that is executed when calling the method, but the {@link IOBlock} for a name
+ * call target} that is executed when calling the method, but the {@link IOMethod} for a name
  * never changes. This is guaranteed by the {@link IOMethodRegistry}.
  */
 @NodeInfo(shortName = "function")

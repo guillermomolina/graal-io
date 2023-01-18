@@ -85,7 +85,7 @@ literalMessage:
     | whileMessage 
     | forMessage
     | listMessage
-    | methodMessage
+    | blockMessage
     ;
 
 message:
@@ -105,7 +105,7 @@ returnMessage: RETURN operation?;
 breakMessage: BREAK;
 continueMessage: CONTINUE;
 listMessage: LIST arguments?;
-methodMessage: METHOD OPEN EOL* parameterList? body=expression? EOL* CLOSE;
+blockMessage: (BLOCK|METHOD) OPEN EOL* parameterList? body=expression? EOL* CLOSE;
 parameterList: (identifier EOL* COMMA EOL*)+;
 ifMessage:
     ifMessage1 EOL* thenMessage (EOL* elseMessage)?
@@ -162,6 +162,7 @@ identifier:
     IDENTIFIER
     | AT
     | AT_PUT
+    | BLOCK
     | BREAK
     | CONTINUE
     | ELSE
@@ -186,6 +187,7 @@ identifier:
 
 AT: 'at';
 AT_PUT: 'atPut';
+BLOCK: 'block';
 BREAK: 'break';
 CONTINUE: 'continue';
 ELSE: 'else';

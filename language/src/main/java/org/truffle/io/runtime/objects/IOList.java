@@ -42,13 +42,13 @@ package org.truffle.io.runtime.objects;
 
 import java.util.List;
 
+import org.truffle.io.runtime.IOObjectUtil;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-
-import org.truffle.io.runtime.IOObjectUtil;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOList extends IOObject {
@@ -73,6 +73,7 @@ public class IOList extends IOObject {
         return new IOList(list.toArray(new Object[0]));
     }
 
+    @Override
     public String toString(int depth) {
         String string = String.format("list(%s)", IOObjectUtil.toString(this, depth));
         return string;

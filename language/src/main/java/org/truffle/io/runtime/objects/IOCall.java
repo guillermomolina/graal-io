@@ -67,7 +67,7 @@ public class IOCall extends IOObject {
     private Object coroutine;
 
     public IOCall(final IOLocals sender, final Object target, final IOMessage message, final IOLocals slotContext,
-            final IOBlock activated, final IOCoroutine coroutine) {
+            final IOMethod activated, final IOCoroutine coroutine) {
         super(IOPrototype.CALL);
         setSender(sender);
         setMessage(message);
@@ -109,11 +109,11 @@ public class IOCall extends IOObject {
         IOObjectUtil.putProperty(this, SLOTCONTEXT, slotcontext);
     }
 
-    public IOBlock getActivated() {
-        return (IOBlock)IOObjectUtil.getProperty(this, ACTIVATED);
+    public IOMethod getActivated() {
+        return (IOMethod)IOObjectUtil.getProperty(this, ACTIVATED);
     }
 
-    protected void setActivated(IOBlock activated) {
+    protected void setActivated(IOMethod activated) {
         IOObjectUtil.putProperty(this, ACTIVATED, activated);
     }
 
