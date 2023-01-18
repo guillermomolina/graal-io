@@ -63,8 +63,11 @@ public class IOLocals extends IOObject {
        
     public IOCall getCall() {
         Object call = frame.getArguments()[CALL_ARGUMENT_INDEX];
-        assert call instanceof IOCall;
-        return (IOCall)call;
+        if (call instanceof IOCall) {
+            assert call instanceof IOCall;
+            return (IOCall)call;
+        }
+        return null; // caller is not a block 
     }
 
 }

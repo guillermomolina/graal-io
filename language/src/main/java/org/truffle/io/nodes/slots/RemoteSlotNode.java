@@ -49,6 +49,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.runtime.objects.IOCall;
@@ -86,13 +87,20 @@ public abstract class RemoteSlotNode extends ExpressionNode {
     @ExplodeLoop
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
         Object argument = frame.getArguments()[IOLocals.CALL_ARGUMENT_INDEX];
-        assert argument instanceof IOCall;
-        IOCall call = (IOCall)argument;
+        if (!(argument instanceof IOCall)) {
+            // sender is not a block
+            throw new NotImplementedException();
+        }
+        IOCall call = (IOCall) argument;
         IOLocals locals = call.getSender();
 
         int i = getContextLevel() - 1;
         while (i > 0) {
-            locals = locals.getCall().getSender();
+            call = (IOCall) locals.getCall();           
+            if (call == null) {
+                throw new NotImplementedException();
+            }
+            locals = call.getSender();
             i--;
         }
 
