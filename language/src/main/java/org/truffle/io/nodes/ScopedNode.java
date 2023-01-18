@@ -45,7 +45,7 @@ package org.truffle.io.nodes;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.BlockNode;
+import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.root.FunctionRootNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
 import org.truffle.io.runtime.IOState;
@@ -104,8 +104,8 @@ public abstract class ScopedNode extends Node {
     @ExportMessage
     final Object getScope(Frame frame, boolean nodeEnter, @Shared("node") @Cached(value = "this", adopt = false) ScopedNode cachedNode,
                     @Cached(value = "this.findBlock()", adopt = false, allowUncached = true) Node blockNode) {
-        if (blockNode instanceof BlockNode) {
-            return new VariablesObject(frame, cachedNode, nodeEnter, (BlockNode) blockNode);
+        if (blockNode instanceof ExpressionNode) {
+            return new VariablesObject(frame, cachedNode, nodeEnter, (ExpressionNode) blockNode);
         } else {
             return new ArgumentsObject(frame, (FunctionRootNode) blockNode);
         }
@@ -149,7 +149,7 @@ public abstract class ScopedNode extends Node {
     }
 
     /**
-     * Find block of this node. Traverse the parent chain and find the first {@link BlockNode}. If
+     * Find block of this node. Traverse the parent chain and find the first {@link ExpressionNode}. If
      * none is found, {@link RootNode} is returned.
      *
      * @return the block node, always non-null. Either IOBlockNode, or IOFunctionRootNode.
@@ -157,7 +157,7 @@ public abstract class ScopedNode extends Node {
     public final Node findBlock() {
         Node parent = getParent();
         while (parent != null) {
-            if (parent instanceof BlockNode) {
+            if (parent instanceof ExpressionNode) {
                 break;
             }
             Node p = parent.getParent();
@@ -171,7 +171,7 @@ public abstract class ScopedNode extends Node {
     }
 
     /**
-     * Set the index to the the {@link BlockNode#getDeclaredLocalVariables() block's variables}
+     * Set the index to the the {@link ExpressionNode#getDeclaredLocalVariables() block's variables}
      * that determine variables belonging into this scope (excluding parent scopes) on node enter.
      */
     public final void setVisibleVariablesIndexOnEnter(int index) {
@@ -199,7 +199,7 @@ public abstract class ScopedNode extends Node {
 
     /**
      * Scope of function arguments. This scope is provided by nodes just under a {@link FunctionRootNode},
-     * outside of a {@link BlockNode block}.
+     * outside of a {@link ExpressionNode block}.
      * <p>
      * The arguments declared by {@link FunctionRootNode#getDeclaredArguments() root node} are provided as
      * scope members.
@@ -473,9 +473,9 @@ public abstract class ScopedNode extends Node {
         private final Frame frame;          // the current frame
         protected final ScopedNode node;  // the current node
         final boolean nodeEnter;            // whether the node was entered or is about to be exited
-        protected final BlockNode block;  // the inner-most block of the current node
+        protected final ExpressionNode block;  // the inner-most block of the current node
 
-        VariablesObject(Frame frame, ScopedNode node, boolean nodeEnter, BlockNode blockNode) {
+        VariablesObject(Frame frame, ScopedNode node, boolean nodeEnter, ExpressionNode blockNode) {
             this.frame = frame;
             this.node = node;
             this.nodeEnter = nodeEnter;
@@ -517,10 +517,10 @@ public abstract class ScopedNode extends Node {
          * Provide either "block", or the function name as the scope's display string.
          */
         @ExportMessage
-        Object toDisplayString(boolean allowSideEffects, @Shared("block") @Cached(value = "this.block", adopt = false) BlockNode cachedBlock,
+        Object toDisplayString(boolean allowSideEffects, @Shared("block") @Cached(value = "this.block", adopt = false) ExpressionNode cachedBlock,
                         @Shared("parentBlock") @Cached(value = "this.block.findBlock()", adopt = false, allowUncached = true) Node parentBlock) {
             // Cache the parent block for the fast-path access
-            if (parentBlock instanceof BlockNode) {
+            if (parentBlock instanceof ExpressionNode) {
                 return "block";
             } else {
                 return ((FunctionRootNode) parentBlock).getTSName();
@@ -532,10 +532,10 @@ public abstract class ScopedNode extends Node {
          */
         @ExportMessage
         boolean hasScopeParent(
-                        @Shared("block") @Cached(value = "this.block", adopt = false) BlockNode cachedBlock,
+                        @Shared("block") @Cached(value = "this.block", adopt = false) ExpressionNode cachedBlock,
                         @Shared("parentBlock") @Cached(value = "this.block.findBlock()", adopt = false, allowUncached = true) Node parentBlock) {
             // Cache the parent block for the fast-path access
-            return parentBlock instanceof BlockNode;
+            return parentBlock instanceof ExpressionNode;
         }
 
         /**
@@ -543,13 +543,13 @@ public abstract class ScopedNode extends Node {
          */
         @ExportMessage
                 Object getScopeParent(
-                        @Shared("block") @Cached(value = "this.block", adopt = false) BlockNode cachedBlock,
+                        @Shared("block") @Cached(value = "this.block", adopt = false) ExpressionNode cachedBlock,
                         @Shared("parentBlock") @Cached(value = "this.block.findBlock()", adopt = false, allowUncached = true) Node parentBlock) throws UnsupportedMessageException {
             // Cache the parent block for the fast-path access
-            if (!(parentBlock instanceof BlockNode)) {
+            if (!(parentBlock instanceof ExpressionNode)) {
                 throw UnsupportedMessageException.create();
             }
-            return new VariablesObject(frame, cachedBlock, true, (BlockNode) parentBlock);
+            return new VariablesObject(frame, cachedBlock, true, (ExpressionNode) parentBlock);
         }
 
         /**

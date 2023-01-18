@@ -48,16 +48,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.arithmetic.AddNodeGen;
 import org.truffle.io.nodes.arithmetic.DivNodeGen;
 import org.truffle.io.nodes.arithmetic.MulNodeGen;
@@ -69,8 +64,7 @@ import org.truffle.io.nodes.controlflow.IfNode;
 import org.truffle.io.nodes.controlflow.RepeatNode;
 import org.truffle.io.nodes.controlflow.ReturnNode;
 import org.truffle.io.nodes.controlflow.WhileNode;
-import org.truffle.io.nodes.expression.BlockNode;
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
 import org.truffle.io.nodes.literals.BooleanLiteralNode;
@@ -103,6 +97,12 @@ import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IOLocals;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -291,7 +291,7 @@ public class NodeFactory {
                 expression.addExpressionTag();
             }
         }
-        BlockNode blockNode = new BlockNode(flattenedNodes.toArray(new IONode[flattenedNodes.size()]));
+        ExpressionNode blockNode = new ExpressionNode(flattenedNodes.toArray(new IONode[flattenedNodes.size()]));
         blockNode.setSourceSection(startPos, length);
         return blockNode;
     }
@@ -312,8 +312,8 @@ public class NodeFactory {
 
     private void flattenBlocks(Iterable<? extends IONode> bodyNodes, List<IONode> flattenedNodes) {
         for (IONode n : bodyNodes) {
-            if (n instanceof BlockNode) {
-                flattenBlocks(((BlockNode) n).getExpressions(), flattenedNodes);
+            if (n instanceof ExpressionNode) {
+                flattenBlocks(((ExpressionNode) n).getExpressions(), flattenedNodes);
             } else {
                 flattenedNodes.add(n);
             }

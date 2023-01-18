@@ -47,8 +47,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.BlockNode;
 import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
@@ -139,7 +139,7 @@ public class IORootNode extends RootNode {
                 } else if (wn != null && (node instanceof ReadArgumentNode)) {
                     writeArgNodes.add(wn);
                     return true;
-                } else if (wn == null && (node instanceof IONode && !(node instanceof BlockNode || node instanceof MethodBodyNode))) {
+                } else if (wn == null && (node instanceof IONode && !(node instanceof ExpressionNode || node instanceof MethodBodyNode))) {
                     // A different IO node - we're done.
                     return false;
                 } else {

@@ -66,7 +66,7 @@ import com.oracle.truffle.api.nodes.NodeVisitor;
  * A expression node that just executes a list of other expressions.
  */
 @NodeInfo(shortName = "block", description = "The node implementing a source code block")
-public final class BlockNode extends IONode implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<IONode> {
+public final class ExpressionNode extends IONode implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<IONode> {
 
     @Child private com.oracle.truffle.api.nodes.BlockNode<IONode> block;
 
@@ -77,7 +77,7 @@ public final class BlockNode extends IONode implements com.oracle.truffle.api.no
      */
     @CompilationFinal private int parentBlockIndex = -1;
 
-    public BlockNode(IONode[] bodyNodes) {
+    public ExpressionNode(IONode[] bodyNodes) {
         /*
          * Truffle block nodes cannot be empty, that is why we just set the entire block to null if
          * there are no elements. This is good practice as it safes memory.
@@ -151,7 +151,7 @@ public final class BlockNode extends IONode implements com.oracle.truffle.api.no
                     scopedNode.setVisibleVariablesIndexOnEnter(varsIndex[0]);
                 }
                 // Do not enter any nested blocks.
-                if (!(node instanceof BlockNode)) {
+                if (!(node instanceof ExpressionNode)) {
                     NodeUtil.forEachChild(node, this);
                 }
                 // Write to a variable is a declaration unless it exists already in a parent scope.
@@ -172,15 +172,15 @@ public final class BlockNode extends IONode implements com.oracle.truffle.api.no
         });
         Node parentBlock = findBlock();
         WriteLocalSlotNode[] parentVariables = null;
-        if (parentBlock instanceof BlockNode) {
-            parentVariables = ((BlockNode) parentBlock).getDeclaredLocalVariables();
+        if (parentBlock instanceof ExpressionNode) {
+            parentVariables = ((ExpressionNode) parentBlock).getDeclaredLocalVariables();
         }
         WriteLocalSlotNode[] variables = writeNodes.toArray(new WriteLocalSlotNode[writeNodes.size()]);
         parentBlockIndex = variables.length;
         if (parentVariables == null || parentVariables.length == 0) {
             return variables;
         } else {
-            int parentVariablesIndex = ((BlockNode) parentBlock).getParentBlockIndex();
+            int parentVariablesIndex = ((ExpressionNode) parentBlock).getParentBlockIndex();
             int visibleVarsIndex = getVisibleVariablesIndexOnEnter();
             int allVarsLength = variables.length + visibleVarsIndex + parentVariables.length - parentVariablesIndex;
             WriteLocalSlotNode[] allVariables = Arrays.copyOf(variables, allVarsLength);
