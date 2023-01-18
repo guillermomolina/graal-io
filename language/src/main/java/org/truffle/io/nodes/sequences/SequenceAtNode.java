@@ -43,17 +43,6 @@
  */
 package org.truffle.io.nodes.sequences;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
@@ -66,6 +55,17 @@ import org.truffle.io.runtime.UndefinedNameException;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOObject;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+
 @NodeInfo(shortName = "at")
 @NodeChild("receiverNode")
 @NodeChild("indexNode")
@@ -73,16 +73,6 @@ public abstract class SequenceAtNode extends IONode {
 
     static final TruffleString AT = Symbols.constant("at");
     static final int LIBRARY_LIMIT = 3;
-
-    // @Specialization
-    // protected Object atString(TruffleString receiver, long index,
-    //         @Cached TruffleString.SubstringNode substringNode) {
-    //     try {
-    //         return substringNode.execute(receiver, (int) index, 1, IOLanguage.STRING_ENCODING, true);
-    //     } catch (IndexOutOfBoundsException e) {
-    //         throw IOOutOfBoundsException.outOfBoundsInteger(this, index);
-    //     }
-    // }
 
     @Specialization(limit = "LIBRARY_LIMIT")
     protected long atString(VirtualFrame frame, TruffleString receiver, Object index,
