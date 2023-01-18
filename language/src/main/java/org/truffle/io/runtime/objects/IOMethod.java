@@ -51,23 +51,12 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
 
 @ExportLibrary(InteropLibrary.class)
-public class IOBlock extends IOInvokable {
+public final class IOMethod extends IOBlock {
 
-    private final TruffleString[] argNames;
-
-    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames) {
-        super(IOPrototype.BLOCK, callTarget);
-        this.argNames = argNames;
+    public IOMethod(final RootCallTarget callTarget, final TruffleString[] argNames) {
+        super(callTarget, argNames);
     }
     
-    public int getNumArgs() {
-        return argNames.length;
-    }
-
-    public TruffleString[] getArgNames() {
-        return argNames;
-    }
-
     public String toString(int depth) {
         String string = "method(";
         if(depth == 0) {
@@ -81,7 +70,7 @@ public class IOBlock extends IOInvokable {
 
     @ExportMessage
     @TruffleBoundary
-    static int identityHashCode(IOBlock receiver) {
+    static int identityHashCode(IOMethod receiver) {
         return System.identityHashCode(receiver);
     }
 }
