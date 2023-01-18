@@ -50,7 +50,7 @@ import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 
 public final class WhileRepeatingNode extends Node implements RepeatingNode {

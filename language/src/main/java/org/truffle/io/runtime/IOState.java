@@ -90,7 +90,7 @@ import org.truffle.io.builtins.object.ObjectSlotNamesBuiltinFactory;
 import org.truffle.io.builtins.system.SystemRegisterShutdownHookBuiltinFactory;
 import org.truffle.io.builtins.system.SystemSleepBuiltinFactory;
 import org.truffle.io.builtins.system.SystemStackTraceBuiltinFactory;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;

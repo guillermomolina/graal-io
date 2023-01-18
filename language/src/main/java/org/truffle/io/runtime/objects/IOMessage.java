@@ -42,7 +42,7 @@
 
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
 

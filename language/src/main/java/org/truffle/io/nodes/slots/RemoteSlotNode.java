@@ -50,7 +50,7 @@ import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOLocals;

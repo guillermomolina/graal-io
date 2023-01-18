@@ -49,7 +49,7 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;

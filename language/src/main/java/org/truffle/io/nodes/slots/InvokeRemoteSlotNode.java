@@ -40,7 +40,7 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.runtime.objects.IOInvokable;

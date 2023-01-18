@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;

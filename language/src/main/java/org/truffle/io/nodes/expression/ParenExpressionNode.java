@@ -44,7 +44,9 @@
 package org.truffle.io.nodes.expression;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node.Child;
+
+import org.truffle.io.nodes.IONode;
+
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 

@@ -43,6 +43,7 @@
  */
 package org.truffle.io.nodes.expression;
 
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.controlflow.ReturnException;
 import org.truffle.io.nodes.controlflow.ReturnNode;
 import org.truffle.io.nodes.root.IORootNode;

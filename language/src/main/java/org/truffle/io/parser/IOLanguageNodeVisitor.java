@@ -14,7 +14,7 @@ import org.antlr.v4.runtime.Token;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.literals.FunctionLiteralNode;
 import org.truffle.io.nodes.literals.NilLiteralNode;
 import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;

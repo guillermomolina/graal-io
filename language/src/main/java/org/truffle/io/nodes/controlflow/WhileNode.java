@@ -49,7 +49,7 @@ import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 
 @NodeInfo(shortName = "while", description = "The node implementing a while loop")
 public final class WhileNode extends IONode {

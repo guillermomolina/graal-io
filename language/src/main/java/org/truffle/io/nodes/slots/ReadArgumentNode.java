@@ -46,7 +46,7 @@ package org.truffle.io.nodes.slots;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.parser.NodeFactory;
 import org.truffle.io.runtime.objects.IONil;
 

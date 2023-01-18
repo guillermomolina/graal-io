@@ -49,7 +49,7 @@ import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 
 @NodeChild(value = "valueNode", type = IONode.class)
 public abstract class WriteRemoteSlotNode extends RemoteSlotNode {

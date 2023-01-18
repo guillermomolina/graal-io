@@ -54,7 +54,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.UndefinedNameException;

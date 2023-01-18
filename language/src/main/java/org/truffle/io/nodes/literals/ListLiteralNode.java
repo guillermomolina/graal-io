@@ -41,7 +41,7 @@
 
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOState;
 
 import com.oracle.truffle.api.CompilerAsserts;

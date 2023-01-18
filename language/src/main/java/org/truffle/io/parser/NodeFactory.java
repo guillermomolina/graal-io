@@ -70,7 +70,7 @@ import org.truffle.io.nodes.controlflow.RepeatNode;
 import org.truffle.io.nodes.controlflow.ReturnNode;
 import org.truffle.io.nodes.controlflow.WhileNode;
 import org.truffle.io.nodes.expression.BlockNode;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
 import org.truffle.io.nodes.literals.BooleanLiteralNode;

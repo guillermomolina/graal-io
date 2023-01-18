@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.expression;
+package org.truffle.io.nodes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
@@ -57,10 +57,6 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-
-import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.nodes.IOTypesGen;
-import org.truffle.io.nodes.slots.ScopedNode;
 
 /**
  * Base class for all IO nodes that produce a value and therefore benefit from type specialization.

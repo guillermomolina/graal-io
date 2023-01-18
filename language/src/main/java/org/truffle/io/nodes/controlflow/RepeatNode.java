@@ -52,7 +52,7 @@ import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 
 @NodeInfo(shortName = "repeat", description = "The node implementing a repeat loop")

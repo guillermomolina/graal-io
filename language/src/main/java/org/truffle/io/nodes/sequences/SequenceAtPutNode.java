@@ -55,7 +55,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;

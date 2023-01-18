@@ -49,7 +49,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 
 /**
  * Logical operations in IO use short circuit evaluation: if the evaluation of the left operand

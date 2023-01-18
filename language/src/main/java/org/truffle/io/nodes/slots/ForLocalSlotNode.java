@@ -44,7 +44,7 @@
 package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.arithmetic.AddNodeGen;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
 import org.truffle.io.nodes.logic.LessOrEqualNodeGen;
 import org.truffle.io.nodes.logic.LessThanNodeGen;

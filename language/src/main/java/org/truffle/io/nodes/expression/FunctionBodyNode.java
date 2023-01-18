@@ -44,6 +44,7 @@
 package org.truffle.io.nodes.expression;
 
 import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.IONode;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;

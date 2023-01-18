@@ -49,7 +49,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.slots.ScopedNode;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.ScopedNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
 
 import com.oracle.truffle.api.CompilerDirectives;

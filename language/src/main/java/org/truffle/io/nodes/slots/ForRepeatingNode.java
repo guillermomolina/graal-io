@@ -45,7 +45,7 @@ package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.controlflow.BreakException;
 import org.truffle.io.nodes.controlflow.ContinueException;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;

@@ -46,7 +46,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.nodes.literals.MessageLiteralNode;

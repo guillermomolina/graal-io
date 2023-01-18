@@ -44,7 +44,7 @@
 package org.truffle.io.nodes.root;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 

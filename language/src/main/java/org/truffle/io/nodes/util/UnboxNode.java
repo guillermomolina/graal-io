@@ -56,7 +56,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IONil;
 

@@ -45,7 +45,7 @@ package org.truffle.io.nodes.logic;
 
 import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.arithmetic.AddNode;
-import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.IONode;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;

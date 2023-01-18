@@ -49,6 +49,7 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOBlock;

@@ -47,6 +47,8 @@ import java.math.BigInteger;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 
+import org.truffle.io.nodes.IONode;
+
 @NodeChild("leftNode")
 @NodeChild("rightNode")
 public abstract class BinaryNode extends IONode {
