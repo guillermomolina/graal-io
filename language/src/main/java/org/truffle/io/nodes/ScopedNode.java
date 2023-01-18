@@ -46,7 +46,6 @@ package org.truffle.io.nodes;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.BlockNode;
-import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.root.FunctionRootNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
 import org.truffle.io.runtime.IOState;

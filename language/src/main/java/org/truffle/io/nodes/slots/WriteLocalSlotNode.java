@@ -43,6 +43,9 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -54,9 +57,6 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 
 /**
  * Node to write a local variable to a function's {@link VirtualFrame frame}. The Truffle frame API
@@ -71,13 +71,13 @@ public abstract class WriteLocalSlotNode extends IONode {
      * Returns the descriptor of the accessed local variable. The implementation of this method is
      * created by the Truffle DSL based on the {@link NodeField} annotation on the class.
      */
-    protected abstract int getSlot();
+    public abstract int getSlot();
 
     /**
      * Returns the child node <code>nameNode</code>. The implementation of this method is created by
      * the Truffle DSL based on the {@link NodeChild} annotation on the class.
      */
-    protected abstract IONode getNameNode();
+    public abstract IONode getNameNode();
 
     public final TruffleString getSlotName() {
         return (TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot());
