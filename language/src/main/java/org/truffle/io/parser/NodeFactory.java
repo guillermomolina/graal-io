@@ -48,6 +48,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -68,7 +74,6 @@ import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
 import org.truffle.io.nodes.literals.BooleanLiteralNode;
-import org.truffle.io.nodes.literals.CallLiteralNode;
 import org.truffle.io.nodes.literals.DoubleLiteralNode;
 import org.truffle.io.nodes.literals.FunctionLiteralNode;
 import org.truffle.io.nodes.literals.ListLiteralNode;
@@ -98,12 +103,6 @@ import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IOLocals;
-
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -199,7 +198,8 @@ public class NodeFactory {
             final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
             final MethodBodyNode methodBodyNode = new MethodBodyNode(bodyNode);
             methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
-            final IORootNode rootNode = new IORootNode(language, currentScope.frameDescriptorBuilder.build(),                    methodBodyNode,                    methodSrc);
+            final IORootNode rootNode = new IORootNode(language, currentScope.frameDescriptorBuilder.build(),
+                    methodBodyNode, methodSrc);
             functionLiteralNode = new FunctionLiteralNode(Symbols.fromJavaString("do"), rootNode);
             functionLiteralNode.setSourceSection(startPos, length);
         }
@@ -213,7 +213,7 @@ public class NodeFactory {
     }
 
     public void addFormalParameter(Token nameToken) {
-        assert currentScope.parameterCount >= 5;
+        assert currentScope.parameterCount >= IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         final ReadArgumentNode readArg = new ReadArgumentNode(currentScope.parameterCount);
         int startPos = nameToken.getStartIndex();
         int length = nameToken.getText().length();
@@ -229,26 +229,23 @@ public class NodeFactory {
 
     public void setupLocals() {
         assert currentScope.parameterCount == 0;
-        final ReadArgumentNode readTargetNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
-        final ReadArgumentNode readMessageNode = new ReadArgumentNode(IOLocals.MESSAGE_ARGUMENT_INDEX);
-        final ReadArgumentNode readSenderNode = new ReadArgumentNode(IOLocals.SENDER_ARGUMENT_INDEX);
-        final ReadArgumentNode readActivatedNode = new ReadArgumentNode(IOLocals.ACTIVATED_ARGUMENT_INDEX);
-        final ReadArgumentNode readCoroutineNode = new ReadArgumentNode(IOLocals.COROUTINE_ARGUMENT_INDEX);
+        final ReadArgumentNode readCallArgumentNode = new ReadArgumentNode(IOLocals.CALL_ARGUMENT_INDEX);
         currentScope.parameterCount = IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
 
+        final StringLiteralNode callIdentifierNode = new StringLiteralNode(Symbols.fromJavaString("call"));
+        ExpressionNode callAssignmentNode = createWriteSlot(callIdentifierNode, readCallArgumentNode, 0, 0, 0,
+                true);
+        assert callAssignmentNode != null;
+        currentScope.initializationNodes.add(callAssignmentNode);
+
+        final StringLiteralNode targetIdentifierNode = new StringLiteralNode(Symbols.fromJavaString("target"));
+        ExpressionNode readTargetNode = createReadProperty(callAssignmentNode, targetIdentifierNode, 0, 0);
         final StringLiteralNode selfIdentifierNode = new StringLiteralNode(Symbols.SELF);
-        ExpressionNode selfAssignmentNode = createWriteSlot(selfIdentifierNode, readTargetNode, 0, 0, 0,
+        ExpressionNode selfAssignmentNode = createWriteSlot(selfIdentifierNode, readTargetNode, 0, 0,
                 true);
         assert selfAssignmentNode != null;
         currentScope.initializationNodes.add(selfAssignmentNode);
 
-
-        final StringLiteralNode callIdentifierNode = new StringLiteralNode(Symbols.fromJavaString("call"));
-        final CallLiteralNode callLiteralNode = new CallLiteralNode(readTargetNode, readMessageNode, readSenderNode, readActivatedNode, readCoroutineNode);
-        ExpressionNode callAssignmentNode = createWriteSlot(callIdentifierNode, callLiteralNode, 1, 0, 0,
-                true);
-        assert callAssignmentNode != null;
-        currentScope.initializationNodes.add(callAssignmentNode);
     }
 
     public MethodLiteralNode finishMethod(ExpressionNode bodyNode, int startPos, int length) {
@@ -258,7 +255,8 @@ public class NodeFactory {
             final int bodyEndPos = bodyNode.getSourceEndIndex();
             int methodBodyLength = bodyEndPos - currentScope.bodyStartPos;
             final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
-            final ExpressionNode methodBlock = createBlock(currentScope.initializationNodes, currentScope.parameterCount,
+            final ExpressionNode methodBlock = createBlock(currentScope.initializationNodes,
+                    currentScope.parameterCount,
                     currentScope.bodyStartPos, methodBodyLength);
             final MethodBodyNode methodBodyNode = new MethodBodyNode(methodBlock);
             methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());

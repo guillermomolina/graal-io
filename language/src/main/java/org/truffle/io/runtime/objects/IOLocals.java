@@ -44,16 +44,11 @@ import com.oracle.truffle.api.frame.MaterializedFrame;
 
 public class IOLocals extends IOObject {
 
+    public static final int CALL_ARGUMENT_INDEX = 0;
     public static final int TARGET_ARGUMENT_INDEX = 0;
-    public static final int SENDER_ARGUMENT_INDEX = 1;
-    public static final int MESSAGE_ARGUMENT_INDEX = 2;
-    public static final int ACTIVATED_ARGUMENT_INDEX = 3;
-    public static final int COROUTINE_ARGUMENT_INDEX = 4;
-    public static final int FIRST_PARAMETER_ARGUMENT_INDEX = 5;
-    
-    public static final int SELF_SLOT_INDEX = 0;
-    public static final int CALL_SLOT_INDEX = 1;
-    public static final int FIRST_USER_SLOT_INDEX = 2;
+    public static final int FIRST_PARAMETER_ARGUMENT_INDEX = 1;
+    public static final int CALL_SLOT_INDEX = 0;
+    public static final int FIRST_USER_SLOT_INDEX = 1;
 
     private final MaterializedFrame frame;
 
@@ -66,12 +61,10 @@ public class IOLocals extends IOObject {
         return frame;
     }
        
-    public IOLocals getOuterFrame() {
-        Object outerLocals = frame.getArguments()[SENDER_ARGUMENT_INDEX];
-        if(outerLocals instanceof IOLocals) {
-            return (IOLocals)outerLocals;
-        }
-        return null;
+    public IOCall getCall() {
+        Object call = frame.getArguments()[CALL_ARGUMENT_INDEX];
+        assert call instanceof IOCall;
+        return (IOCall)call;
     }
 
 }

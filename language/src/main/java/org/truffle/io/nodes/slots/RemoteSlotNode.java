@@ -40,10 +40,6 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOLocals;
-
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -52,6 +48,11 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOLocals;
 
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
@@ -84,13 +85,14 @@ public abstract class RemoteSlotNode extends ExpressionNode {
 
     @ExplodeLoop
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        Object argument2 = frame.getArguments()[IOLocals.SENDER_ARGUMENT_INDEX];
-        assert argument2 instanceof IOLocals;
-        IOLocals locals = (IOLocals)argument2;
+        Object argument = frame.getArguments()[IOLocals.CALL_ARGUMENT_INDEX];
+        assert argument instanceof IOCall;
+        IOCall call = (IOCall)argument;
+        IOLocals locals = call.getSender();
 
         int i = getContextLevel() - 1;
         while (i > 0) {
-            locals = locals.getOuterFrame();
+            locals = locals.getCall().getSender();
             i--;
         }
 

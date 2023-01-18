@@ -43,19 +43,21 @@
  */
 package org.truffle.io.nodes.expression;
 
-import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.nodes.literals.MessageLiteralNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IOMessage;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOCoroutine;
+import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IOMessage;
 
 public final class InvokeNode extends ExpressionNode {
 
@@ -102,18 +104,17 @@ public final class InvokeNode extends ExpressionNode {
     protected final Object executeMethod(IOBlock method, VirtualFrame frame) {
         IOMessage message = messageNode.executeGeneric(frame);
         ExpressionNode[] argumentNodes = messageNode.getArgumentNodes();
+        IOLocals sender = IOState.get(this).createLocals(frame.materialize());
+        IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
+        IOCall call = IOState.get(this).createCall(sender, target, message, null, method, currentCoroutine);
         int argumentsCount = method.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];
-        argumentValues[IOLocals.TARGET_ARGUMENT_INDEX] = target;
-        argumentValues[IOLocals.SENDER_ARGUMENT_INDEX] = IOState.get(this).createLocals(frame.materialize());
-        argumentValues[IOLocals.MESSAGE_ARGUMENT_INDEX] = message;
-        argumentValues[IOLocals.ACTIVATED_ARGUMENT_INDEX] = method;
-        argumentValues[IOLocals.COROUTINE_ARGUMENT_INDEX] = IOState.get(this).getCurrentCoroutine();
+        argumentValues[0] = call;
         for (int i = 0; i < method.getNumArgs(); i++) {
             argumentValues[i + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX] = argumentNodes[i].executeGeneric(frame);
         }
-        Object result = callNode.call(argumentValues);
+        Object result = DirectCallNode.create(method.getCallTarget()).call(argumentValues);
         return result;
     }
 
