@@ -43,9 +43,6 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.util.UnboxNodeGen;
-
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
@@ -53,18 +50,21 @@ import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.util.UnboxNodeGen;
+
 public final class WhileRepeatingNode extends Node implements RepeatingNode {
 
     @Child
-    private ExpressionNode conditionNode;
+    private IONode conditionNode;
     @Child
-    private ExpressionNode bodyNode;
+    private IONode bodyNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
     private Object lastResult;
 
-    public WhileRepeatingNode(ExpressionNode conditionNode, ExpressionNode bodyNode) {
+    public WhileRepeatingNode(IONode conditionNode, IONode bodyNode) {
         this.conditionNode = UnboxNodeGen.create(conditionNode);
         this.bodyNode = bodyNode;
     }
@@ -103,7 +103,7 @@ public final class WhileRepeatingNode extends Node implements RepeatingNode {
 
     @Override
     public String toString() {
-        return ExpressionNode.formatSourceSection(this);
+        return IONode.formatSourceSection(this);
     }
 
 }

@@ -45,7 +45,7 @@ package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.controlflow.BreakException;
 import org.truffle.io.nodes.controlflow.ContinueException;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -56,14 +56,14 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 
 public final class ForRepeatingNode extends Node implements RepeatingNode {
 
-    @Child private ExpressionNode hasEndedNode;
-    @Child private ExpressionNode bodyNode;
-    @Child private ExpressionNode stepSlotNode;
+    @Child private IONode hasEndedNode;
+    @Child private IONode bodyNode;
+    @Child private IONode stepSlotNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
 
-    public ForRepeatingNode(ExpressionNode hasEndedNode, ExpressionNode bodyNode, ExpressionNode stepSlotNode) {
+    public ForRepeatingNode(IONode hasEndedNode, IONode bodyNode, IONode stepSlotNode) {
         this.hasEndedNode = hasEndedNode;
         this.bodyNode = bodyNode;
         this.stepSlotNode = stepSlotNode;
@@ -100,7 +100,7 @@ public final class ForRepeatingNode extends Node implements RepeatingNode {
 
     @Override
     public String toString() {
-        return ExpressionNode.formatSourceSection(this);
+        return IONode.formatSourceSection(this);
     }
 
 }

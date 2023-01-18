@@ -41,7 +41,7 @@
 
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.runtime.IOState;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -50,12 +50,12 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "list")
-public final class ListLiteralNode extends ExpressionNode {
+public final class ListLiteralNode extends IONode {
 
     @Children
-    private final ExpressionNode[] elementNodes;
+    private final IONode[] elementNodes;
 
-    public ListLiteralNode(ExpressionNode[] elementNodes) {
+    public ListLiteralNode(IONode[] elementNodes) {
         this.elementNodes = elementNodes;
     }
 

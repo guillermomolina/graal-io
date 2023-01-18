@@ -43,28 +43,29 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.util.UnboxNodeGen;
-
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
+import org.truffle.io.nodes.expression.IONode;
+import org.truffle.io.nodes.util.UnboxNodeGen;
+
 @NodeInfo(shortName = "repeat", description = "The node implementing a repeat loop")
-public final class RepeatNode extends ExpressionNode {
+public final class RepeatNode extends IONode {
 
     @Child
-    private ExpressionNode repetitionsNode;
+    private IONode repetitionsNode;
     @Child
     private LoopNode loopNode;
     @Child
     private RepeatRepeatingNode repeatRepeatingNode;
 
-    public RepeatNode(ExpressionNode repetitionsNode, ExpressionNode bodyNode) {
+    public RepeatNode(IONode repetitionsNode, IONode bodyNode) {
         this.repetitionsNode = UnboxNodeGen.create(repetitionsNode);
         this.repeatRepeatingNode = new RepeatRepeatingNode(bodyNode);
         this.loopNode = Truffle.getRuntime().createLoopNode(repeatRepeatingNode);

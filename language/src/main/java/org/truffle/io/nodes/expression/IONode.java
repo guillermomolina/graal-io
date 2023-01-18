@@ -43,10 +43,6 @@
  */
 package org.truffle.io.nodes.expression;
 
-import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.nodes.IOTypesGen;
-import org.truffle.io.nodes.slots.ScopedNode;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -62,6 +58,10 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+import org.truffle.io.nodes.IOTypes;
+import org.truffle.io.nodes.IOTypesGen;
+import org.truffle.io.nodes.slots.ScopedNode;
+
 /**
  * Base class for all IO nodes that produce a value and therefore benefit from type specialization.
  * The annotation {@link TypeSystemReference} specifies the IO types. Specifying it here defines the
@@ -70,7 +70,7 @@ import com.oracle.truffle.api.source.SourceSection;
 @TypeSystemReference(IOTypes.class)
 @NodeInfo(description = "The abstract base node for all expressions")
 @GenerateWrapper
-public abstract class ExpressionNode extends ScopedNode implements InstrumentableNode {
+public abstract class IONode extends ScopedNode implements InstrumentableNode {
 
     private static final int NO_SOURCE = -1;
     private static final int UNAVAILABLE_SOURCE = -2;
@@ -167,7 +167,7 @@ public abstract class ExpressionNode extends ScopedNode implements Instrumentabl
     }
 
     public WrapperNode createWrapper(ProbeNode probe) {
-        return new ExpressionNodeWrapper(this, probe);
+        return new IONodeWrapper(this, probe);
     }
 
     /**

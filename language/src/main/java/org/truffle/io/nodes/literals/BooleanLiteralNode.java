@@ -44,7 +44,7 @@
 package org.truffle.io.nodes.literals;
 
 import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.runtime.objects.IOFalse;
 import org.truffle.io.runtime.objects.IOTrue;
 
@@ -58,7 +58,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
  * the primitive value is automatically boxed by Java.
  */
 @NodeInfo(shortName = "const")
-public final class BooleanLiteralNode extends ExpressionNode {
+public final class BooleanLiteralNode extends IONode {
 
     private final boolean value;
 

@@ -43,17 +43,17 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.expression.IONode;
 
 /**
  * Constant literal for a String value.
  */
 @NodeInfo(shortName = "const")
-public final class StringLiteralNode extends ExpressionNode {
+public final class StringLiteralNode extends IONode {
 
     private final TruffleString value;
 

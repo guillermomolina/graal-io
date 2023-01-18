@@ -50,14 +50,14 @@ import com.oracle.truffle.api.profiles.ValueProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOLocals;
 
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
-public abstract class RemoteSlotNode extends ExpressionNode {
+public abstract class RemoteSlotNode extends IONode {
 
     protected abstract int getContextLevel();
 

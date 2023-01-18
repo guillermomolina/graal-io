@@ -65,9 +65,9 @@ import com.oracle.truffle.api.nodes.NodeVisitor;
  * A expression node that just executes a list of other expressions.
  */
 @NodeInfo(shortName = "block", description = "The node implementing a source code block")
-public final class BlockNode extends ExpressionNode implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<ExpressionNode> {
+public final class BlockNode extends IONode implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<IONode> {
 
-    @Child private com.oracle.truffle.api.nodes.BlockNode<ExpressionNode> block;
+    @Child private com.oracle.truffle.api.nodes.BlockNode<IONode> block;
 
     @CompilationFinal(dimensions = 1) private WriteLocalSlotNode[] writeNodesCache;
 
@@ -76,7 +76,7 @@ public final class BlockNode extends ExpressionNode implements com.oracle.truffl
      */
     @CompilationFinal private int parentBlockIndex = -1;
 
-    public BlockNode(ExpressionNode[] bodyNodes) {
+    public BlockNode(IONode[] bodyNodes) {
         /*
          * Truffle block nodes cannot be empty, that is why we just set the entire block to null if
          * there are no elements. This is good practice as it safes memory.
@@ -87,7 +87,7 @@ public final class BlockNode extends ExpressionNode implements com.oracle.truffl
     /**
      * Execute all block expressions. The block node makes sure that {@link ExplodeLoop full
      * unrolling} of the loop is triggered during compilation. This allows the
-     * {@link ExpressionNode#executeGeneric} method of all children to be inlined.
+     * {@link IONode#executeGeneric} method of all children to be inlined.
      */
     @Override
     public Object executeGeneric(VirtualFrame frame) {
@@ -97,7 +97,7 @@ public final class BlockNode extends ExpressionNode implements com.oracle.truffl
         throw new NotImplementedException();
     }
 
-    public List<ExpressionNode> getExpressions() {
+    public List<IONode> getExpressions() {
         if (block == null) {
             return Collections.emptyList();
         }
@@ -105,12 +105,12 @@ public final class BlockNode extends ExpressionNode implements com.oracle.truffl
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame, ExpressionNode node, int index, int argument) {
+    public void executeVoid(VirtualFrame frame, IONode node, int index, int argument) {
         node.executeGeneric(frame);
     }
 
     @Override
-    public Object executeGeneric(VirtualFrame frame, ExpressionNode node, int index, int argument) {
+    public Object executeGeneric(VirtualFrame frame, IONode node, int index, int argument) {
         return node.executeGeneric(frame);
     }
 

@@ -60,10 +60,10 @@ import com.oracle.truffle.api.profiles.BranchProfile;
  * {@link IONil#SINGLETON default null value}.
  */
 @NodeInfo(shortName = "body")
-public final class MethodBodyNode extends ExpressionNode {
+public final class MethodBodyNode extends IONode {
 
     /** The body of the method. */
-    @Child private ExpressionNode bodyNode;
+    @Child private IONode bodyNode;
 
     /**
      * Profiling information, collected by the interpreter, capturing whether the method had an
@@ -73,7 +73,7 @@ public final class MethodBodyNode extends ExpressionNode {
     private final BranchProfile exceptionTaken = BranchProfile.create();
     //private final BranchProfile nullTaken = BranchProfile.create();
 
-    public MethodBodyNode(ExpressionNode bodyNode) {
+    public MethodBodyNode(IONode bodyNode) {
         this.bodyNode = bodyNode;
         addRootTag();
     }

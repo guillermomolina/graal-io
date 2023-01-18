@@ -44,7 +44,7 @@
 package org.truffle.io.nodes.controlflow;
 
 import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -53,14 +53,14 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeInfo(shortName = "if", description = "The node implementing a condional expression")
-public final class IfNode extends ExpressionNode {
+public final class IfNode extends IONode {
 
-    @Child private ExpressionNode conditionNode;
-    @Child private ExpressionNode thenPartNode;
-    @Child private ExpressionNode elsePartNode;
+    @Child private IONode conditionNode;
+    @Child private IONode thenPartNode;
+    @Child private IONode elsePartNode;
     private final ConditionProfile condition = ConditionProfile.createCountingProfile();
 
-    public IfNode(ExpressionNode conditionNode, ExpressionNode thenPartNode, ExpressionNode elsePartNode) {
+    public IfNode(IONode conditionNode, IONode thenPartNode, IONode elsePartNode) {
         this.conditionNode = UnboxNodeGen.create(conditionNode);
         this.thenPartNode = thenPartNode;
         this.elsePartNode = elsePartNode;

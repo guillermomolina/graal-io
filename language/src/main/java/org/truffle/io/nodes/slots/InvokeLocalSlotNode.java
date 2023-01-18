@@ -46,19 +46,19 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.runtime.objects.IOInvokable;
 
 @NodeField(name = "slot", type = int.class)
-@NodeField(name = "argumentNodes", type = ExpressionNode[].class)
-public abstract class InvokeLocalSlotNode extends ExpressionNode {
+@NodeField(name = "argumentNodes", type = IONode[].class)
+public abstract class InvokeLocalSlotNode extends IONode {
 
     protected abstract int getSlot();
 
-    protected abstract ExpressionNode[] getArgumentNodes();
+    protected abstract IONode[] getArgumentNodes();
 
     @Specialization(guards = "frame.isLong(getSlot())")
     protected long invokeLong(VirtualFrame frame) {

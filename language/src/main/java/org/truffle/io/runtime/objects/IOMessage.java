@@ -42,7 +42,7 @@
 
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
 
@@ -54,9 +54,9 @@ public class IOMessage extends IOObject {
     @DynamicField
     private Object name;
 
-    private final ExpressionNode[] argumentNodes;
+    private final IONode[] argumentNodes;
 
-    public IOMessage(final TruffleString name, final ExpressionNode[] argumentNodes) {
+    public IOMessage(final TruffleString name, final IONode[] argumentNodes) {
         super(IOPrototype.MESSAGE);
         setName(name);
         this.argumentNodes = argumentNodes;
@@ -70,7 +70,7 @@ public class IOMessage extends IOObject {
         IOObjectUtil.putProperty(this, NAME, name);
     }
 
-    public ExpressionNode[] getArgumentNodes() {
+    public IONode[] getArgumentNodes() {
         return argumentNodes;
     }
 

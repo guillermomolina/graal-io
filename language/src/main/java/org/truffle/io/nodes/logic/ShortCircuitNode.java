@@ -43,22 +43,23 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.ExpressionNode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.IONode;
 
 /**
  * Logical operations in IO use short circuit evaluation: if the evaluation of the left operand
  * already decides the result of the operation, the right operand must not be executed. This is
  * expressed in using this base class for {@link LogicalAndNode} and {@link LogicalOrNode}.
  */
-public abstract class ShortCircuitNode extends ExpressionNode {
+public abstract class ShortCircuitNode extends IONode {
 
-    @Child private ExpressionNode left;
-    @Child private ExpressionNode right;
+    @Child private IONode left;
+    @Child private IONode right;
 
     /**
      * Short circuits might be used just like a conditional expression it makes sense to profile the
@@ -66,7 +67,7 @@ public abstract class ShortCircuitNode extends ExpressionNode {
      */
     private final ConditionProfile evaluateRightProfile = ConditionProfile.createCountingProfile();
 
-    public ShortCircuitNode(ExpressionNode left, ExpressionNode right) {
+    public ShortCircuitNode(IONode left, IONode right) {
         this.left = left;
         this.right = right;
     }

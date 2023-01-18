@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -55,7 +55,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
  * the primitive value is automatically boxed by Java.
  */
 @NodeInfo(shortName = "const")
-public final class LongLiteralNode extends ExpressionNode {
+public final class LongLiteralNode extends IONode {
 
     private final long value;
 

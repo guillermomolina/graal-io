@@ -45,18 +45,18 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOMessage;
 
 @NodeInfo(shortName = "message")
-public final class MessageLiteralNode extends ExpressionNode {
+public final class MessageLiteralNode extends IONode {
     
     private final TruffleString name;
     @Children
-    private final ExpressionNode[] argumentNodes;
+    private final IONode[] argumentNodes;
 
-    public MessageLiteralNode(final TruffleString name, final ExpressionNode[] argumentNodes) {
+    public MessageLiteralNode(final TruffleString name, final IONode[] argumentNodes) {
         this.name = name;
         this.argumentNodes = argumentNodes;
     }
@@ -66,7 +66,7 @@ public final class MessageLiteralNode extends ExpressionNode {
         return IOState.get(this).createMessage(name, argumentNodes);
     }
 
-    public ExpressionNode[] getArgumentNodes() {
+    public IONode[] getArgumentNodes() {
         return argumentNodes;
     }
 }

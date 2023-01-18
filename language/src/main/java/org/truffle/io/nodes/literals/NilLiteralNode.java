@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.runtime.objects.IONil;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -53,7 +53,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * Constant literal for a primitive {@code nil} value. 
  */
 @NodeInfo(shortName = "nil")
-public final class NilLiteralNode extends ExpressionNode {
+public final class NilLiteralNode extends IONode {
 
     public NilLiteralNode() {
     }

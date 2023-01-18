@@ -40,7 +40,7 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.runtime.objects.IOInvokable;
@@ -54,10 +54,10 @@ import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-@NodeField(name = "argumentNodes", type = ExpressionNode[].class)
+@NodeField(name = "argumentNodes", type = IONode[].class)
 public abstract class InvokeRemoteSlotNode extends RemoteSlotNode {
 
-    protected abstract ExpressionNode[] getArgumentNodes();
+    protected abstract IONode[] getArgumentNodes();
 
     @Specialization(guards = "ctx.isLong(getSlot())")
     protected long readLong(VirtualFrame frame,

@@ -90,7 +90,7 @@ import org.truffle.io.builtins.object.ObjectSlotNamesBuiltinFactory;
 import org.truffle.io.builtins.system.SystemRegisterShutdownHookBuiltinFactory;
 import org.truffle.io.builtins.system.SystemSleepBuiltinFactory;
 import org.truffle.io.builtins.system.SystemStackTraceBuiltinFactory;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
@@ -250,7 +250,7 @@ public final class IOState {
          * methods in the builtin classes.
          */
         int argumentCount = factory.getExecutionSignature().size();
-        ExpressionNode[] argumentNodes = new ExpressionNode[argumentCount];
+        IONode[] argumentNodes = new IONode[argumentCount];
         /*
          * Builtin functions are like normal functions, i.e., the arguments are passed
          * in as an Object[] array encapsulated in IOArguments. A IOReadArgumentNode
@@ -433,7 +433,7 @@ public final class IOState {
         return function;
     }
 
-    public IOMessage createMessage(final TruffleString name, final ExpressionNode[] argumentNodes) {
+    public IOMessage createMessage(final TruffleString name, final IONode[] argumentNodes) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOMessage message = new IOMessage(name, argumentNodes);
         allocationReporter.onReturnValue(message, 0, AllocationReporter.SIZE_UNKNOWN);

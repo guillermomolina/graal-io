@@ -59,7 +59,7 @@ import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
 
-public final class InvokeNode extends ExpressionNode {
+public final class InvokeNode extends IONode {
 
     @Child
     private DirectCallNode callNode;
@@ -89,7 +89,7 @@ public final class InvokeNode extends ExpressionNode {
 
     @ExplodeLoop
     protected final Object executeFunction(IOFunction function, VirtualFrame frame) {
-        ExpressionNode[] argumentNodes = messageNode.getArgumentNodes();
+        IONode[] argumentNodes = messageNode.getArgumentNodes();
         CompilerAsserts.compilationConstant(argumentNodes.length + 1);
         Object[] argumentValues = new Object[argumentNodes.length + 1];
         argumentValues[0] = target;
@@ -103,7 +103,7 @@ public final class InvokeNode extends ExpressionNode {
     @ExplodeLoop
     protected final Object executeMethod(IOBlock method, VirtualFrame frame) {
         IOMessage message = messageNode.executeGeneric(frame);
-        ExpressionNode[] argumentNodes = messageNode.getArgumentNodes();
+        IONode[] argumentNodes = messageNode.getArgumentNodes();
         IOLocals sender = IOState.get(this).createLocals(frame.materialize());
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
         IOCall call = IOState.get(this).createCall(sender, target, message, null, method, currentCoroutine);

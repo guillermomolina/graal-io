@@ -46,7 +46,7 @@ package org.truffle.io.nodes.slots;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.BlockNode;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.root.FunctionRootNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.Symbols;
@@ -889,7 +889,7 @@ public abstract class ScopedNode extends Node {
             if (!hasSourceLocation()) {
                 throw UnsupportedMessageException.create();
             }
-            ExpressionNode nameNode = writeNode.getNameNode();
+            IONode nameNode = writeNode.getNameNode();
             return writeNode.getRootNode().getSourceSection().getSource().createSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
         }
     }

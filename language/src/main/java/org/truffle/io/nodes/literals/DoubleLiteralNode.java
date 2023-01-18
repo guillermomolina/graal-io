@@ -40,14 +40,14 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 @NodeInfo(shortName = "const")
-public final class DoubleLiteralNode extends ExpressionNode {
+public final class DoubleLiteralNode extends IONode {
 
     private final double value;
 

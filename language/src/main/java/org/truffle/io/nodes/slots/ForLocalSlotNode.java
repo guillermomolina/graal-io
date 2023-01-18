@@ -44,7 +44,7 @@
 package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.arithmetic.AddNodeGen;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
 import org.truffle.io.nodes.logic.LessOrEqualNodeGen;
 import org.truffle.io.nodes.logic.LessThanNodeGen;
@@ -59,27 +59,27 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 @NodeInfo(shortName = "for", description = "The node implementing a for loop")
-public final class ForLocalSlotNode extends ExpressionNode {
+public final class ForLocalSlotNode extends IONode {
 
     private int slotFrameIndex;
     @Child
-    private ExpressionNode slotNameNode;
+    private IONode slotNameNode;
     @Child
-    private ExpressionNode startValueNode;
+    private IONode startValueNode;
     @Child
-    private ExpressionNode endValueNode;
+    private IONode endValueNode;
     @Child
-    private ExpressionNode stepValueNode;
+    private IONode stepValueNode;
     @Child
-    private ExpressionNode readControlNode;
+    private IONode readControlNode;
     @Child
-    private ExpressionNode bodyNode;
+    private IONode bodyNode;
     @Child
-    private ExpressionNode isDescendingNode;
+    private IONode isDescendingNode;
 
-    public ForLocalSlotNode(int slotFrameIndex, ExpressionNode slotNameNode,
-            ExpressionNode startValueNode, ExpressionNode endValueNode, ExpressionNode stepValueNode,
-            ExpressionNode bodyNode) {
+    public ForLocalSlotNode(int slotFrameIndex, IONode slotNameNode,
+            IONode startValueNode, IONode endValueNode, IONode stepValueNode,
+            IONode bodyNode) {
         this.slotFrameIndex = slotFrameIndex;
         this.slotNameNode = slotNameNode;
         this.startValueNode = startValueNode;
@@ -92,10 +92,10 @@ public final class ForLocalSlotNode extends ExpressionNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        ExpressionNode initialAssignmentNode = WriteLocalSlotNodeGen.create(startValueNode, slotFrameIndex,
+        IONode initialAssignmentNode = WriteLocalSlotNodeGen.create(startValueNode, slotFrameIndex,
                 slotNameNode);
         final boolean isDescending = evaluateIsDescendingNode(frame);
-        final ExpressionNode hasEndedNode;
+        final IONode hasEndedNode;
         if (isDescending) {
             hasEndedNode = LogicalNotNodeGen.create(LessThanNodeGen.create(readControlNode, endValueNode));
         } else {
@@ -108,8 +108,8 @@ public final class ForLocalSlotNode extends ExpressionNode {
                 stepValueNode = new LongLiteralNode(1);
             }
         }
-        ExpressionNode addNode = AddNodeGen.create(readControlNode, stepValueNode);
-        ExpressionNode stepSlotNode = WriteLocalSlotNodeGen.create(addNode, slotFrameIndex, slotNameNode);
+        IONode addNode = AddNodeGen.create(readControlNode, stepValueNode);
+        IONode stepSlotNode = WriteLocalSlotNodeGen.create(addNode, slotFrameIndex, slotNameNode);
         ForRepeatingNode forRepeatingNode = new ForRepeatingNode(hasEndedNode, bodyNode, stepSlotNode);
         LoopNode loopNode = Truffle.getRuntime().createLoopNode(forRepeatingNode);
 

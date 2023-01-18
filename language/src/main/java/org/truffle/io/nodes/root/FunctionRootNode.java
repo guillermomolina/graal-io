@@ -44,7 +44,7 @@
 package org.truffle.io.nodes.root;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 
@@ -67,7 +67,7 @@ public class FunctionRootNode extends IORootNode {
     private final TruffleString name;
 
 
-    public FunctionRootNode(IOLanguage language, FrameDescriptor frameDescriptor, ExpressionNode bodyNode, SourceSection sourceSection, TruffleString name) {
+    public FunctionRootNode(IOLanguage language, FrameDescriptor frameDescriptor, IONode bodyNode, SourceSection sourceSection, TruffleString name) {
         super(language, frameDescriptor, bodyNode, sourceSection);
         this.name = name;
     }

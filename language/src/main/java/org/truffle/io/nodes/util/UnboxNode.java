@@ -56,7 +56,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IONil;
 
@@ -66,7 +66,7 @@ import org.truffle.io.runtime.objects.IONil;
  */
 @TypeSystemReference(IOTypes.class)
 @NodeChild
-public abstract class UnboxNode extends ExpressionNode {
+public abstract class UnboxNode extends IONode {
 
     static final int LIMIT = 5;
 

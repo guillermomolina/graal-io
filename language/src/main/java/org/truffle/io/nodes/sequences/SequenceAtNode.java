@@ -54,7 +54,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
@@ -69,7 +69,7 @@ import org.truffle.io.runtime.objects.IOObject;
 @NodeInfo(shortName = "at")
 @NodeChild("receiverNode")
 @NodeChild("indexNode")
-public abstract class SequenceAtNode extends ExpressionNode {
+public abstract class SequenceAtNode extends IONode {
 
     static final TruffleString AT = Symbols.constant("at");
     static final int LIBRARY_LIMIT = 3;
@@ -141,7 +141,7 @@ public abstract class SequenceAtNode extends ExpressionNode {
         }
         if (value instanceof IOInvokable) {
             final IOInvokable invokable = (IOInvokable) value;
-            final ExpressionNode[] argumentNodes = new ExpressionNode[1];
+            final IONode[] argumentNodes = new IONode[1];
             argumentNodes[0] = new LongLiteralNode(index);
             final MessageLiteralNode messageNode = new MessageLiteralNode(AT, argumentNodes);
             final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);

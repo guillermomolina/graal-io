@@ -55,7 +55,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
@@ -69,13 +69,13 @@ import org.truffle.io.runtime.objects.IOObject;
 @NodeInfo(shortName = "atPut")
 @NodeChild("receiverNode")
 @NodeChild("indexNode")
-@NodeField(name = "valueNode", type = ExpressionNode.class)
-public abstract class SequenceAtPutNode extends ExpressionNode {
+@NodeField(name = "valueNode", type = IONode.class)
+public abstract class SequenceAtPutNode extends IONode {
 
     static final TruffleString AT_PUT = Symbols.constant("atPut");
     static final int LIBRARY_LIMIT = 3;
 
-    protected abstract ExpressionNode getValueNode();
+    protected abstract IONode getValueNode();
     
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
     protected Object atArrayPut(VirtualFrame frame, Object receiver, Object index,
@@ -119,7 +119,7 @@ public abstract class SequenceAtPutNode extends ExpressionNode {
         }
         if (member instanceof IOInvokable) {
             final IOInvokable invokable = (IOInvokable) member;
-            final ExpressionNode[] argumentNodes = new ExpressionNode[2];
+            final IONode[] argumentNodes = new IONode[2];
             argumentNodes[0] = new LongLiteralNode(index);
             argumentNodes[1] = getValueNode();
             final MessageLiteralNode messageNode = new MessageLiteralNode(AT_PUT, argumentNodes);

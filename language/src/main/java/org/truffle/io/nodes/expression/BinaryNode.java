@@ -49,7 +49,7 @@ import com.oracle.truffle.api.dsl.NodeChild;
 
 @NodeChild("leftNode")
 @NodeChild("rightNode")
-public abstract class BinaryNode extends ExpressionNode {
+public abstract class BinaryNode extends IONode {
     protected static final Number reduceToLongOrDouble(final BigInteger result) {
         if (result.bitLength() > Long.SIZE - 1) {
             return result.doubleValue();

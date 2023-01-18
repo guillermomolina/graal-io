@@ -43,23 +43,23 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import org.truffle.io.nodes.expression.IONode;
+
 public final class RepeatRepeatingNode extends Node implements RepeatingNode {
 
-    @Child private ExpressionNode bodyNode;
+    @Child private IONode bodyNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
     private Object lastResult;
     private long repetitions;
 
-    public RepeatRepeatingNode(ExpressionNode bodyNode) {
+    public RepeatRepeatingNode(IONode bodyNode) {
         this.repetitions = 0;
         this.bodyNode = bodyNode;
     }
@@ -95,7 +95,7 @@ public final class RepeatRepeatingNode extends Node implements RepeatingNode {
 
     @Override
     public String toString() {
-        return ExpressionNode.formatSourceSection(this);
+        return IONode.formatSourceSection(this);
     }
 
 }

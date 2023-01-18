@@ -44,7 +44,7 @@
 package org.truffle.io.nodes.literals;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOBlock;
@@ -64,7 +64,7 @@ import com.oracle.truffle.api.strings.TruffleString;
  * never changes. This is guaranteed by the {@link IOMethodRegistry}.
  */
 @NodeInfo(shortName = "method")
-public final class MethodLiteralNode extends ExpressionNode {
+public final class MethodLiteralNode extends IONode {
 
     @Child private IORootNode value;
     private final TruffleString[] argNames;

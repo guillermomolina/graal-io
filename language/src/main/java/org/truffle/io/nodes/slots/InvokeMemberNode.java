@@ -49,7 +49,7 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
@@ -61,10 +61,10 @@ import org.truffle.io.runtime.objects.IOObject;
 
 @NodeChild("recevierNode")
 @NodeChild("nameNode")
-@NodeField(name = "argumentNodes", type = ExpressionNode[].class)
-public abstract class InvokeMemberNode extends ExpressionNode {
+@NodeField(name = "argumentNodes", type = IONode[].class)
+public abstract class InvokeMemberNode extends IONode {
 
-    protected abstract ExpressionNode[] getArgumentNodes();
+    protected abstract IONode[] getArgumentNodes();
 
     @Specialization
     protected Object invokeIOObject(VirtualFrame frame, IOObject receiver, Object name,

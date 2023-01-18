@@ -43,15 +43,15 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-@NodeChild(value = "valueNode", type = ExpressionNode.class)
+import org.truffle.io.nodes.expression.IONode;
+
+@NodeChild(value = "valueNode", type = IONode.class)
 public abstract class WriteRemoteSlotNode extends RemoteSlotNode {
 
     @Specialization(guards = "isLongOrIllegal(frame)")

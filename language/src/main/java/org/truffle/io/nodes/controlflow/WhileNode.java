@@ -43,20 +43,21 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.expression.ExpressionNode;
-
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.Node.Child;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.truffle.io.nodes.expression.IONode;
+
 @NodeInfo(shortName = "while", description = "The node implementing a while loop")
-public final class WhileNode extends ExpressionNode {
+public final class WhileNode extends IONode {
 
     @Child private LoopNode loopNode;
     @Child private WhileRepeatingNode whileRepeatingNode;
 
-    public WhileNode(ExpressionNode conditionNode, ExpressionNode bodyNode) {
+    public WhileNode(IONode conditionNode, IONode bodyNode) {
         this.whileRepeatingNode = new WhileRepeatingNode(conditionNode, bodyNode);
         this.loopNode = Truffle.getRuntime().createLoopNode(whileRepeatingNode);
     }

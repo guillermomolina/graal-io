@@ -48,7 +48,7 @@ import java.util.List;
 
 import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.expression.BlockNode;
-import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.IONode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
@@ -67,7 +67,7 @@ import com.oracle.truffle.api.source.SourceSection;
 
 @NodeInfo(language = "IO", description = "The root of all IO execution trees")
 public class IORootNode extends RootNode {
-    @Child private ExpressionNode bodyNode;
+    @Child private IONode bodyNode;
 
     private boolean isCloningAllowed;
 
@@ -75,7 +75,7 @@ public class IORootNode extends RootNode {
 
     @CompilerDirectives.CompilationFinal(dimensions = 1) private volatile WriteLocalSlotNode[] argumentNodesCache;
 
-    public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, ExpressionNode bodyNode, SourceSection sourceSection) {
+    public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, IONode bodyNode, SourceSection sourceSection) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.sourceSection = sourceSection;
@@ -92,7 +92,7 @@ public class IORootNode extends RootNode {
         return bodyNode.executeGeneric(frame);
     }
 
-    public ExpressionNode getBodyNode() {
+    public IONode getBodyNode() {
         return bodyNode;
     }
 
@@ -139,7 +139,7 @@ public class IORootNode extends RootNode {
                 } else if (wn != null && (node instanceof ReadArgumentNode)) {
                     writeArgNodes.add(wn);
                     return true;
-                } else if (wn == null && (node instanceof ExpressionNode && !(node instanceof BlockNode || node instanceof MethodBodyNode))) {
+                } else if (wn == null && (node instanceof IONode && !(node instanceof BlockNode || node instanceof MethodBodyNode))) {
                     // A different IO node - we're done.
                     return false;
                 } else {

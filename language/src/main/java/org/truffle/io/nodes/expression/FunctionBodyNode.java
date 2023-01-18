@@ -51,9 +51,9 @@ import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
-@NodeChild(value = "arguments", type = ExpressionNode[].class)
+@NodeChild(value = "arguments", type = IONode[].class)
 @GenerateNodeFactory
-public abstract class FunctionBodyNode extends ExpressionNode {
+public abstract class FunctionBodyNode extends IONode {
 
     @Override
     public final Object executeGeneric(VirtualFrame frame) {
