@@ -45,7 +45,6 @@ package org.truffle.io.runtime.objects;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -54,15 +53,15 @@ import com.oracle.truffle.api.strings.TruffleString;
 @ExportLibrary(InteropLibrary.class)
 public final class IOBlock extends IOMethod {
 
-    protected final MaterializedFrame frame;
+    protected final IOLocals sender;
 
-    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final MaterializedFrame frame) {
+    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final IOLocals sender) {
         super(callTarget, argNames);
-        this.frame = frame;
+        this.sender = sender;
     }
    
-    public MaterializedFrame getFrame() {
-        return frame;
+    public IOLocals getSender() {
+        return sender;
     }
  
     @Override

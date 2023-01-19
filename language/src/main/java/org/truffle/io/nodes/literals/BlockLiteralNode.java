@@ -47,7 +47,9 @@ import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IOObject;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -59,46 +61,52 @@ import com.oracle.truffle.api.strings.TruffleString;
 @NodeInfo(shortName = "block")
 public final class BlockLiteralNode extends IONode {
 
-    @Child private IORootNode value;
+    @Child
+    private IORootNode rootNode;
     private final TruffleString[] argNames;
+    @Child
+    private IONode receiverNode;
 
-    @CompilationFinal private IOMethod cachedBlock;
+    @CompilationFinal
+    private IOMethod cachedBlock;
 
-    public BlockLiteralNode(final IORootNode value, TruffleString[] argNames) {
-        this.value = value;
+    public BlockLiteralNode(final IORootNode rootNode, TruffleString[] argNames, final IONode receiverNode) {
+        this.rootNode = rootNode;
         this.argNames = argNames;
+        this.receiverNode = receiverNode;
     }
 
     @Override
     public IOMethod executeGeneric(VirtualFrame frame) {
+        Object targetObject = receiverNode.executeGeneric(frame);
+        final IOObject target;
+        if (targetObject instanceof IOObject) {
+            target = (IOObject) targetObject;
+        } else {
+            target = IOState.get(this).getPrototype(targetObject);
+        }
+        final IOLocals sender = IOState.get(this).createLocals(target, frame.materialize());
+
         IOLanguage l = IOLanguage.get(this);
         CompilerAsserts.partialEvaluationConstant(l);
-
         IOMethod block;
         if (l.isSingleContext()) {
             block = this.cachedBlock;
             if (block == null) {
-                /* We are about to change a @CompilationFinal field. */
-                CompilerDirectives.transferToInterpreterAndInvalidate();
-                /* First execution of the node: lookup the block in the block registry. */
-                this.cachedBlock = block = IOState.get(this).createBlock(value.getCallTarget(), argNames);
+                 CompilerDirectives.transferToInterpreterAndInvalidate();
+                this.cachedBlock = block = IOState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
             }
         } else {
-            /*
-             * We need to rest the cached block otherwise it might cause a memory leak.
-             */
             if (this.cachedBlock != null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 this.cachedBlock = null;
             }
-            // in the multi-context case we are not allowed to store
-            // IOBlock objects in the AST. Instead we always perform the lookup in the hash map.
-            block = IOState.get(this).createBlock(value.getCallTarget(), argNames);
+            block = IOState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
         }
         return block;
     }
 
     public IORootNode getValue() {
-        return value;
+        return rootNode;
     }
 }

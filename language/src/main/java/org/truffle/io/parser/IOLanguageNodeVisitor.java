@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -42,6 +38,10 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -345,16 +345,15 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     }
 
     public IONode visitGetSlotMessage(final MessageContext ctx, IONode receiverNode) {
-        final IONode nameNode;
-        if (ctx.name == null) {
-            nameNode = visitExpression(ctx.expression(0));
-        } else {
-            nameNode = factory.createStringLiteral(ctx.name, true);
-        }
-        assert nameNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IONode result = factory.createReadSlot(receiverNode, nameNode, start, length);
+        final IONode result;
+        if (ctx.name == null) {
+            final IONode nameNode = visitExpression(ctx.expression(0));
+            result = factory.createReadSlot(receiverNode, nameNode, start, length);
+        } else {
+            result = factory.createReadSlot(receiverNode, ctx.name, start, length);
+        }
         assert result != null;
         return result;
     }

@@ -43,7 +43,6 @@
  */
 package org.truffle.io.nodes.expression;
 
-import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
@@ -82,13 +81,13 @@ public final class InvokeNode extends IONode {
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         Object receiver = receiverNode.executeGeneric(frame);
-        IOMessage message = (IOMessage) messageNode.executeGeneric(frame);   
+        IOMessage message = (IOMessage) messageNode.executeGeneric(frame);
         Object value = null;
-        if(valueNode == null)  {
+        if (valueNode == null) {
             IOObject prototype = null;
-            if (receiver instanceof IOObject) {        
-                prototype = (IOObject)receiver;
-            } else  {
+            if (receiver instanceof IOObject) {
+                prototype = (IOObject) receiver;
+            } else {
                 prototype = IOState.get(this).getPrototype(receiver);
             }
             value = IOObjectUtil.getOrDefaultUncached(prototype, message.getName());
@@ -103,7 +102,7 @@ public final class InvokeNode extends IONode {
         }
         if (value instanceof IOMethod) {
             return executeMethod(frame, receiver, (IOMethod) value, message);
-        } 
+        }
         if (value instanceof IOBlock) {
             return executeBlock(frame, receiver, (IOBlock) value, message);
         }
@@ -127,9 +126,8 @@ public final class InvokeNode extends IONode {
 
     protected final Object executeBlock(VirtualFrame frame, final Object receiver, IOBlock block,
             final IOMessage message) {
-        throw new NotImplementedException();
-        // IOLocals sender = IOState.get(this).createLocals(block.getFrame());
-        // return executeBlock(block, frame, sender);
+        assert receiver instanceof IOObject;
+        return execute(frame, receiver, block, message, block.getSender());
     }
 
     protected final Object executeMethod(VirtualFrame frame, final Object receiver, IOMethod method,
