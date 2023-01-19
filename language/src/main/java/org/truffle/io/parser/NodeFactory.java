@@ -48,12 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -71,6 +65,7 @@ import org.truffle.io.nodes.controlflow.RepeatNode;
 import org.truffle.io.nodes.controlflow.ReturnNode;
 import org.truffle.io.nodes.controlflow.WhileNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
 import org.truffle.io.nodes.literals.BlockLiteralNode;
@@ -79,6 +74,7 @@ import org.truffle.io.nodes.literals.DoubleLiteralNode;
 import org.truffle.io.nodes.literals.FunctionLiteralNode;
 import org.truffle.io.nodes.literals.ListLiteralNode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.nodes.literals.MethodLiteralNode;
 import org.truffle.io.nodes.literals.NilLiteralNode;
 import org.truffle.io.nodes.literals.StringLiteralNode;
@@ -103,6 +99,12 @@ import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IOLocals;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -525,6 +527,18 @@ public class NodeFactory {
         return null;
     }
 
+    public IONode createReadLocalSlot(Token nameToken) {
+        TruffleString name = asTruffleString(nameToken, false);
+        if (currentScope.localSlots.containsKey(name)) {
+            int frameSlot = currentScope.localSlots.get(name);
+            final IONode result = ReadLocalSlotNodeGen.create(frameSlot);
+            srcFromToken(result, nameToken);
+            result.addExpressionTag();
+            return result;
+        }
+        return null;
+    }
+
     public IONode createReadLocalSlot(IONode nameNode, int startPos, int length) {
         if (!hasLocals()) {
             return null;
@@ -684,8 +698,7 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createReadProperty(IONode receiverNode, IONode nameNode, int startPos,
-            int length) {
+    public IONode createReadProperty(IONode receiverNode, IONode nameNode, int startPos, int length) {
         if (receiverNode == null || nameNode == null) {
             return null;
         }
@@ -765,22 +778,28 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createInvokeSlot(IONode receiverNode, IONode identifierNode,
-            List<IONode> argumentNodes, int startPos, int length) {
-        IONode result = null;
-        if (receiverNode == null) {
-            result = createInvokeSlot(identifierNode, argumentNodes, startPos, length);
-            if (result == null) {
-                if (hasLocals()) {
-                    receiverNode = createReadCallSender();
-                } else {
-                    receiverNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+    public IONode createInvokeSlot(IONode receiverNode, Token identifierToken, List<IONode> argumentNodes,
+            int startPos, int length) {
+        IONode targetNode = receiverNode;
+        IONode valueNode = null;
+        if (targetNode == null) {
+            if (hasLocals()) {
+                targetNode = createReadSelf();
+                valueNode = createReadLocalSlot(identifierToken);
+                if(valueNode == null) {
+                    targetNode = createReadCallSender();
                 }
+            } else {
+                targetNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
             }
         }
-        if (result == null) {
-            result = createInvokeProperty(receiverNode, identifierNode, argumentNodes, startPos, length);
-        }
+        TruffleString identifier = asTruffleString(identifierToken, false);
+        MessageLiteralNode messageNode = new MessageLiteralNode(identifier,
+                argumentNodes.toArray(new IONode[argumentNodes.size()]));
+        assert targetNode != null;
+        IONode result = new InvokeNode(targetNode, valueNode, messageNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
         return result;
     }
 
