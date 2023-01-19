@@ -47,7 +47,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.expression.InvokeInvokableNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.runtime.objects.IOInvokable;
@@ -82,7 +82,7 @@ public abstract class InvokeLocalSlotNode extends IONode {
         }
         if (value instanceof IOInvokable) {
             MessageLiteralNode messageNode = new MessageLiteralNode(getSlotName(frame), getArgumentNodes());
-            final InvokeNode invokeNode = new InvokeNode((IOInvokable) value, frame.getObject(0), messageNode);
+            final InvokeInvokableNode invokeNode = new InvokeInvokableNode((IOInvokable) value, frame.getObject(0), messageNode);
             value = invokeNode.executeGeneric(frame);
         }
         return value;

@@ -48,6 +48,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -88,7 +94,6 @@ import org.truffle.io.nodes.sequences.SequenceAtPutNodeGen;
 import org.truffle.io.nodes.slots.ForLocalSlotNode;
 import org.truffle.io.nodes.slots.InvokeLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.InvokeMemberNodeGen;
-import org.truffle.io.nodes.slots.InvokeRemoteSlotNodeGen;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.ReadMemberNodeGen;
@@ -97,13 +102,7 @@ import org.truffle.io.nodes.slots.WriteMemberNodeGen;
 import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IOInvokable;
-
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
+import org.truffle.io.runtime.objects.IOLocals;
 
 public class NodeFactory {
 
@@ -216,7 +215,7 @@ public class NodeFactory {
     }
 
     public void addFormalParameter(Token nameToken) {
-        assert currentScope.parameterCount >= IOInvokable.FIRST_PARAMETER_ARGUMENT_INDEX;
+        assert currentScope.parameterCount >= IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         final ReadArgumentNode readArg = new ReadArgumentNode(currentScope.parameterCount);
         int startPos = nameToken.getStartIndex();
         int length = nameToken.getText().length();
@@ -232,8 +231,8 @@ public class NodeFactory {
 
     public void setupLocals() {
         assert currentScope.parameterCount == 0;
-        final ReadArgumentNode readCallArgumentNode = new ReadArgumentNode(IOInvokable.CALL_ARGUMENT_INDEX);
-        currentScope.parameterCount = IOInvokable.FIRST_PARAMETER_ARGUMENT_INDEX;
+        final ReadArgumentNode readCallArgumentNode = new ReadArgumentNode(IOLocals.CALL_ARGUMENT_INDEX);
+        currentScope.parameterCount = IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
 
         final StringLiteralNode callIdentifierNode = new StringLiteralNode(CALL_SYMBOL);
         IONode callAssignmentNode = createWriteSlot(callIdentifierNode, readCallArgumentNode, 0, 0, 0,
@@ -550,8 +549,9 @@ public class NodeFactory {
                     result = InvokeLocalSlotNodeGen.create(frameSlot,
                             argumentNodes.toArray(new IONode[argumentNodes.size()]));
                 } else {
-                    result = InvokeRemoteSlotNodeGen.create(contextLevel, frameSlot,
-                            argumentNodes.toArray(new IONode[argumentNodes.size()]));
+                    return null;
+                    // result = InvokeRemoteSlotNodeGen.create(contextLevel, frameSlot,
+                    //         argumentNodes.toArray(new IONode[argumentNodes.size()]));
                 }
                 result.setSourceSection(startPos, length);
                 result.addExpressionTag();
@@ -774,8 +774,7 @@ public class NodeFactory {
                 if (hasLocals()) {
                     receiverNode = createReadCallSender();
                 } else {
-                    receiverNode = new ReadArgumentNode(IOInvokable.TARGET_ARGUMENT_INDEX);
-                    ;
+                    receiverNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
                 }
             }
         }
@@ -794,8 +793,7 @@ public class NodeFactory {
                 if (hasLocals()) {
                     receiverNode = createReadCallSender();
                 } else {
-                    receiverNode = new ReadArgumentNode(IOInvokable.TARGET_ARGUMENT_INDEX);
-                    ;
+                    receiverNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
                 }
             }
         }

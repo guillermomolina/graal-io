@@ -43,22 +43,21 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.Symbols;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOPrototype extends IOObject {
@@ -71,10 +70,10 @@ public class IOPrototype extends IOObject {
     public static final IOPrototype BLOCK = new IOPrototype(OBJECT, Symbols.BLOCK, (l, v) -> l.isExecutable(v));
     public static final IOPrototype LIST = new IOPrototype(OBJECT, Symbols.LIST, (l, v) -> l.hasArrayElements(v));
     public static final IOPrototype DATE = new IOPrototype(OBJECT, Symbols.DATE, (l, v) -> v instanceof IODate);
-    public static final IOPrototype LOCALS = new IOPrototype(OBJECT, Symbols.LOCALS, (l, v) -> v instanceof MaterializedFrame);
     public static final IOPrototype SYSTEM = new IOPrototype(OBJECT, Symbols.SYSTEM, (l, v) -> v == IOPrototype.SYSTEM);
     public static final IOPrototype MESSAGE = new IOPrototype(OBJECT, Symbols.MESSAGE, (l, v) -> v == IOPrototype.MESSAGE);
     public static final IOPrototype CALL = new IOPrototype(OBJECT, Symbols.CALL, (l, v) -> v == IOPrototype.CALL);
+    public static final IOPrototype LOCALS = new IOPrototype(OBJECT, Symbols.LOCALS, (l, v) -> v == IOPrototype.LOCALS);
     public static final IOPrototype COROUTINE = new IOPrototype(OBJECT, Symbols.COROUTINE, (l, v) -> v == IOPrototype.COROUTINE);
 
     @CompilationFinal(dimensions = 1)
@@ -92,11 +91,11 @@ public class IOPrototype extends IOObject {
     }
 
     public TruffleString getType() {
-        return (TruffleString) IOObjectUtil.getSlot(this, TYPE);
+        return (TruffleString) IOObjectUtil.getOrDefaultUncached(this, TYPE);
     }
 
     public void setType(TruffleString type) {
-        IOObjectUtil.setSlot(this, TYPE, type);
+        IOObjectUtil.putUncached(this, TYPE, type);
     }
 
     public boolean isInstance(Object value, InteropLibrary interop) {

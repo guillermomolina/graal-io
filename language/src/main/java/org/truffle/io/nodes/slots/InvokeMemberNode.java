@@ -40,16 +40,6 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.literals.MessageLiteralNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -59,12 +49,41 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.expression.InvokeInvokableNode;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOObject;
+
 @NodeChild("recevierNode")
 @NodeChild("nameNode")
 @NodeField(name = "argumentNodes", type = IONode[].class)
 public abstract class InvokeMemberNode extends IONode {
 
     protected abstract IONode[] getArgumentNodes();
+/* 
+    @Specialization(limit = "3")
+    protected Object invokeGeneric(VirtualFrame frame, IOLocals locals, Object name,
+            @CachedLibrary("locals") InteropLibrary objects, @Cached ToMemberNode asMember,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        Object value = null;
+        try {
+            value = objects.readMember(locals, asMember.execute(name));
+        } catch (UnsupportedMessageException | UnknownIdentifierException e) {
+            throw UndefinedNameException.undefinedField(this, name);
+        }
+        if (value != null) {
+            return value;
+        }
+        TruffleString nameTS = toTruffleStringNode.execute(name);
+        IOObject prototype = IOState.get(this).getPrototype(locals);
+        return getOrInvoke(frame, locals, nameTS, prototype);
+
+    }*/
 
     @Specialization
     protected Object invokeIOObject(VirtualFrame frame, IOObject receiver, Object name,
@@ -83,14 +102,14 @@ public abstract class InvokeMemberNode extends IONode {
 
     protected final Object getOrInvoke(VirtualFrame frame, final Object receiver, final TruffleString nameTS,
             final IOObject prototype) {
-        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
+        Object value = IOObjectUtil.getOrDefaultUncached(prototype, nameTS, null);
         if (value == null) {
             throw UndefinedNameException.undefinedField(this, nameTS);
         }
         if (value instanceof IOInvokable) {
             final IOInvokable invokable = (IOInvokable) value;
             MessageLiteralNode messageNode = new MessageLiteralNode(nameTS, getArgumentNodes());
-            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);
+            final InvokeInvokableNode invokeNode = new InvokeInvokableNode(invokable, receiver, messageNode);
             Object result = invokeNode.executeGeneric(frame);
             return result;
         }

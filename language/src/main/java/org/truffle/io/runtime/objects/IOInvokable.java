@@ -60,12 +60,6 @@ import com.oracle.truffle.api.utilities.TriState;
 @ExportLibrary(InteropLibrary.class)
 public abstract class IOInvokable extends IOObject {
 
-    public static final int CALL_ARGUMENT_INDEX = 0;
-    public static final int TARGET_ARGUMENT_INDEX = 0;
-    public static final int FIRST_PARAMETER_ARGUMENT_INDEX = 1;
-    public static final int CALL_SLOT_INDEX = 0;
-    public static final int FIRST_USER_SLOT_INDEX = 1;
-
     public static final int INLINE_CACHE_SIZE = 2;
 
     /** The current implementation of this method. */

@@ -4,12 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.objects.IODate;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -19,6 +13,13 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+
 public final class IOObjectUtil {
     private static int TO_STRING_MAX_DEPTH = 1;
     private static int TO_STRING_MAX_ELEMENTS = 10;
@@ -27,25 +28,55 @@ public final class IOObjectUtil {
     private IOObjectUtil() {
     }
 
-    public static void setSlot(DynamicObject obj, Object key, Object value) {
-        DynamicObjectLibrary.getUncached().put(obj, key, value);
+    public static void putUncached(DynamicObject obj, Object key, Object value) {
+        put(DynamicObjectLibrary.getUncached(), obj, key, value);
     }
 
-    public static Object getSlot(DynamicObject obj, Object key) {
-        return DynamicObjectLibrary.getUncached().getOrDefault(obj, key, null);
+    public static void put(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object value) {
+        lib.put(obj, key, value);
     }
 
-    public static boolean hasSlot(DynamicObject obj, Object key) {
-        return DynamicObjectLibrary.getUncached().containsKey(obj, key);
+    public static boolean containsKeyUncached(DynamicObject obj, Object key) {
+        return containsKey(DynamicObjectLibrary.getUncached(), obj, key);
     }
 
-    public static Object getOrDefault(IOObject obj, Object key, Object defaultValue) {
+    public static boolean containsKey(DynamicObjectLibrary lib, DynamicObject obj, Object key) {
+        return lib.containsKey(obj, key);
+    }
+
+    public static Object getOrDefaultUncached(DynamicObject obj, Object key) {
+        return getOrDefault(DynamicObjectLibrary.getUncached(), obj, key, null);
+    }
+
+    public static Object getOrDefaultUncached(DynamicObject obj, Object key, Object defaultValue) {
+        return getOrDefault(DynamicObjectLibrary.getUncached(), obj, key, defaultValue);
+    }
+
+    public static Object getOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key) {
+        return lib.getOrDefault(obj, key, null);
+    }
+
+    public static Object getOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object defaultValue) {
+        if(obj instanceof IOObject) {
+            if(obj instanceof IOLocals) {
+                Object value = ((IOLocals)obj).getLocal(key);
+                if (value != null) {
+                    return value;
+                }
+            }
+            return getSlotOrDefault(lib, (IOObject)obj, key, defaultValue);
+        }
+        return lib.getOrDefault(obj, key, defaultValue);
+    }
+
+    protected static Object getSlotOrDefault(DynamicObjectLibrary lib, IOObject obj, Object key, Object defaultValue) {
         List<IOObject> visitedProtos = new ArrayList<IOObject>();
         IOObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
-            if (IOObjectUtil.hasSlot(object, key)) {
-                return IOObjectUtil.getSlot(object, key);
+            Object value = getOrDefault(lib, object, key);
+            if (value != null) {
+                return value;
             }
             visitedProtos.add(object);
             object = object.getPrototype();

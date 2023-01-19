@@ -44,7 +44,7 @@ import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOLocals;
 
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -86,27 +86,27 @@ public abstract class RemoteSlotNode extends IONode {
 
     @ExplodeLoop
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        Object argument = frame.getArguments()[IOInvokable.CALL_ARGUMENT_INDEX];
+        Object argument = frame.getArguments()[IOLocals.CALL_ARGUMENT_INDEX];
         if (!(argument instanceof IOCall)) {
             // sender is not a block
             throw new NotImplementedException();
         }
         IOCall call = (IOCall) argument;
-        MaterializedFrame context = call.getSender();
+        IOLocals locals = call.getSender();
 
         int i = getContextLevel() - 1;
         while (i > 0) {
-            call = (IOCall) context.getArguments()[IOInvokable.CALL_ARGUMENT_INDEX];
+            call = (IOCall) locals.getCall();           
             if (call == null) {
                 throw new NotImplementedException();
             }
-            context = call.getSender();
+            locals = call.getSender();
             i--;
         }
 
         // Graal needs help here to see that this is always a MaterializedFrame
         // so, we record explicitly a class profile
-        return frameType.profile(context);
+        return frameType.profile(locals.getFrame());
 
     }
 

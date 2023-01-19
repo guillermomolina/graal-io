@@ -43,10 +43,10 @@
  */
 package org.truffle.io.runtime;
 
+import org.truffle.io.IOLanguageException;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
-
-import org.truffle.io.IOLanguageException;
 
 public final class UndefinedNameException extends IOLanguageException {
 

@@ -74,7 +74,7 @@ public abstract class ReadMemberNode extends IONode {
             @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefault(receiver, nameTS, null);
+        Object value = IOObjectUtil.getOrDefaultUncached(receiver, nameTS, null);
         if (value == null) {
             throw UndefinedNameException.undefinedField(this, nameTS);
         }
@@ -97,7 +97,7 @@ public abstract class ReadMemberNode extends IONode {
             @Cached ToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefault(prototype, nameTS, null);
+        Object value = IOObjectUtil.getOrDefaultUncached(prototype, nameTS, null);
         if (value == null) {
             throw UndefinedNameException.undefinedField(this, nameTS);
         }

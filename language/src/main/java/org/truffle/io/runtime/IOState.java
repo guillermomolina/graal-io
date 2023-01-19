@@ -49,6 +49,28 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.graalvm.polyglot.Context;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.ShouldNotBeHereException;
@@ -79,32 +101,12 @@ import org.truffle.io.runtime.objects.IODate;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOObject;
 import org.truffle.io.runtime.objects.IOPrototype;
-
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.TruffleLanguage.Env;
-import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.instrumentation.AllocationReporter;
-import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.strings.TruffleString;
 
 /**
  * The run-time state of IO during execution. The context is created by the
@@ -199,20 +201,21 @@ public final class IOState {
     private void setupLobby() {
         IOPrototype.OBJECT.setPrototype(lobby);
 
-        IOObjectUtil.setSlot(protos, Symbols.OBJECT, IOPrototype.OBJECT);
-        IOObjectUtil.setSlot(protos, Symbols.NUMBER, IOPrototype.NUMBER);
-        IOObjectUtil.setSlot(protos, Symbols.SEQUENCE, IOPrototype.SEQUENCE);
-        IOObjectUtil.setSlot(protos, Symbols.LIST, IOPrototype.LIST);
-        IOObjectUtil.setSlot(protos, Symbols.DATE, IOPrototype.DATE);
-        IOObjectUtil.setSlot(protos, Symbols.SYSTEM, IOPrototype.SYSTEM);
-        IOObjectUtil.setSlot(protos, Symbols.CALL, IOPrototype.CALL);
-        IOObjectUtil.setSlot(protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
-        IOObjectUtil.setSlot(protos, Symbols.BLOCK, IOPrototype.BLOCK);
-        IOObjectUtil.setSlot(protos, Symbols.LOCALS, IOPrototype.LOCALS);
-        IOObjectUtil.setSlot(protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
+        DynamicObjectLibrary lib = DynamicObjectLibrary.getUncached();
+        IOObjectUtil.put(lib, protos, Symbols.OBJECT, IOPrototype.OBJECT);
+        IOObjectUtil.put(lib, protos, Symbols.NUMBER, IOPrototype.NUMBER);
+        IOObjectUtil.put(lib, protos, Symbols.SEQUENCE, IOPrototype.SEQUENCE);
+        IOObjectUtil.put(lib, protos, Symbols.LIST, IOPrototype.LIST);
+        IOObjectUtil.put(lib, protos, Symbols.DATE, IOPrototype.DATE);
+        IOObjectUtil.put(lib, protos, Symbols.SYSTEM, IOPrototype.SYSTEM);
+        IOObjectUtil.put(lib, protos, Symbols.CALL, IOPrototype.CALL);
+        IOObjectUtil.put(lib, protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
+        IOObjectUtil.put(lib, protos, Symbols.BLOCK, IOPrototype.BLOCK);
+        IOObjectUtil.put(lib, protos, Symbols.LOCALS, IOPrototype.LOCALS);
+        IOObjectUtil.put(lib, protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
 
-        IOObjectUtil.setSlot(lobby, Symbols.LOBBY, lobby);
-        IOObjectUtil.setSlot(lobby, Symbols.PROTOS, protos);
+        IOObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
+        IOObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
     }
 
     private void installBuiltins() {
@@ -276,7 +279,7 @@ public final class IOState {
                 BUILTIN_SOURCE.createUnavailableSection());
         String functionName = targetName + "_" + name;
         IOFunction function = createFunction(rootNode.getCallTarget(), Symbols.fromJavaString(functionName));
-        IOObjectUtil.setSlot(target, Symbols.fromJavaString(name), function);
+        IOObjectUtil.putUncached(target, Symbols.fromJavaString(name), function);
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {
@@ -299,8 +302,6 @@ public final class IOState {
             return IOPrototype.SEQUENCE;
         } else if (obj instanceof TruffleString) {
             return IOPrototype.SEQUENCE;
-        } else if (obj instanceof MaterializedFrame) {
-            return IOPrototype.LOCALS;
         } else if (interop.fitsInLong(obj)) {
             return IOPrototype.NUMBER;
         } else if (interop.fitsInDouble(obj)) {
@@ -441,8 +442,15 @@ public final class IOState {
         return message;
     }
 
-    public IOCall createCall(final MaterializedFrame sender, final Object target, final IOMessage message,
-            final MaterializedFrame slotContext, final IOMethod activated, final IOCoroutine coroutine) {
+    public IOLocals createLocals(final IOObject prototype, final MaterializedFrame frame) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IOLocals locals = new IOLocals(prototype, frame);
+        allocationReporter.onReturnValue(locals, 0, AllocationReporter.SIZE_UNKNOWN);
+        return locals;
+    }
+
+    public IOCall createCall(final IOLocals sender, final Object target, final IOMessage message,
+            final IOLocals slotContext, final IOMethod activated, final IOCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IOCall call = new IOCall(sender, target, message, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);

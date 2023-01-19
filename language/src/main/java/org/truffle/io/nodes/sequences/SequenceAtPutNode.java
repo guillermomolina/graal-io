@@ -56,7 +56,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.expression.InvokeNode;
+import org.truffle.io.nodes.expression.InvokeInvokableNode;
 import org.truffle.io.nodes.literals.LongLiteralNode;
 import org.truffle.io.nodes.literals.MessageLiteralNode;
 import org.truffle.io.runtime.IOObjectUtil;
@@ -94,7 +94,7 @@ public abstract class SequenceAtPutNode extends IONode {
     protected Object atIOObjectPut(VirtualFrame frame, IOObject receiver, Object index,
             @CachedLibrary("index") InteropLibrary numbers) {
         try {
-            Object member = IOObjectUtil.getOrDefault(receiver, AT_PUT, null);
+            Object member = IOObjectUtil.getOrDefaultUncached(receiver, AT_PUT, null);
             return getOrInvoke(frame, receiver, numbers.asLong(index), member);
         } catch (UnsupportedMessageException e) {
             throw UndefinedNameException.undefinedField(this, AT_PUT);
@@ -106,7 +106,7 @@ public abstract class SequenceAtPutNode extends IONode {
             @CachedLibrary("index") InteropLibrary numbers) {
         try {
             IOObject prototype = IOState.get(this).getPrototype(receiver);
-            Object member = IOObjectUtil.getOrDefault(prototype, AT_PUT, null);
+            Object member = IOObjectUtil.getOrDefaultUncached(prototype, AT_PUT, null);
             return getOrInvoke(frame, receiver, numbers.asLong(index), member);
         } catch (UnsupportedMessageException e) {
             throw UndefinedNameException.undefinedField(this, AT_PUT);
@@ -123,7 +123,7 @@ public abstract class SequenceAtPutNode extends IONode {
             argumentNodes[0] = new LongLiteralNode(index);
             argumentNodes[1] = getValueNode();
             final MessageLiteralNode messageNode = new MessageLiteralNode(AT_PUT, argumentNodes);
-            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);
+            final InvokeInvokableNode invokeNode = new InvokeInvokableNode(invokable, receiver, messageNode);
             Object result = invokeNode.executeGeneric(frame);
             return result;
         }

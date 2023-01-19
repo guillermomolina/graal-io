@@ -43,18 +43,6 @@
  */
 package org.truffle.io.nodes.sequences;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.expression.InvokeNode;
-import org.truffle.io.nodes.literals.LongLiteralNode;
-import org.truffle.io.nodes.literals.MessageLiteralNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.OutOfBoundsException;
-import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOObject;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -65,6 +53,18 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.expression.InvokeInvokableNode;
+import org.truffle.io.nodes.literals.LongLiteralNode;
+import org.truffle.io.nodes.literals.MessageLiteralNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.OutOfBoundsException;
+import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOObject;
 
 @NodeInfo(shortName = "at")
 @NodeChild("receiverNode")
@@ -105,7 +105,7 @@ public abstract class SequenceAtNode extends IONode {
     @Specialization(limit = "LIBRARY_LIMIT")
     protected Object atIOObject(VirtualFrame frame, IOObject receiver, Object index,
             @CachedLibrary("index") InteropLibrary numbers) {
-        Object value = IOObjectUtil.getOrDefault(receiver, AT, null);
+        Object value = IOObjectUtil.getOrDefaultUncached(receiver, AT);
         try {
             return getOrInvoke(frame, receiver, numbers.asLong(index), value);
         } catch (UnsupportedMessageException e) {
@@ -117,7 +117,7 @@ public abstract class SequenceAtNode extends IONode {
     protected Object atObject(VirtualFrame frame, Object receiver, Object index,
             @CachedLibrary("index") InteropLibrary numbers) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
-        Object value = IOObjectUtil.getOrDefault(prototype, AT, null);
+        Object value = IOObjectUtil.getOrDefaultUncached(prototype, AT);
         try {
             return getOrInvoke(frame, receiver, numbers.asLong(index), value);
         } catch (UnsupportedMessageException e) {
@@ -134,7 +134,7 @@ public abstract class SequenceAtNode extends IONode {
             final IONode[] argumentNodes = new IONode[1];
             argumentNodes[0] = new LongLiteralNode(index);
             final MessageLiteralNode messageNode = new MessageLiteralNode(AT, argumentNodes);
-            final InvokeNode invokeNode = new InvokeNode(invokable, receiver, messageNode);
+            final InvokeInvokableNode invokeNode = new InvokeInvokableNode(invokable, receiver, messageNode);
             Object result = invokeNode.executeGeneric(frame);
             return result;
         }

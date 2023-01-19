@@ -40,11 +40,10 @@
  */
 package org.truffle.io.runtime.objects;
 
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
-
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOCall extends IOObject { 
     private static final TruffleString SENDER = Symbols.constant("sender");
@@ -67,7 +66,7 @@ public class IOCall extends IOObject {
     @DynamicField
     private Object coroutine;
 
-    public IOCall(final MaterializedFrame sender, final Object target, final IOMessage message, final MaterializedFrame slotContext,
+    public IOCall(final IOLocals sender, final Object target, final IOMessage message, final IOLocals slotContext,
             final IOMethod activated, final IOCoroutine coroutine) {
         super(IOPrototype.CALL);
         setSender(sender);
@@ -78,51 +77,51 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public MaterializedFrame getSender() {
-        return (MaterializedFrame)IOObjectUtil.getSlot(this, SENDER);
+    public IOLocals getSender() {
+        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SENDER);
     }
 
-    protected void setSender(MaterializedFrame sender) {
-        IOObjectUtil.setSlot(this, SENDER, sender);
+    protected void setSender(IOLocals sender) {
+        IOObjectUtil.putUncached(this, SENDER, sender);
     }
 
     public IOMessage getMessage() {
-        return (IOMessage)IOObjectUtil.getSlot(this, MESSAGE);
+        return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, MESSAGE);
     }
 
     protected void setMessage(IOMessage message) {
-        IOObjectUtil.setSlot(this, MESSAGE, message);
+        IOObjectUtil.putUncached(this, MESSAGE, message);
     }
 
     public Object getTarget() {
-        return IOObjectUtil.getSlot(this, TARGET);
+        return IOObjectUtil.getOrDefaultUncached(this, TARGET);
     }
 
     protected void setTarget(Object target) {
-        IOObjectUtil.setSlot(this, TARGET, target);
+        IOObjectUtil.putUncached(this, TARGET, target);
     }
 
-    public MaterializedFrame getSlotContext() {
-        return (MaterializedFrame)IOObjectUtil.getSlot(this, SLOTCONTEXT);
+    public IOLocals getSlotContext() {
+        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SLOTCONTEXT);
     }
 
-    protected void setSlotContext(MaterializedFrame slotcontext) {
-        IOObjectUtil.setSlot(this, SLOTCONTEXT, slotcontext);
+    protected void setSlotContext(IOLocals slotcontext) {
+        IOObjectUtil.putUncached(this, SLOTCONTEXT, slotcontext);
     }
 
     public IOMethod getActivated() {
-        return (IOMethod)IOObjectUtil.getSlot(this, ACTIVATED);
+        return (IOMethod)IOObjectUtil.getOrDefaultUncached(this, ACTIVATED);
     }
 
     protected void setActivated(IOMethod activated) {
-        IOObjectUtil.setSlot(this, ACTIVATED, activated);
+        IOObjectUtil.putUncached(this, ACTIVATED, activated);
     }
 
     public IOCoroutine getCoroutine() {
-        return (IOCoroutine)IOObjectUtil.getSlot(this, COROUTINE);
+        return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, COROUTINE);
     }
 
     protected void setCoroutine(IOCoroutine coroutine) {
-        IOObjectUtil.setSlot(this, COROUTINE, coroutine);
+        IOObjectUtil.putUncached(this, COROUTINE, coroutine);
     }
 }

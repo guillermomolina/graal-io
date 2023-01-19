@@ -43,10 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.Symbols;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -65,6 +61,10 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOObject extends DynamicObject {
@@ -142,7 +142,7 @@ public class IOObject extends DynamicObject {
 
     public String toString(int depth) {
         String string = String.format("Object_0x%X", hashCode());
-        if(depth == 0) {
+        if (depth == 0) {
             string += ":" + IOObjectUtil.toString(this);
         }
         return string;
@@ -243,12 +243,11 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     Object readMember(String name,
-            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
-        Object result = IOObjectUtil.getOrDefault(this,
-                (Object) fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), null);
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode)
+            throws UnknownIdentifierException {
+        TruffleString nameTS = fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING);
+        Object result = IOObjectUtil.getOrDefaultUncached(this, nameTS, null);
         if (result == null) {
-            /* Property does not exist. */
             throw UnknownIdentifierException.create(name);
         }
         return result;
@@ -256,8 +255,7 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     void writeMember(String name, Object value,
-            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
-            @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        objectLibrary.put(this, fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), value);
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) {
+        IOObjectUtil.putUncached(this, fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), value);
     }
 }
