@@ -16,6 +16,7 @@ m(2) println
 Test accept(getSlot("m")) println
 
 m1 := method(
+    x := 9
     m2 := method(
         m3 := method(x)
         m3
@@ -23,3 +24,13 @@ m1 := method(
     m2
 )
 m1 println
+
+m1 := method(
+    m2 := method(
+        m3 := method(x)
+        m3
+    )
+    m2
+)
+m1 println
+
