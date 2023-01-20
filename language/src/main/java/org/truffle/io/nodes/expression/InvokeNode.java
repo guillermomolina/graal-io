@@ -100,11 +100,11 @@ public final class InvokeNode extends IONode {
         if (value instanceof IOFunction) {
             return executeFunction(frame, receiver, (IOFunction) value, message);
         }
-        if (value instanceof IOMethod) {
-            return executeMethod(frame, receiver, (IOMethod) value, message);
-        }
         if (value instanceof IOBlock) {
             return executeBlock(frame, receiver, (IOBlock) value, message);
+        }
+        if (value instanceof IOMethod) {
+            return executeMethod(frame, receiver, (IOMethod) value, message);
         }
         return value;
     }
