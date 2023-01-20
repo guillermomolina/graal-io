@@ -59,7 +59,7 @@ import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOObject;
 
 @NodeInfo(shortName = ".")
@@ -74,10 +74,7 @@ public abstract class ReadMemberNode extends IONode {
             @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefaultUncached(receiver, nameTS, null);
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, nameTS);
-        }
+        Object value = IOObjectUtil.getOrDefaultUncached(receiver, nameTS, IONil.SINGLETON);
         return value;
     }
 
@@ -88,7 +85,7 @@ public abstract class ReadMemberNode extends IONode {
         try {
             return objects.readMember(receiver, asMember.execute(name));
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            throw UndefinedNameException.undefinedField(this, name);
+            return IONil.SINGLETON;
         }
     }
 
@@ -97,10 +94,7 @@ public abstract class ReadMemberNode extends IONode {
             @Cached ToTruffleStringNode toTruffleStringNode) {
         IOObject prototype = IOState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefaultUncached(prototype, nameTS, null);
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, nameTS);
-        }
+        Object value = IOObjectUtil.getOrDefaultUncached(prototype, nameTS, IONil.SINGLETON);
         return value;    
     }
 

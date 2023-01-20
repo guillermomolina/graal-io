@@ -34,3 +34,25 @@ m1 := method(
 )
 m1 println
 
+
+x := 5
+getSlot("x") println
+m1 := method(
+    y := 6
+    getSlot("x") println
+    getSlot("y") println
+    m2 := method(
+        z := 7
+        getSlot("x") println
+        getSlot("y") println
+        getSlot("z") println      
+    )
+    m2
+)
+m1
+
+A := Object clone
+A x := 10
+B := A clone
+b := B clone
+b getSlot("x") println
