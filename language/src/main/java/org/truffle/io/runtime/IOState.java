@@ -415,9 +415,9 @@ public final class IOState {
         return date;
     }
 
-    public IOMethod createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final IOLocals locals) {
+    public IOBlock createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final IOLocals locals) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOMethod block = new IOBlock(callTarget, argNames, locals);
+        IOBlock block = new IOBlock(callTarget, argNames, locals);
         allocationReporter.onReturnValue(block, 0, AllocationReporter.SIZE_UNKNOWN);
         return block;
     }

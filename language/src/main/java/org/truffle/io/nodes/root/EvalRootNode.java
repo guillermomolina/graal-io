@@ -106,9 +106,8 @@ public final class EvalRootNode extends RootNode {
             /* The source code did not have a "main" function, so nothing to execute. */
             return IONil.SINGLETON;
         } else {
-            Object[] arguments = new Object[2];
+            Object[] arguments = new Object[1];
             arguments[0] = IOState.get(this).getLobby();
-            arguments[1] = IONil.SINGLETON;
             return mainCallNode.call(arguments);
         }
     }

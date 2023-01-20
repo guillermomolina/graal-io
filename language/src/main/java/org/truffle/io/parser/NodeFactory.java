@@ -48,12 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -103,6 +97,12 @@ import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IOLocals;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -193,7 +193,7 @@ public class NodeFactory {
         currentScope = new SlotScope(currentScope, startPos);
     }
 
-    public void leaveCurrentScope() {
+    protected void leaveCurrentScope() {
         currentScope = currentScope.outer;
     }
 
@@ -210,6 +210,7 @@ public class NodeFactory {
         final IORootNode rootNode = new IORootNode(language, currentScope.frameDescriptorBuilder.build(),
                 methodBodyNode, methodSrc);
         final FunctionLiteralNode functionLiteralNode = new FunctionLiteralNode(Symbols.fromJavaString("do"), rootNode);
+        leaveCurrentScope();
         functionLiteralNode.setSourceSection(startPos, length);
         return functionLiteralNode;
     }
@@ -269,13 +270,14 @@ public class NodeFactory {
         final IORootNode rootNode = createRoot(bodyNode, startPos, length);
         TruffleString[] argNames = currentScope.argumentsNames
                 .toArray(new TruffleString[currentScope.argumentsNames.size()]);
-        final IONode receiverNode;
+        final IONode homeNode;
+        leaveCurrentScope();
         if (hasLocals()) {
-            receiverNode = createReadCallSender();
+            homeNode = createReadCallSender();
         } else {
-            receiverNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+            homeNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
         }
-        final BlockLiteralNode blockLiteralNode = new BlockLiteralNode(rootNode, argNames, receiverNode);
+        final BlockLiteralNode blockLiteralNode = new BlockLiteralNode(rootNode, argNames, homeNode);
         blockLiteralNode.setSourceSection(startPos, length);
         return blockLiteralNode;
     }
@@ -286,6 +288,7 @@ public class NodeFactory {
                 .toArray(new TruffleString[currentScope.argumentsNames.size()]);
         final MethodLiteralNode methodLiteralNode = new MethodLiteralNode(rootNode, argNames);
         methodLiteralNode.setSourceSection(startPos, length);
+        leaveCurrentScope();
         return methodLiteralNode;
     }
 

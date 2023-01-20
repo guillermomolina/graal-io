@@ -47,8 +47,8 @@ import org.truffle.io.IOLanguage;
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IOObject;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -65,20 +65,20 @@ public final class BlockLiteralNode extends IONode {
     private IORootNode rootNode;
     private final TruffleString[] argNames;
     @Child
-    private IONode receiverNode;
+    private IONode homeNode;
 
     @CompilationFinal
-    private IOMethod cachedBlock;
+    private IOBlock cachedBlock;
 
-    public BlockLiteralNode(final IORootNode rootNode, TruffleString[] argNames, final IONode receiverNode) {
+    public BlockLiteralNode(final IORootNode rootNode, TruffleString[] argNames, final IONode homeNode) {
         this.rootNode = rootNode;
         this.argNames = argNames;
-        this.receiverNode = receiverNode;
+        this.homeNode = homeNode;
     }
 
     @Override
-    public IOMethod executeGeneric(VirtualFrame frame) {
-        Object targetObject = receiverNode.executeGeneric(frame);
+    public IOBlock executeGeneric(VirtualFrame frame) {
+        Object targetObject = homeNode.executeGeneric(frame);
         final IOObject target;
         if (targetObject instanceof IOObject) {
             target = (IOObject) targetObject;
@@ -89,7 +89,7 @@ public final class BlockLiteralNode extends IONode {
 
         IOLanguage l = IOLanguage.get(this);
         CompilerAsserts.partialEvaluationConstant(l);
-        IOMethod block;
+        IOBlock block;
         if (l.isSingleContext()) {
             block = this.cachedBlock;
             if (block == null) {

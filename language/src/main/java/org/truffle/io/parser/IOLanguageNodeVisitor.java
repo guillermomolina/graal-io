@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -42,6 +38,10 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -124,7 +124,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
             bodyNode = visitEmptyExpression(startPos, length);
         }
         final IONode result = factory.createFunction(bodyNode, startPos, length);
-        factory.leaveCurrentScope();
         assert result != null;
         LOGGER.fine("Ended visitIolanguage()");
         return result;
@@ -523,7 +522,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
             throw new ShouldNotBeHereException();
         }
         assert result != null;
-        factory.leaveCurrentScope();
         return result;
     }
 
