@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -44,13 +41,17 @@
 package org.truffle.io.nodes.expression;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.UndefinedNameException;
 import org.truffle.io.runtime.objects.IOBlock;
@@ -63,67 +64,27 @@ import org.truffle.io.runtime.objects.IOMessage;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IOObject;
 
-@NodeInfo(shortName = "()")
-public final class InvokeNode extends IONode {
+@NodeField(name = "receiver", type = Object.class)
+@NodeField(name = "message", type = IOMessage.class)
+@NodeChild("invokableNode")
+public abstract class InvokeExecutorNode extends IONode {
 
-    @Child
-    protected IONode receiverNode;
-    @Child
-    protected IONode valueNode;
-    @Child
-    protected IONode messageNode;
-
-    public InvokeNode(final IONode receiverNode, final IONode valueNode, final IONode messageNode) {
-        this.receiverNode = receiverNode;
-        this.valueNode = valueNode;
-        this.messageNode = messageNode;
-    }
-
-    @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        Object receiver = receiverNode.executeGeneric(frame);
-        IOMessage message = (IOMessage) messageNode.executeGeneric(frame);
-        Object value = null;
-        if (valueNode == null) {
-            IOObject prototype = null;
-            if (receiver instanceof IOObject) {
-                prototype = (IOObject) receiver;
-            } else {
-                prototype = IOState.get(this).getPrototype(receiver);
-            }
-            value = IOObjectUtil.getOrDefaultUncached(prototype, message.getName());
-        } else {
-            value = valueNode.executeGeneric(frame);
-        }
-
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, message.getName());
-        }
-        if (value instanceof IOFunction) {
-            return executeFunction(frame, receiver, (IOFunction) value, message);
-        }
-        if (value instanceof IOBlock) {
-            return executeBlock(frame, receiver, (IOBlock) value, message);
-        }
-        if (value instanceof IOMethod) {
-            return executeMethod(frame, receiver, (IOMethod) value, message);
-        }
-        return value;
-    }
-
-    protected final Object executeNull(VirtualFrame frame, final Object receiver, Object unknown,
-            final IOMessage message) {
+    @Specialization(guards = "!values.isNull(invokable)", limit = "3")
+    protected final Object executeNull(VirtualFrame frame, final Object receiver, final IOMessage message,
+            Object invokable, @CachedLibrary("invokable") InteropLibrary values) {
         throw UndefinedNameException.undefinedField(this, message.getName());
     }
 
-    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IOFunction function,
-            final IOMessage message) {
+    @Specialization
+    protected final Object executeFunction(VirtualFrame frame, final Object receiver,
+            final IOMessage message, IOFunction function) {
         final int argumentsCount = message.getArgumentNodes().length + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, receiver, function, message, argumentsCount);
     }
 
-    protected final Object executeBlock(VirtualFrame frame, final Object receiver, IOBlock block,
-            final IOMessage message) {
+    @Specialization
+    protected final Object executeBlock(VirtualFrame frame, final Object receiver,
+            final IOMessage message, IOBlock block) {
         assert receiver instanceof IOObject;
         IOLocals sender = block.getSender();
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
@@ -132,8 +93,9 @@ public final class InvokeNode extends IONode {
         return execute(frame, call, block, message, argumentsCount);
     }
 
-    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IOMethod method,
-            final IOMessage message) {
+    @Specialization
+    protected final Object executeMethod(VirtualFrame frame, final Object receiver,
+            final IOMessage message, IOMethod method) {
         assert receiver instanceof IOObject;
         IOLocals sender = IOState.get(this).createLocals((IOObject) receiver, frame.materialize());
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
@@ -142,8 +104,9 @@ public final class InvokeNode extends IONode {
         return execute(frame, call, method, message, argumentsCount);
     }
 
-    protected final Object executeOther(VirtualFrame frame, final Object receiver, Object value,
-            final IOMessage message) {
+    @Fallback
+    protected final Object executeOther(VirtualFrame frame, final Object receiver, final IOMessage message,
+            Object value) {
         return value;
     }
 
