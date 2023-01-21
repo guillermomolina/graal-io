@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,30 +41,69 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.system;
+package org.truffle.io.functions.object;
 
-import org.truffle.io.IOLanguageException;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.ImportStatic;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
 
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.NodeInfo;
-
-@NodeInfo(shortName = "registerShutdownHook")
-public abstract class SystemRegisterShutdownHookBuiltin extends FunctionBodyNode {
+/**
+ * Built-in function to create a clone object. Objects in IO are simply made up of name/value pairs.
+ */
+@NodeInfo(shortName = "clone")
+@ImportStatic(IOState.class)
+public abstract class ObjectCloneFunction extends FunctionBodyNode {
 
     @Specialization
-    public Object doMethod(Object self, IOInvokable shutdownHook) {
-        IOState.get(this).registerShutdownHook(shutdownHook);
-        return IONil.SINGLETON;
+    public long cloneLong(long value) {
+        return value;
     }
-   
-    @Fallback
-    protected Object typeError(Object self, Object shutdownHook) {
-        throw IOLanguageException.typeError(this, shutdownHook);
+
+    @Specialization
+    public boolean cloneBoolean(boolean value) {
+        return value;
+    }
+
+    @Specialization
+    public Object cloneNil(IONil value) {
+        return value;
+    }
+
+    @Specialization
+    public Object cloneIOPrototype(IOPrototype proto) {
+        if(proto == IOPrototype.DATE) {
+            return IOState.get(this).createDate();
+        }
+        if(proto == IOPrototype.OBJECT) {
+            return IOState.get(this).cloneObject();
+        }
+        throw new NotImplementedException();
+    }
+
+    @Specialization(guards = "!values.isNull(obj)", limit = "3")
+    public Object cloneIOObject(IOObject obj, @CachedLibrary("obj") InteropLibrary values) {
+        return IOState.get(this).cloneObject(obj);
+    }
+
+    @Specialization(guards = "isString(value)")
+    @TruffleBoundary
+    public Object cloneString(Object value) {
+        return value;
+    }
+
+    protected boolean isString(Object value) {
+        return value instanceof TruffleString;
     }
 
 }

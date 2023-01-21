@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,26 +38,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.list;
+package org.truffle.io.functions.date;
 
+import java.util.Date;
+
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.objects.IODate;
 
-@NodeInfo(shortName = "getSize")
-public abstract class ListSizeBuiltin extends FunctionBodyNode {
+@NodeInfo(shortName = "secondsSince")
+public abstract class DateSecondsSinceFunction extends FunctionBodyNode {
 
-    @Specialization(limit = "3")
-    public Object getSize(Object obj, @CachedLibrary("obj") InteropLibrary arrays) {
-        try {
-            return arrays.getArraySize(obj);
-        } catch (UnsupportedMessageException e) {
-            throw new IOLanguageException("Element is not a valid array.", this);
-        }
+    @Specialization
+    public double doDate(Date self, Date other) {
+        return (self.getTime()-other.getTime())/1000.0;
+    }
+
+    @Specialization
+    public Object doDate(IODate self, IODate other) {
+        Date selfDate = self.getValue();
+        Date otherDate = other.getValue();
+        return doDate(selfDate, otherDate);
+    }
+    
+    @Fallback
+    protected Object typeError(Object self, Object other) {
+        throw IOLanguageException.typeError(this, self, other);
     }
 }

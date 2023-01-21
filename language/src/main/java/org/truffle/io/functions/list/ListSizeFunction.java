@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,71 +41,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.object;
+package org.truffle.io.functions.list;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
-
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOObject;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Built-in function that returns true if the given operand is of a given meta-object. Meta-objects
- * may be values of the current or a foreign value.
- */
-@NodeInfo(shortName = "hasProto")
-public abstract class ObjectHasProtoBuiltin extends FunctionBodyNode {
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 
-    /*@Specialization
-    public boolean hasProtoLong(long value, IOObject prototype) {
-        IOObject numberProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(numberProto, prototype);
-    }
+@NodeInfo(shortName = "getSize")
+public abstract class ListSizeFunction extends FunctionBodyNode {
 
-    @Specialization
-    public boolean hasProtoBoolean(boolean value, IOObject prototype) {
-        IOObject booleanProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(booleanProto, prototype);
-    }
-
-    @Specialization
-    public boolean hasProtoIOObject(IOObject value, IOObject prototype) {
-        return IOObjectUtil.hasPrototype(value, prototype);
-    }*/
-
-    @Specialization
-    public boolean hasProtoIOObject(Object value, IOObject prototype) {
-        IOObject objectProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(objectProto, prototype);
-    }
-
-    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = /*{"hasProtoLong", "hasProtoBoolean", "hasProtoObject",*/ "hasProtoIOObject"/* } */)
-    @TruffleBoundary
-    public boolean hasProtoMetaObject(Object value, Object metaObject,
-                    @CachedLibrary("metaObject") InteropLibrary metaLib) {
+    @Specialization(limit = "3")
+    public Object getSize(Object obj, @CachedLibrary("obj") InteropLibrary arrays) {
         try {
-            return metaLib.isMetaInstance(metaObject, value);
+            return arrays.getArraySize(obj);
         } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
+            throw new IOLanguageException("Element is not a valid array.", this);
         }
     }
-
-    @Specialization
-    public boolean hasProtoObject(Object value, Object prototype) {
-        IOObject objectProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(objectProto, prototype);
-    }
-   
-    /*@Specialization
-    public boolean hasProto(Object value, Object metaObject) {
-        return false;
-    }*/
 }

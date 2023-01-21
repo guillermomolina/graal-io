@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,24 +41,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.object;
-
-import org.truffle.io.nodes.expression.FunctionBodyNode;
+package org.truffle.io.functions.object;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Built-in function that queries if the foreign object is a null value. See
- * <link>Messages.IS_NULL</link>.
- */
-@NodeInfo(shortName = "isNil")
-public abstract class ObjectIsNilBuiltin extends FunctionBodyNode {
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOPrototype;
 
+/**
+ * Built-in function that returns the type of a guest language value.
+ */
+@NodeInfo(shortName = "proto")
+public abstract class ObjectProtoFunction extends FunctionBodyNode {
+
+    /*
+     * This returns the IO type for a particular operand value.
+     */
     @Specialization(limit = "3")
-    public boolean isNull(Object obj, @CachedLibrary("obj") InteropLibrary values) {
-        return values.isNull(obj);
+    @ExplodeLoop
+    public Object doDefault(Object operand,
+                    @CachedLibrary("operand") InteropLibrary interop) {
+        for (IOPrototype type : IOPrototype.PRECEDENCE) {
+            if (type.isInstance(operand, interop)) {
+                return type;
+            }
+        }
+        return IONil.SINGLETON;
     }
+
 }

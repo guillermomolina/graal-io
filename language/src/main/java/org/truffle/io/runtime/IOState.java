@@ -49,44 +49,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.graalvm.polyglot.Context;
-import org.truffle.io.IOLanguage;
-import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.builtins.date.DateNowBuiltinFactory;
-import org.truffle.io.builtins.date.DateSecondsSinceBuiltinFactory;
-import org.truffle.io.builtins.list.ListSizeBuiltinFactory;
-import org.truffle.io.builtins.lobby.LobbyExitBuiltinFactory;
-import org.truffle.io.builtins.number.NumberFloorBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectCloneBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectHasProtoBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectIsActivatableBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectIsNilBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectPrintBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectPrintlnBuiltin;
-import org.truffle.io.builtins.object.ObjectPrintlnBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectProtoBuiltinFactory;
-import org.truffle.io.builtins.object.ObjectSlotNamesBuiltinFactory;
-import org.truffle.io.builtins.system.SystemRegisterShutdownHookBuiltinFactory;
-import org.truffle.io.builtins.system.SystemSleepBuiltinFactory;
-import org.truffle.io.builtins.system.SystemStackTraceBuiltinFactory;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.nodes.slots.ReadArgumentNode;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOCoroutine;
-import org.truffle.io.runtime.objects.IODate;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IOMessage;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-import org.truffle.io.runtime.objects.IOPrototype;
-
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -108,6 +70,44 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.graalvm.polyglot.Context;
+import org.truffle.io.IOLanguage;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.functions.date.DateNowFunctionFactory;
+import org.truffle.io.functions.date.DateSecondsSinceFunctionFactory;
+import org.truffle.io.functions.list.ListSizeFunctionFactory;
+import org.truffle.io.functions.lobby.LobbyExitFunctionFactory;
+import org.truffle.io.functions.number.NumberFloorFunctionFactory;
+import org.truffle.io.functions.object.ObjectCloneFunctionFactory;
+import org.truffle.io.functions.object.ObjectHasProtoFunctionFactory;
+import org.truffle.io.functions.object.ObjectIsActivatableFunctionFactory;
+import org.truffle.io.functions.object.ObjectIsNilFunctionFactory;
+import org.truffle.io.functions.object.ObjectPrintFunctionFactory;
+import org.truffle.io.functions.object.ObjectPrintlnFunction;
+import org.truffle.io.functions.object.ObjectPrintlnFunctionFactory;
+import org.truffle.io.functions.object.ObjectProtoFunctionFactory;
+import org.truffle.io.functions.object.ObjectSlotNamesFunctionFactory;
+import org.truffle.io.functions.system.SystemRegisterShutdownHookFunctionFactory;
+import org.truffle.io.functions.system.SystemSleepFunctionFactory;
+import org.truffle.io.functions.system.SystemStackTraceFunctionFactory;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.nodes.slots.ReadArgumentNode;
+import org.truffle.io.runtime.objects.IOBlock;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOCoroutine;
+import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IOMessage;
+import org.truffle.io.runtime.objects.IOMethod;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IOPrototype;
 
 /**
  * The run-time state of IO during execution. The context is created by the
@@ -183,7 +183,7 @@ public final class IOState {
     }
 
     /**
-     * The default default, i.e., the output for the {@link ObjectPrintlnBuiltin}. To
+     * The default default, i.e., the output for the {@link ObjectPrintlnFunction}. To
      * allow unit
      * testing, we do not use {@link System#out} directly.
      */
@@ -220,23 +220,23 @@ public final class IOState {
     }
 
     private void installBuiltins() {
-        // installBuiltin(ObjectReadlnBuiltinFactory.getInstance());
-        installBuiltin(ObjectPrintBuiltinFactory.getInstance());
-        installBuiltin(ObjectPrintlnBuiltinFactory.getInstance());
-        installBuiltin(ObjectCloneBuiltinFactory.getInstance());
-        installBuiltin(ObjectHasProtoBuiltinFactory.getInstance());
-        installBuiltin(ObjectIsActivatableBuiltinFactory.getInstance());
-        installBuiltin(ObjectIsNilBuiltinFactory.getInstance());
-        installBuiltin(ObjectProtoBuiltinFactory.getInstance());
-        installBuiltin(ObjectSlotNamesBuiltinFactory.getInstance());
-        installBuiltin(ListSizeBuiltinFactory.getInstance(), IOPrototype.LIST, "List");
-        installBuiltin(DateSecondsSinceBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
-        installBuiltin(DateNowBuiltinFactory.getInstance(), IOPrototype.DATE, "Date");
-        installBuiltin(NumberFloorBuiltinFactory.getInstance(), IOPrototype.NUMBER, "Number");
-        installBuiltin(SystemSleepBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(SystemStackTraceBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(SystemRegisterShutdownHookBuiltinFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(LobbyExitBuiltinFactory.getInstance(), lobby, "Lobby");
+        // installBuiltin(ObjectReadlnFunctionFactory.getInstance());
+        installBuiltin(ObjectPrintFunctionFactory.getInstance());
+        installBuiltin(ObjectPrintlnFunctionFactory.getInstance());
+        installBuiltin(ObjectCloneFunctionFactory.getInstance());
+        installBuiltin(ObjectHasProtoFunctionFactory.getInstance());
+        installBuiltin(ObjectIsActivatableFunctionFactory.getInstance());
+        installBuiltin(ObjectIsNilFunctionFactory.getInstance());
+        installBuiltin(ObjectProtoFunctionFactory.getInstance());
+        installBuiltin(ObjectSlotNamesFunctionFactory.getInstance());
+        installBuiltin(ListSizeFunctionFactory.getInstance(), IOPrototype.LIST, "List");
+        installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IOPrototype.DATE, "Date");
+        installBuiltin(DateNowFunctionFactory.getInstance(), IOPrototype.DATE, "Date");
+        installBuiltin(NumberFloorFunctionFactory.getInstance(), IOPrototype.NUMBER, "Number");
+        installBuiltin(SystemSleepFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(SystemStackTraceFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(SystemRegisterShutdownHookFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(LobbyExitFunctionFactory.getInstance(), lobby, "Lobby");
     }
 
     public void installBuiltin(NodeFactory<? extends FunctionBodyNode> factory) {

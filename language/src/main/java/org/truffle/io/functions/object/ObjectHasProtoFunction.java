@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,64 +41,71 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.object;
+package org.truffle.io.functions.object;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
+import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeInfo(shortName = "slotNames")
-@ImportStatic(IOState.class)
-public abstract class ObjectSlotNamesBuiltin extends FunctionBodyNode {
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOObject;
 
-    @Specialization(guards = "objInterop.hasMembers(receiver)")
-    @TruffleBoundary
-    public Object slotNames(Object receiver,
-            @CachedLibrary(limit = "3") InteropLibrary objInterop) {
-        try {
-            assert objInterop.hasMembers(receiver);
-            Object keys = objInterop.getMembers(receiver);
-            InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
-            long keyCount = keysInterop.getArraySize(keys);
-            Object[] objectSlotNames = new Object[(int) keyCount];
-            for (int i = 0; i < keyCount; i++) {
-                try {
-                    objectSlotNames[i] = keysInterop.readArrayElement(keys, i);
-                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-                    throw new NotImplementedException();
-                }
-            }
-            //Object[] frameSlotNames = getFrameSlotNames(frame);
-            return IOState.get(this).createList(objectSlotNames);
-        } catch (UnsupportedMessageException e) {
-        }
-        return IOState.get(this).createList(new Object[0]);
+/**
+ * Built-in function that returns true if the given operand is of a given meta-object. Meta-objects
+ * may be values of the current or a foreign value.
+ */
+@NodeInfo(shortName = "hasProto")
+public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
+
+    /*@Specialization
+    public boolean hasProtoLong(long value, IOObject prototype) {
+        IOObject numberProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(numberProto, prototype);
     }
 
     @Specialization
-    public Object slotNames(Object receiver) {
-        throw new NotImplementedException();
+    public boolean hasProtoBoolean(boolean value, IOObject prototype) {
+        IOObject booleanProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(booleanProto, prototype);
     }
 
-    public Object[] getFrameSlotNames(VirtualFrame frame) {
-        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
-        int count = frameDescriptor.getNumberOfSlots();
-        Object[] slotNames = new Object[count];
-        for (int i = 0; i < count; i++) {
-            slotNames[i] = frameDescriptor.getSlotName(i);
+    @Specialization
+    public boolean hasProtoIOObject(IOObject value, IOObject prototype) {
+        return IOObjectUtil.hasPrototype(value, prototype);
+    }*/
+
+    @Specialization
+    public boolean hasProtoIOObject(Object value, IOObject prototype) {
+        IOObject objectProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(objectProto, prototype);
+    }
+
+    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = /*{"hasProtoLong", "hasProtoBoolean", "hasProtoObject",*/ "hasProtoIOObject"/* } */)
+    @TruffleBoundary
+    public boolean hasProtoMetaObject(Object value, Object metaObject,
+                    @CachedLibrary("metaObject") InteropLibrary metaLib) {
+        try {
+            return metaLib.isMetaInstance(metaObject, value);
+        } catch (UnsupportedMessageException e) {
+            throw shouldNotReachHere(e);
         }
-        return slotNames;
     }
 
+    @Specialization
+    public boolean hasProtoObject(Object value, Object prototype) {
+        IOObject objectProto = IOState.get(this).getPrototype(value);
+        return IOObjectUtil.hasPrototype(objectProto, prototype);
+    }
+   
+    /*@Specialization
+    public boolean hasProto(Object value, Object metaObject) {
+        return false;
+    }*/
 }

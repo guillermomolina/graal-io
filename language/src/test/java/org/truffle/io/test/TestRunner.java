@@ -289,10 +289,10 @@ public class TestRunner extends ParentRunner<TestCase> {
         return outFile.toString();
     }
 
-    private static final List<NodeFactory<? extends FunctionBodyNode>> builtins = new ArrayList<>();
+    private static final List<NodeFactory<? extends FunctionBodyNode>> functions = new ArrayList<>();
 
     public static void installBuiltin(NodeFactory<? extends FunctionBodyNode> builtin) {
-        builtins.add(builtin);
+        functions.add(builtin);
     }
 
     @Override
@@ -302,7 +302,7 @@ public class TestRunner extends ParentRunner<TestCase> {
         Context context = null;
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
-            for (NodeFactory<? extends FunctionBodyNode> builtin : builtins) {
+            for (NodeFactory<? extends FunctionBodyNode> builtin : functions) {
                 IOLanguage.installBuiltin(builtin);
             }
 

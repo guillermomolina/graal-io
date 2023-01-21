@@ -41,69 +41,64 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.object;
-
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-import org.truffle.io.runtime.objects.IOPrototype;
+package org.truffle.io.functions.object;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
-/**
- * Built-in function to create a clone object. Objects in IO are simply made up of name/value pairs.
- */
-@NodeInfo(shortName = "clone")
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IOState;
+
+@NodeInfo(shortName = "slotNames")
 @ImportStatic(IOState.class)
-public abstract class ObjectCloneBuiltin extends FunctionBodyNode {
+public abstract class ObjectSlotNamesFunction extends FunctionBodyNode {
 
-    @Specialization
-    public long cloneLong(long value) {
-        return value;
-    }
-
-    @Specialization
-    public boolean cloneBoolean(boolean value) {
-        return value;
-    }
-
-    @Specialization
-    public Object cloneNil(IONil value) {
-        return value;
-    }
-
-    @Specialization
-    public Object cloneIOPrototype(IOPrototype proto) {
-        if(proto == IOPrototype.DATE) {
-            return IOState.get(this).createDate();
+    @Specialization(guards = "objInterop.hasMembers(receiver)")
+    @TruffleBoundary
+    public Object slotNames(Object receiver,
+            @CachedLibrary(limit = "3") InteropLibrary objInterop) {
+        try {
+            assert objInterop.hasMembers(receiver);
+            Object keys = objInterop.getMembers(receiver);
+            InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
+            long keyCount = keysInterop.getArraySize(keys);
+            Object[] objectSlotNames = new Object[(int) keyCount];
+            for (int i = 0; i < keyCount; i++) {
+                try {
+                    objectSlotNames[i] = keysInterop.readArrayElement(keys, i);
+                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
+                    throw new NotImplementedException();
+                }
+            }
+            //Object[] frameSlotNames = getFrameSlotNames(frame);
+            return IOState.get(this).createList(objectSlotNames);
+        } catch (UnsupportedMessageException e) {
         }
-        if(proto == IOPrototype.OBJECT) {
-            return IOState.get(this).cloneObject();
-        }
+        return IOState.get(this).createList(new Object[0]);
+    }
+
+    @Specialization
+    public Object slotNames(Object receiver) {
         throw new NotImplementedException();
     }
 
-    @Specialization(guards = "!values.isNull(obj)", limit = "3")
-    public Object cloneIOObject(IOObject obj, @CachedLibrary("obj") InteropLibrary values) {
-        return IOState.get(this).cloneObject(obj);
-    }
-
-    @Specialization(guards = "isString(value)")
-    @TruffleBoundary
-    public Object cloneString(Object value) {
-        return value;
-    }
-
-    protected boolean isString(Object value) {
-        return value instanceof TruffleString;
+    public Object[] getFrameSlotNames(VirtualFrame frame) {
+        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+        int count = frameDescriptor.getNumberOfSlots();
+        Object[] slotNames = new Object[count];
+        for (int i = 0; i < count; i++) {
+            slotNames[i] = frameDescriptor.getSlotName(i);
+        }
+        return slotNames;
     }
 
 }

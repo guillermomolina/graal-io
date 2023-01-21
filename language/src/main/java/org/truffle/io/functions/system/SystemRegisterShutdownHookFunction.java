@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,36 +41,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.object;
+package org.truffle.io.functions.system;
 
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.interop.IOLanguageView;
-
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Builtin function to write a value to the {@link IOState#getOutput() standard output}. The
- * different specialization leverage the typed {@code println} methods available in Java, i.e.,
- * primitive values are printed without converting them to a {@link String} first.
- * <p>
- * Printing involves a lot of Java code, so we need to tell the optimizing system that it should not
- * unconditionally inline everything reachable from the println() method. This is done via the
- * {@link TruffleBoundary} annotations.
- */
-@NodeInfo(shortName = "println")
-public abstract class ObjectPrintlnBuiltin extends FunctionBodyNode {
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOInvokable;
+import org.truffle.io.runtime.objects.IONil;
+
+@NodeInfo(shortName = "registerShutdownHook")
+public abstract class SystemRegisterShutdownHookFunction extends FunctionBodyNode {
 
     @Specialization
-    @TruffleBoundary
-    public Object println(Object value,
-                    @CachedLibrary(limit = "3") InteropLibrary interop) {
-        IOState.get(this).getOutput().println(interop.toDisplayString(IOLanguageView.forValue(value)));
-        return value;
+    public Object doMethod(Object self, IOInvokable shutdownHook) {
+        IOState.get(this).registerShutdownHook(shutdownHook);
+        return IONil.SINGLETON;
+    }
+   
+    @Fallback
+    protected Object typeError(Object self, Object shutdownHook) {
+        throw IOLanguageException.typeError(this, shutdownHook);
     }
 
 }

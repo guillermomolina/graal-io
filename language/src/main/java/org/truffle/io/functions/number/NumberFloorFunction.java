@@ -38,9 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.date;
-
-import java.util.Date;
+package org.truffle.io.functions.number;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -48,25 +46,22 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.objects.IODate;
 
-@NodeInfo(shortName = "secondsSince")
-public abstract class DateSecondsSinceBuiltin extends FunctionBodyNode {
+@NodeInfo(shortName = "floor")
+public abstract class NumberFloorFunction extends FunctionBodyNode {
 
     @Specialization
-    public double doDate(Date self, Date other) {
-        return (self.getTime()-other.getTime())/1000.0;
+    public long doLong(long self) {
+        return self;
     }
 
     @Specialization
-    public Object doDate(IODate self, IODate other) {
-        Date selfDate = self.getValue();
-        Date otherDate = other.getValue();
-        return doDate(selfDate, otherDate);
+    public long doDouble(double self) {
+        return (long) self;
     }
-    
+   
     @Fallback
-    protected Object typeError(Object self, Object other) {
-        throw IOLanguageException.typeError(this, self, other);
+    protected Object typeError(Object self) {
+        throw IOLanguageException.typeError(this, self);
     }
 }

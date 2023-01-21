@@ -41,13 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.system;
-
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.nodes.root.EvalRootNode;
-import org.truffle.io.nodes.root.FunctionRootNode;
-import org.truffle.io.runtime.Symbols;
+package org.truffle.io.functions.system;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -64,8 +58,14 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.nodes.root.EvalRootNode;
+import org.truffle.io.nodes.root.FunctionRootNode;
+import org.truffle.io.runtime.Symbols;
+
 @NodeInfo(shortName = "stacktrace")
-public abstract class SystemStackTraceBuiltin extends FunctionBodyNode {
+public abstract class SystemStackTraceFunction extends FunctionBodyNode {
 
     public static final TruffleString FRAME = Symbols.constant("Frame: root ");
     public static final TruffleString SEPARATOR = Symbols.constant(", ");

@@ -207,7 +207,7 @@ public class IOTCKLanguageProvider implements LanguageProvider {
         res.add(createExpression(context, "while", "whilefnc", "while ({1}) '{'break;\n'}'", TypeDescriptor.NUMBER, TypeDescriptor.BOOLEAN));
         res.add(createExpression(context, "assign", "assignfnc", "{1} = {0};", TypeDescriptor.ANY, TypeDescriptor.ANY));
 
-        // relevant builtins
+        // relevant functions
         res.add(createBuiltin(context, "getSize", TypeDescriptor.NUMBER, TypeDescriptor.ARRAY));
         res.add(createBuiltin(context, "hasSize", TypeDescriptor.BOOLEAN, TypeDescriptor.ANY));
         res.add(createBuiltin(context, "isExecutable", TypeDescriptor.BOOLEAN, TypeDescriptor.ANY));

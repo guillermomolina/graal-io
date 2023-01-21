@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2021, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,33 +41,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.lobby;
-
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IONil;
+package org.truffle.io.functions.object;
 
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+
 /**
- * Builtin function that performs context exit.
+ * Built-in function that queries if the foreign object is a null value. See
+ * <link>Messages.IS_NULL</link>.
  */
-@NodeInfo(shortName = "exit")
-public abstract class LobbyExitBuiltin extends FunctionBodyNode {
-    @Specialization
-    public Object exit(Object obj, long exitCode) {
-        doExit((int) exitCode);
-        return IONil.SINGLETON;
-    }
+@NodeInfo(shortName = "isNil")
+public abstract class ObjectIsNilFunction extends FunctionBodyNode {
 
-    @Specialization
-    public Object exit(Object obj, Object exitCode) {
-        doExit(0);
-        return IONil.SINGLETON;
-    }
-
-    private void doExit(int exitCode) {
-        IOState.get(this).getEnv().getContext().closeExited(this, exitCode);
+    @Specialization(limit = "3")
+    public boolean isNull(Object obj, @CachedLibrary("obj") InteropLibrary values) {
+        return values.isNull(obj);
     }
 }

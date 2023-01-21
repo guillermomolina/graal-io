@@ -1,5 +1,8 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ */
+/*
+ * Copyright (c) 2021, 2021, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,29 +41,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.date;
+package org.truffle.io.functions.lobby;
 
-import java.util.Date;
-
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IONil;
 
-@NodeInfo(shortName = "now")
-public abstract class DateNowBuiltin extends FunctionBodyNode {
+/**
+ * Builtin function that performs context exit.
+ */
+@NodeInfo(shortName = "exit")
+public abstract class LobbyExitFunction extends FunctionBodyNode {
+    @Specialization
+    public Object exit(Object obj, long exitCode) {
+        doExit((int) exitCode);
+        return IONil.SINGLETON;
+    }
 
     @Specialization
-    public Object doDate(IODate self) {
-        self.setValue(new Date());
-        return self;
+    public Object exit(Object obj, Object exitCode) {
+        doExit(0);
+        return IONil.SINGLETON;
     }
-    
-    @Fallback
-    protected Object typeError(Object self) {
-        throw IOLanguageException.typeError(this, self);
+
+    private void doExit(int exitCode) {
+        IOState.get(this).getEnv().getContext().closeExited(this, exitCode);
     }
 }

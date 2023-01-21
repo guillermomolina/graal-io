@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,27 +41,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.builtins.object;
+package org.truffle.io.functions.object;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.interop.IOLanguageView;
 
-@NodeInfo(shortName = "print")
-public abstract class ObjectPrintBuiltin extends FunctionBodyNode {
+@NodeInfo(shortName = "isActivatable")
+public abstract class ObjectIsActivatableFunction extends FunctionBodyNode {
 
-    @Specialization
-    @TruffleBoundary
-    public Object println(Object value,
-                    @CachedLibrary(limit = "3") InteropLibrary interop) {
-        IOState.get(this).getOutput().print(interop.toDisplayString(IOLanguageView.forValue(value)));
-        return value;
+    @Specialization(limit = "3")
+    public boolean isActivatable(Object obj, @CachedLibrary("obj") InteropLibrary executables) {
+        return executables.isExecutable(obj);
     }
-
 }
