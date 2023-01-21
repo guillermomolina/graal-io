@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -42,6 +38,10 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -290,15 +290,31 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.REPEAT() != null) {
             return visitRepeatMessage(ctx, receiverNode);
         }
+        IONode result = null;
+        if (ctx.SLOT_NAMES() != null) {
+            result = visitSlotNamesMessage(ctx, receiverNode);
+            if (result != null)
+                return result;
+        }
         if (ctx.id != null) {
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
             List<IONode> argumentNodes = createArgumentsList(ctx.arguments());
-            IONode result = factory.createInvokeSlot(receiverNode, ctx.id, argumentNodes, start, length);
+            result = factory.createInvokeSlot(receiverNode, ctx.id, argumentNodes, start, length);
             assert result != null;
             return result;
         }
         throw new ShouldNotBeHereException();
+    }
+
+    public IONode visitSlotNamesMessage(final MessageContext ctx, IONode receiverNode) {
+        IONode result = null;
+        if(receiverNode == null) {
+            int start = ctx.start.getStartIndex();
+            int length = ctx.stop.getStopIndex() - start + 1;
+            result = factory.createListLocalSlotNames(start, length);
+        }
+        return result;
     }
 
     public IONode visitGetSlotMessage(final MessageContext ctx, IONode receiverNode) {

@@ -89,7 +89,8 @@ literalMessage:
     ;
 
 message:
-    GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
+    id=SLOT_NAMES
+    | GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
     | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
@@ -174,6 +175,7 @@ identifier:
     | RETURN
     | SELF
     | SET_SLOT
+    | SLOT_NAMES
     | SUPER
     | THEN
     | TRUE
@@ -197,6 +199,7 @@ REPEAT: 'repeat';
 RETURN: 'return';
 SELF: 'self';
 SET_SLOT: 'setSlot';
+SLOT_NAMES: 'slotNames';
 SUPER: 'super';
 THEN: 'then';
 TRUE: 'true';

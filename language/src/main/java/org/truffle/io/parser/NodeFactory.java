@@ -48,12 +48,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -91,6 +85,7 @@ import org.truffle.io.nodes.logic.LogicalNotNodeGen;
 import org.truffle.io.nodes.logic.LogicalOrNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.nodes.slots.ForLocalSlotNode;
+import org.truffle.io.nodes.slots.ListLocalSlotNamesNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.ReadMemberNodeGen;
@@ -100,6 +95,12 @@ import org.truffle.io.nodes.slots.WriteRemoteSlotNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IOLocals;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -661,6 +662,16 @@ public class NodeFactory {
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
+    }
+
+    public IONode createListLocalSlotNames(int startPos, int length) {
+        if (hasLocals()) {
+            final IONode result = new ListLocalSlotNamesNode();
+            result.setSourceSection(startPos, length);
+            result.addExpressionTag();
+            return result;
+        }
+        return null;
     }
 
     public IONode createGetSlot(IONode receiverNode, IONode nameNode, int startPos, int length) {

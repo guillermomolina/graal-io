@@ -41,46 +41,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.functions.object;
+package org.truffle.io.nodes.slots;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOState;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.ImportStatic;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "slotNames")
-@ImportStatic(IOState.class)
-public abstract class ObjectSlotNamesFunction extends FunctionBodyNode {
+public final class ListLocalSlotNamesNode extends IONode {
 
-    @Specialization(guards = "objInterop.hasMembers(receiver)")
-    @TruffleBoundary
-    public Object slotNames(Object receiver,
-            @CachedLibrary(limit = "3") InteropLibrary objInterop) {
-        try {
-            assert objInterop.hasMembers(receiver);
-            Object keys = objInterop.getMembers(receiver);
-            InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
-            long keyCount = keysInterop.getArraySize(keys);
-            Object[] objectSlotNames = new Object[(int) keyCount];
-            for (int i = 0; i < keyCount; i++) {
-                try {
-                    objectSlotNames[i] = keysInterop.readArrayElement(keys, i);
-                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-                    throw new NotImplementedException();
-                }
-            }
-            //Object[] frameSlotNames = getFrameSlotNames(frame);
-            return IOState.get(this).createList(objectSlotNames);
-        } catch (UnsupportedMessageException e) {
-        }
-        return IOState.get(this).createList(new Object[0]);
+    public ListLocalSlotNamesNode() {
+
     }
+
+    @Override
+    public Object executeGeneric(VirtualFrame frame) {
+        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+        int count = frameDescriptor.getNumberOfSlots();
+        Object[] slotNames = new Object[count];
+        for (int i = 0; i < count; i++) {
+            slotNames[i] = frameDescriptor.getSlotName(i);
+        }
+        return IOState.get(this).createList(slotNames);
+    }
+
 }
