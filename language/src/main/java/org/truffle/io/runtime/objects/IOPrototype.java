@@ -127,9 +127,9 @@ public class IOPrototype extends IOObject {
     @Override
     public String toString(int depth) {
         if(depth == 0) {
-            return String.format("%s_0x%X: %s", getType(), hashCode(), IOObjectUtil.toString(this));
+            return String.format("%s_0x%08x: %s", getType(), hashCode(), IOObjectUtil.toString(this));
         }
-        return String.format("%s_0x%X", getType(), hashCode());
+        return String.format("%s_0x%08x", getType(), hashCode());
     }
 
     @ExportMessage

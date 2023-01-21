@@ -141,7 +141,7 @@ public class IOObject extends DynamicObject {
     }
 
     public String toString(int depth) {
-        String string = String.format("Object_0x%X", hashCode());
+        String string = String.format("Object_0x%08x", hashCode());
         if (depth == 0) {
             string += ":" + IOObjectUtil.toString(this);
         }
