@@ -48,6 +48,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
@@ -70,19 +71,21 @@ public final class InvokeNode extends IONode {
     protected IONode receiverNode;
     @Child
     protected IONode valueNode;
-    @Child
-    protected IONode messageNode;
+    private final TruffleString name;
+    @Children
+    private final IONode[] argumentNodes;
 
-    public InvokeNode(final IONode receiverNode, final IONode valueNode, final IONode messageNode) {
+    public InvokeNode(final IONode receiverNode, final IONode valueNode, final TruffleString name,
+            final IONode[] argumentNodes) {
         this.receiverNode = receiverNode;
         this.valueNode = valueNode;
-        this.messageNode = messageNode;
+        this.name = name;
+        this.argumentNodes = argumentNodes;
     }
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         Object receiver = receiverNode.executeGeneric(frame);
-        IOMessage message = (IOMessage) messageNode.executeGeneric(frame);
         Object value = null;
         if (valueNode == null) {
             IOObject prototype = null;
@@ -91,66 +94,61 @@ public final class InvokeNode extends IONode {
             } else {
                 prototype = IOState.get(this).getPrototype(receiver);
             }
-            value = IOObjectUtil.getOrDefaultUncached(prototype, message.getName());
+            value = IOObjectUtil.getOrDefaultUncached(prototype, name);
         } else {
             value = valueNode.executeGeneric(frame);
         }
 
         if (value == null) {
-            throw UndefinedNameException.undefinedField(this, message.getName());
+            executeNull(frame, receiver, value);
         }
         if (value instanceof IOFunction) {
-            return executeFunction(frame, receiver, (IOFunction) value, message);
+            return executeFunction(frame, receiver, (IOFunction) value);
         }
         if (value instanceof IOBlock) {
-            return executeBlock(frame, receiver, (IOBlock) value, message);
+            return executeBlock(frame, receiver, (IOBlock) value);
         }
         if (value instanceof IOMethod) {
-            return executeMethod(frame, receiver, (IOMethod) value, message);
+            return executeMethod(frame, receiver, (IOMethod) value);
         }
-        return value;
+        return executeOther(frame, receiver, value);
     }
 
-    protected final Object executeNull(VirtualFrame frame, final Object receiver, Object unknown,
-            final IOMessage message) {
-        throw UndefinedNameException.undefinedField(this, message.getName());
+    protected final Object executeNull(VirtualFrame frame, final Object receiver, Object unknown) {
+        throw UndefinedNameException.undefinedField(this, name);
     }
 
-    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IOFunction function,
-            final IOMessage message) {
-        final int argumentsCount = message.getArgumentNodes().length + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
-        return execute(frame, receiver, function, message, argumentsCount);
+    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IOFunction function) {
+        final int argumentsCount = argumentNodes.length + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        return execute(frame, receiver, function, argumentsCount);
     }
 
-    protected final Object executeBlock(VirtualFrame frame, final Object receiver, IOBlock block,
-            final IOMessage message) {
+    protected final Object executeBlock(VirtualFrame frame, final Object receiver, IOBlock block) {
         assert receiver instanceof IOObject;
         IOLocals sender = block.getSender();
+        IOMessage message = IOState.get(this).createMessage(name, argumentNodes);
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
         IOCall call = IOState.get(this).createCall(sender, sender, message, null, block, currentCoroutine);
         int argumentsCount = block.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
-        return execute(frame, call, block, message, argumentsCount);
+        return execute(frame, call, block, argumentsCount);
     }
 
-    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IOMethod method,
-            final IOMessage message) {
+    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IOMethod method) {
         assert receiver instanceof IOObject;
         IOLocals sender = IOState.get(this).createLocals((IOObject) receiver, frame.materialize());
+        IOMessage message = IOState.get(this).createMessage(name, argumentNodes);
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
         IOCall call = IOState.get(this).createCall(sender, receiver, message, null, method, currentCoroutine);
         int argumentsCount = method.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
-        return execute(frame, call, method, message, argumentsCount);
+        return execute(frame, call, method, argumentsCount);
     }
 
-    protected final Object executeOther(VirtualFrame frame, final Object receiver, Object value,
-            final IOMessage message) {
+    protected final Object executeOther(VirtualFrame frame, final Object receiver, Object value) {
         return value;
     }
 
     @ExplodeLoop
-    protected final Object execute(VirtualFrame frame, final Object receiver, IOInvokable invokable,
-            final IOMessage message, final int argumentsCount) {
-        IONode[] argumentNodes = message.getArgumentNodes();
+    protected final Object execute(VirtualFrame frame, final Object receiver, IOInvokable invokable, final int argumentsCount) {
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];
         argumentValues[IOLocals.TARGET_ARGUMENT_INDEX] = receiver;
