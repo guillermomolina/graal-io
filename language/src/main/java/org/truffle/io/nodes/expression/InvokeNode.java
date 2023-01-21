@@ -43,13 +43,6 @@
  */
 package org.truffle.io.nodes.expression;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
@@ -63,6 +56,13 @@ import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IOObject;
+
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "()")
 public final class InvokeNode extends IONode {
@@ -124,7 +124,6 @@ public final class InvokeNode extends IONode {
     }
 
     protected final Object executeBlock(VirtualFrame frame, final Object receiver, IOBlock block) {
-        assert receiver instanceof IOObject;
         IOLocals sender = block.getSender();
         IOMessage message = IOState.get(this).createMessage(name, argumentNodes);
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
@@ -134,8 +133,13 @@ public final class InvokeNode extends IONode {
     }
 
     protected final Object executeMethod(VirtualFrame frame, final Object receiver, IOMethod method) {
-        assert receiver instanceof IOObject;
-        IOLocals sender = IOState.get(this).createLocals((IOObject) receiver, frame.materialize());
+        final IOObject prototype;
+        if (receiver instanceof IOObject) {
+            prototype = (IOObject) receiver;
+        } else {
+            prototype = IOState.get(this).getPrototype(receiver);
+        }
+        IOLocals sender = IOState.get(this).createLocals(prototype, frame.materialize());
         IOMessage message = IOState.get(this).createMessage(name, argumentNodes);
         IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
         IOCall call = IOState.get(this).createCall(sender, receiver, message, null, method, currentCoroutine);

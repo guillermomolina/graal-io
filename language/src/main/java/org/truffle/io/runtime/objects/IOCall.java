@@ -40,10 +40,10 @@
  */
 package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
+
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOCall extends IOObject { 
     private static final TruffleString SENDER = Symbols.constant("sender");
@@ -67,7 +67,7 @@ public class IOCall extends IOObject {
     private Object coroutine;
 
     public IOCall(final IOLocals sender, final Object target, final IOMessage message, final IOLocals slotContext,
-            final IOMethod activated, final IOCoroutine coroutine) {
+            final IOInvokable activated, final IOCoroutine coroutine) {
         super(IOPrototype.CALL);
         setSender(sender);
         setMessage(message);
@@ -109,11 +109,11 @@ public class IOCall extends IOObject {
         IOObjectUtil.putUncached(this, SLOTCONTEXT, slotcontext);
     }
 
-    public IOMethod getActivated() {
-        return (IOMethod)IOObjectUtil.getOrDefaultUncached(this, ACTIVATED);
+    public IOInvokable getActivated() {
+        return (IOInvokable)IOObjectUtil.getOrDefaultUncached(this, ACTIVATED);
     }
 
-    protected void setActivated(IOMethod activated) {
+    protected void setActivated(IOInvokable activated) {
         IOObjectUtil.putUncached(this, ACTIVATED, activated);
     }
 

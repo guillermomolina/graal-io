@@ -1,11 +1,12 @@
 5
 6
 nil
-list(call, self, y)
+list("Lobby", "Protos", "exit", "x", "m1")
 7
 nil
 nil
 list(call, self, z)
+10
 10
 nil
 list()
