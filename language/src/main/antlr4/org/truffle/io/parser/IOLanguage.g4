@@ -89,9 +89,7 @@ literalMessage:
     ;
 
 message:
-    AT OPEN EOL* (decimal|expression) EOL* CLOSE
-    | AT_PUT OPEN EOL* (decimal|expression) EOL*  COMMA EOL* value=expression CLOSE
-    | GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
+    GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
     | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
@@ -160,8 +158,6 @@ terminator: ';' | EOL;
 
 identifier: 
     IDENTIFIER
-    | AT
-    | AT_PUT
     | BLOCK
     | BREAK
     | CONTINUE
@@ -185,8 +181,6 @@ identifier:
     | WHILE
     ;
 
-AT: 'at';
-AT_PUT: 'atPut';
 BLOCK: 'block';
 BREAK: 'break';
 CONTINUE: 'continue';

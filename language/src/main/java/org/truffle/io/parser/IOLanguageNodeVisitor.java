@@ -3,6 +3,10 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -38,10 +42,6 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
-
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -275,12 +275,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     }
 
     public IONode visitMessage(final MessageContext ctx, IONode receiverNode) {
-        if (ctx.AT() != null) {
-            return visitAtMessage(ctx, receiverNode);
-        }
-        if (ctx.AT_PUT() != null) {
-            return visitAtPutMessage(ctx, receiverNode);
-        }
         if (ctx.GET_SLOT() != null) {
             return visitGetSlotMessage(ctx, receiverNode);
         }
@@ -305,42 +299,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
             return result;
         }
         throw new ShouldNotBeHereException();
-    }
-
-    public IONode visitAtMessage(final MessageContext ctx, IONode receiverNode) {
-        final IONode indexNode;
-        if (ctx.decimal() == null) {
-            indexNode = visitExpression(ctx.expression(0));
-        } else {
-            indexNode = visitDecimal(ctx.decimal());
-        }
-        assert indexNode != null;
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
-        IONode result = factory.createSequenceAt(receiverNode, indexNode, start, length);
-        assert result != null;
-        return result;
-    }
-
-    public IONode visitAtPutMessage(final MessageContext ctx, IONode r) {
-        final IONode indexNode;
-        if (ctx.decimal() == null) {
-            indexNode = visitExpression(ctx.expression(0));
-        } else {
-            indexNode = visitDecimal(ctx.decimal());
-        }
-        assert indexNode != null;
-        IONode valueNode = visitExpression(ctx.value);
-        assert valueNode != null;
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
-        IONode receiverNode = r;
-        if (receiverNode == null) {
-            receiverNode = factory.createReadSelf();
-        }
-        IONode result = factory.createSequenceAtPut(receiverNode, indexNode, valueNode, start, length);
-        assert result != null;
-        return result;
     }
 
     public IONode visitGetSlotMessage(final MessageContext ctx, IONode receiverNode) {

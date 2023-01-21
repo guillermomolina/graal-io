@@ -90,8 +90,6 @@ import org.truffle.io.nodes.logic.LogicalAndNode;
 import org.truffle.io.nodes.logic.LogicalNotNodeGen;
 import org.truffle.io.nodes.logic.LogicalOrNode;
 import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.nodes.sequences.SequenceAtNodeGen;
-import org.truffle.io.nodes.sequences.SequenceAtPutNodeGen;
 import org.truffle.io.nodes.slots.ForLocalSlotNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
@@ -662,31 +660,6 @@ public class NodeFactory {
         final IONode result = ReadMemberNodeGen.create(receiverNode, nameNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
-        return result;
-    }
-
-    public IONode createSequenceAt(IONode receiverNode, IONode indexNode, int startPos,
-            int length) {
-        if (receiverNode == null) {
-            receiverNode = createReadSelf();
-        }
-        final IONode result = SequenceAtNodeGen.create(receiverNode, indexNode);
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-        assert result != null;
-        return result;
-    }
-
-    public IONode createSequenceAtPut(IONode receiverNode, IONode indexNode,
-            IONode valueNode, int startPos, int length) {
-        if (receiverNode == null || indexNode == null || valueNode == null) {
-            return null;
-        }
-
-        final IONode result = SequenceAtPutNodeGen.create(receiverNode, indexNode, valueNode);
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-
         return result;
     }
 
