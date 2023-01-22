@@ -71,13 +71,15 @@ import org.truffle.io.runtime.objects.IOObject;
 @NodeField(name = "argumentNodes", type = IONode[].class)
 public abstract class InvokeExecutorNode extends IONode {
 
+    static final int LIBRARY_LIMIT = 3;
+
     public abstract Object getReceiver();
 
     public abstract TruffleString getName();
 
     public abstract IONode[] getArgumentNodes();
 
-    @Specialization(guards = "!values.isNull(invokable)", limit="3")
+    @Specialization(guards = "!values.isNull(invokable)", limit="LIBRARY_LIMIT")
     protected final Object executeNull(VirtualFrame frame, Object invokable,
             @CachedLibrary("invokable") InteropLibrary values) {
         throw UndefinedNameException.undefinedField(this, getName());
