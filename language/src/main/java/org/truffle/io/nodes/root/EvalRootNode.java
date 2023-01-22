@@ -43,16 +43,16 @@
  */
 package org.truffle.io.nodes.root;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IONil;
-
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.objects.IONil;
 
 /**
  * This class performs two additional tasks:
@@ -69,7 +69,8 @@ public final class EvalRootNode extends RootNode {
 
     private static final TruffleString ROOT_EVAL = Symbols.constant("root eval");
 
-    @Child private DirectCallNode mainCallNode;
+    @Child
+    private DirectCallNode mainCallNode;
 
     public EvalRootNode(IOLanguage language, RootCallTarget rootFunction) {
         super(language);

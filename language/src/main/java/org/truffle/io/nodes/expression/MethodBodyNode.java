@@ -43,15 +43,15 @@
  */
 package org.truffle.io.nodes.expression;
 
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.profiles.BranchProfile;
+
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.controlflow.ReturnException;
 import org.truffle.io.nodes.controlflow.ReturnNode;
 import org.truffle.io.nodes.root.IORootNode;
 import org.truffle.io.runtime.objects.IONil;
-
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
 /**
  * The body of a user-defined IO method. This is the node referenced by a {@link IORootNode} for
@@ -64,7 +64,8 @@ import com.oracle.truffle.api.profiles.BranchProfile;
 public final class MethodBodyNode extends IONode {
 
     /** The body of the method. */
-    @Child private IONode bodyNode;
+    @Child
+    private IONode bodyNode;
 
     /**
      * Profiling information, collected by the interpreter, capturing whether the method had an

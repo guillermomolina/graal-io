@@ -43,10 +43,6 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.controlflow.BreakException;
-import org.truffle.io.nodes.controlflow.ContinueException;
-import org.truffle.io.nodes.IONode;
-
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.Node;
@@ -54,11 +50,18 @@ import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.controlflow.BreakException;
+import org.truffle.io.nodes.controlflow.ContinueException;
+
 public final class ForRepeatingNode extends Node implements RepeatingNode {
 
-    @Child private IONode hasEndedNode;
-    @Child private IONode bodyNode;
-    @Child private IONode stepSlotNode;
+    @Child
+    private IONode hasEndedNode;
+    @Child
+    private IONode bodyNode;
+    @Child
+    private IONode stepSlotNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
@@ -94,7 +97,7 @@ public final class ForRepeatingNode extends Node implements RepeatingNode {
         try {
             return hasEndedNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
-            throw new UnsupportedSpecializationException(this, new Node[]{hasEndedNode}, ex.getResult());
+            throw new UnsupportedSpecializationException(this, new Node[] { hasEndedNode }, ex.getResult());
         }
     }
 

@@ -43,6 +43,13 @@
  */
 package org.truffle.io.nodes.expression;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.IOState;
@@ -56,13 +63,6 @@ import org.truffle.io.runtime.objects.IOLocals;
 import org.truffle.io.runtime.objects.IOMessage;
 import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IOObject;
-
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "()")
 public final class InvokeNode extends IONode {

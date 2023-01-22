@@ -48,11 +48,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.ScopedNode;
-import org.truffle.io.nodes.slots.WriteLocalSlotNode;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -62,20 +57,29 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.NodeVisitor;
 
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.ScopedNode;
+import org.truffle.io.nodes.slots.WriteLocalSlotNode;
+
 /**
  * A expression node that just executes a list of other expressions.
  */
 @NodeInfo(shortName = "block", description = "The node implementing a source code block")
-public final class ExpressionNode extends IONode implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<IONode> {
+public final class ExpressionNode extends IONode
+        implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<IONode> {
 
-    @Child private com.oracle.truffle.api.nodes.BlockNode<IONode> block;
+    @Child
+    private com.oracle.truffle.api.nodes.BlockNode<IONode> block;
 
-    @CompilationFinal(dimensions = 1) private WriteLocalSlotNode[] writeNodesCache;
+    @CompilationFinal(dimensions = 1)
+    private WriteLocalSlotNode[] writeNodesCache;
 
     /**
      * Index of the parent block's variables in the {@link #writeNodesCache list of variables}.
      */
-    @CompilationFinal private int parentBlockIndex = -1;
+    @CompilationFinal
+    private int parentBlockIndex = -1;
 
     public ExpressionNode(IONode[] bodyNodes) {
         /*
@@ -134,11 +138,11 @@ public final class ExpressionNode extends IONode implements com.oracle.truffle.a
 
     private WriteLocalSlotNode[] findDeclaredLocalVariables() {
         if (block == null) {
-            return new WriteLocalSlotNode[]{};
+            return new WriteLocalSlotNode[] {};
         }
         // Search for those write nodes, which declare variables
         List<WriteLocalSlotNode> writeNodes = new ArrayList<>(4);
-        int[] varsIndex = new int[]{0};
+        int[] varsIndex = new int[] { 0 };
         NodeUtil.forEachChild(block, new NodeVisitor() {
             @Override
             public boolean visit(Node node) {
@@ -185,7 +189,8 @@ public final class ExpressionNode extends IONode implements com.oracle.truffle.a
             int allVarsLength = variables.length + visibleVarsIndex + parentVariables.length - parentVariablesIndex;
             WriteLocalSlotNode[] allVariables = Arrays.copyOf(variables, allVarsLength);
             System.arraycopy(parentVariables, 0, allVariables, variables.length, visibleVarsIndex);
-            System.arraycopy(parentVariables, parentVariablesIndex, allVariables, variables.length + visibleVarsIndex, parentVariables.length - parentVariablesIndex);
+            System.arraycopy(parentVariables, parentVariablesIndex, allVariables, variables.length + visibleVarsIndex,
+                    parentVariables.length - parentVariablesIndex);
             return allVariables;
         }
     }

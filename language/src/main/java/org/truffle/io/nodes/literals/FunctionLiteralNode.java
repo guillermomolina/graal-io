@@ -43,13 +43,6 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOMethod;
-
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -57,6 +50,13 @@ import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.objects.IOFunction;
+import org.truffle.io.runtime.objects.IOMethod;
 
 /**
  * Constant literal for a {@link IOMethod method} value, created when a method name occurs as
@@ -68,9 +68,11 @@ import com.oracle.truffle.api.strings.TruffleString;
 public final class FunctionLiteralNode extends IONode {
 
     final private TruffleString name;
-    @Child private IORootNode value;
+    @Child
+    private IORootNode value;
 
-    @CompilationFinal private IOFunction cachedFunction;
+    @CompilationFinal
+    private IOFunction cachedFunction;
 
     public FunctionLiteralNode(final TruffleString name, final IORootNode value) {
         this.name = name;

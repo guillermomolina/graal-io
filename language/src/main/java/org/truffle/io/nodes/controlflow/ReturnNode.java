@@ -43,12 +43,12 @@
  */
 package org.truffle.io.nodes.controlflow;
 
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
+
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.runtime.objects.IONil;
-
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
  * Implementation of the IO return expression. We need to unwind an unknown number of interpreter
@@ -60,7 +60,8 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "return", description = "The node implementing a return expression")
 public final class ReturnNode extends IONode {
 
-    @Child private IONode valueNode;
+    @Child
+    private IONode valueNode;
 
     public ReturnNode(IONode valueNode) {
         this.valueNode = valueNode;

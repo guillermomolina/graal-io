@@ -64,23 +64,6 @@ import org.truffle.io.runtime.objects.IOObject;
 @NodeInfo(shortName = "hasProto")
 public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
-    /*@Specialization
-    public boolean hasProtoLong(long value, IOObject prototype) {
-        IOObject numberProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(numberProto, prototype);
-    }
-
-    @Specialization
-    public boolean hasProtoBoolean(boolean value, IOObject prototype) {
-        IOObject booleanProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(booleanProto, prototype);
-    }
-
-    @Specialization
-    public boolean hasProtoIOObject(IOObject value, IOObject prototype) {
-        return IOObjectUtil.hasPrototype(value, prototype);
-    }*/
-
     @Specialization
     public boolean hasProtoIOObject(Object value, IOObject prototype) {
         IOObject objectProto = IOState.get(this).getPrototype(value);

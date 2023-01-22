@@ -44,11 +44,10 @@
 package org.truffle.io.nodes.expression;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-
-import org.truffle.io.nodes.IONode;
-
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
+
+import org.truffle.io.nodes.IONode;
 
 /**
  * A {@link IONode} that represents a parenthesized expression; it simply returns the
@@ -59,7 +58,8 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 @NodeInfo(description = "A parenthesized expression")
 public class ParenExpressionNode extends IONode {
 
-    @Child private IONode expression;
+    @Child
+    private IONode expression;
 
     public ParenExpressionNode(IONode expression) {
         this.expression = expression;

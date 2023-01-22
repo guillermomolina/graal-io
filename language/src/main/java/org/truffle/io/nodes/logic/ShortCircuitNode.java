@@ -43,12 +43,12 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.IONode;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
+
+import org.truffle.io.IOLanguageException;
+import org.truffle.io.nodes.IONode;
 
 /**
  * Logical operations in IO use short circuit evaluation: if the evaluation of the left operand
@@ -57,8 +57,10 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
  */
 public abstract class ShortCircuitNode extends IONode {
 
-    @Child private IONode left;
-    @Child private IONode right;
+    @Child
+    private IONode left;
+    @Child
+    private IONode right;
 
     /**
      * Short circuits might be used just like a conditional expression it makes sense to profile the

@@ -46,14 +46,6 @@ package org.truffle.io.nodes.root;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.MethodBodyNode;
-import org.truffle.io.nodes.slots.ReadArgumentNode;
-import org.truffle.io.nodes.slots.WriteLocalSlotNode;
-import org.truffle.io.runtime.IOState;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -65,17 +57,28 @@ import com.oracle.truffle.api.nodes.NodeVisitor;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.expression.ExpressionNode;
+import org.truffle.io.nodes.expression.MethodBodyNode;
+import org.truffle.io.nodes.slots.ReadArgumentNode;
+import org.truffle.io.nodes.slots.WriteLocalSlotNode;
+import org.truffle.io.runtime.IOState;
+
 @NodeInfo(language = "IO", description = "The root of all IO execution trees")
 public class IORootNode extends RootNode {
-    @Child private IONode bodyNode;
+    @Child
+    private IONode bodyNode;
 
     private boolean isCloningAllowed;
 
     private final SourceSection sourceSection;
 
-    @CompilerDirectives.CompilationFinal(dimensions = 1) private volatile WriteLocalSlotNode[] argumentNodesCache;
+    @CompilerDirectives.CompilationFinal(dimensions = 1)
+    private volatile WriteLocalSlotNode[] argumentNodesCache;
 
-    public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, IONode bodyNode, SourceSection sourceSection) {
+    public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, IONode bodyNode,
+            SourceSection sourceSection) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.sourceSection = sourceSection;
@@ -139,7 +142,8 @@ public class IORootNode extends RootNode {
                 } else if (wn != null && (node instanceof ReadArgumentNode)) {
                     writeArgNodes.add(wn);
                     return true;
-                } else if (wn == null && (node instanceof IONode && !(node instanceof ExpressionNode || node instanceof MethodBodyNode))) {
+                } else if (wn == null && (node instanceof IONode
+                        && !(node instanceof ExpressionNode || node instanceof MethodBodyNode))) {
                     // A different IO node - we're done.
                     return false;
                 } else {

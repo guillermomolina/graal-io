@@ -52,7 +52,8 @@ import org.truffle.io.nodes.IONode;
 
 public final class RepeatRepeatingNode extends Node implements RepeatingNode {
 
-    @Child private IONode bodyNode;
+    @Child
+    private IONode bodyNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
