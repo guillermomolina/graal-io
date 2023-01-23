@@ -43,12 +43,12 @@
  */
 package org.truffle.io.nodes.logic;
 
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.runtime.IOLanguageException;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.IONode;
 
 /**
  * Logical operations in IO use short circuit evaluation: if the evaluation of the left operand

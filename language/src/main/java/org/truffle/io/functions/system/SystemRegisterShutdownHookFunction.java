@@ -43,15 +43,15 @@
  */
 package org.truffle.io.functions.system;
 
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IOLanguageException;
 import org.truffle.io.runtime.IOState;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IONil;
+
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "registerShutdownHook")
 public abstract class SystemRegisterShutdownHookFunction extends FunctionBodyNode {

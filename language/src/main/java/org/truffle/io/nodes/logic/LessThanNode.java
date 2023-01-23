@@ -43,9 +43,9 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.arithmetic.AddNode;
 import org.truffle.io.nodes.expression.BinaryNode;
+import org.truffle.io.runtime.IOLanguageException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;

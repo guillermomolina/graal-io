@@ -46,9 +46,9 @@ package org.truffle.io.nodes.arithmetic;
 import java.math.BigInteger;
 
 import org.truffle.io.IOLanguage;
-import org.truffle.io.IOLanguageException;
 import org.truffle.io.nodes.expression.BinaryNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IOLanguageException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;

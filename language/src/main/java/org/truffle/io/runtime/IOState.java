@@ -49,33 +49,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.TruffleLanguage.Env;
-import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.instrumentation.AllocationReporter;
-import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.graalvm.polyglot.Context;
 import org.truffle.io.IOLanguage;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.functions.date.DateNowFunctionFactory;
 import org.truffle.io.functions.date.DateSecondsSinceFunctionFactory;
+import org.truffle.io.functions.exception.ExceptionRaiseFunctionFactory;
 import org.truffle.io.functions.list.ListAtFunctionFactory;
 import org.truffle.io.functions.list.ListAtPutFunctionFactory;
 import org.truffle.io.functions.list.ListSizeFunctionFactory;
@@ -114,6 +93,28 @@ import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOObject;
 import org.truffle.io.runtime.objects.IOPrototype;
+
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.strings.TruffleString;
 
 /**
  * The run-time state of IO during execution. The context is created by the
@@ -220,6 +221,7 @@ public final class IOState {
         IOObjectUtil.put(lib, protos, Symbols.BLOCK, IOPrototype.BLOCK);
         IOObjectUtil.put(lib, protos, Symbols.LOCALS, IOPrototype.LOCALS);
         IOObjectUtil.put(lib, protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
+        IOObjectUtil.put(lib, protos, Symbols.EXCEPTION, IOPrototype.EXCEPTION);
 
         IOObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
         IOObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
@@ -249,6 +251,7 @@ public final class IOState {
         installBuiltin(SystemStackTraceFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
         installBuiltin(SystemRegisterShutdownHookFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
         installBuiltin(LobbyExitFunctionFactory.getInstance(), lobby, "Lobby");
+        installBuiltin(ExceptionRaiseFunctionFactory.getInstance(), IOPrototype.EXCEPTION, "Exception");
     }
 
     public void installBuiltin(NodeFactory<? extends FunctionBodyNode> factory) {

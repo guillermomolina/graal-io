@@ -193,8 +193,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
             assert valueNode != null;
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
-            IONode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start,
-                    length);
+            IONode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length);
             assert result != null;
             return result;
         }
@@ -382,13 +381,13 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
     public IONode visitTargetExpression(final ExpressionContext ctx, int startPos, int length) {
         List<IONode> body = new ArrayList<>();
-        if(ctx != null) {
+        if (ctx != null) {
             for (final OperationContext operationCtx : ctx.operation()) {
                 IONode operationNode = visitOperation(operationCtx);
                 if (operationNode != null) {
                     body.add(operationNode);
                 }
-            }    
+            }
         }
         body.add(factory.createReadTarget());
         final IONode result = factory.createExpression(body, startPos, length);

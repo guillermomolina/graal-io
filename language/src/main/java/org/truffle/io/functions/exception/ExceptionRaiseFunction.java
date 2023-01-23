@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,42 +38,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.arithmetic;
+package org.truffle.io.functions.exception;
 
-import org.truffle.io.nodes.expression.BinaryNode;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.runtime.IOState;
 
-import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
 
-/**
- * This class is similar to the extensively documented {@link AddNode}. Divisions by 0 throw the
- * same {@link ArithmeticException exception} as in Java, IO has no special handling for it to keep
- * the code simple.
- */
-@NodeInfo(shortName = "/")
-public abstract class DivNode extends BinaryNode {
+@NodeInfo(shortName = "raise")
+@ImportStatic(IOState.class)
+public abstract class ExceptionRaiseFunction extends FunctionBodyNode {
 
-    @Specialization(rewriteOn = ArithmeticException.class)
-    protected long div(long left, long right) throws ArithmeticException {
-        long result = left / right;
-        /*
-         * The division overflows if left is Long.MIN_VALUE and right is -1.
-         */
-        if ((left & right & result) < 0) {
-            throw new ArithmeticException("long overflow");
-        }
-        return result;
-    }
-  
     @Specialization
-    public static final long doLong(final long left, final double right) {
-      return (long) (left / right);
-    }
-    
-    @Fallback
-    protected Object typeError(Object left, Object right) {
-        throw IOLanguageException.typeError(this, left, right);
+    public Object raise(Object obj, TruffleString message, @Cached TruffleString.ToJavaStringNode toJavaStringNode) {
+        throw new IOLanguageException(toJavaStringNode.execute(message), this);
     }
 }

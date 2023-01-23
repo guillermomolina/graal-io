@@ -53,25 +53,25 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 public final class Symbols {
 
-    public static final TruffleString EMPTY_STRING = constant("");
-    public static final TruffleString UNDERSCORE = constant("_");
     public static final TruffleString NIL = constant("nil");
     public static final TruffleString TRUE = constant("true");
     public static final TruffleString FALSE = constant("false");
     public static final TruffleString SELF = constant("self");
-    public static final TruffleString OBJECT = constant("Object");
-    public static final TruffleString NUMBER = constant("Number");
-    public static final TruffleString SEQUENCE = constant("Sequence");
-    public static final TruffleString LIST = constant("List");
-    public static final TruffleString DATE = constant("Date");
+
     public static final TruffleString BLOCK = constant("Block");
-    public static final TruffleString MESSAGE = constant("Message");
     public static final TruffleString CALL = constant("Call");
-    public static final TruffleString LOBBY = constant("Lobby");
-    public static final TruffleString PROTOS = constant("Protos");
-    public static final TruffleString SYSTEM = constant("System");
-    public static final TruffleString LOCALS = constant("Locals");
     public static final TruffleString COROUTINE = constant("Coroutine");
+    public static final TruffleString DATE = constant("Date");
+    public static final TruffleString EXCEPTION = constant("Exception");
+    public static final TruffleString LIST = constant("List");
+    public static final TruffleString LOBBY = constant("Lobby");
+    public static final TruffleString LOCALS = constant("Locals");
+    public static final TruffleString MESSAGE = constant("Message");
+    public static final TruffleString NUMBER = constant("Number");
+    public static final TruffleString OBJECT = constant("Object");
+    public static final TruffleString PROTOS = constant("Protos");
+    public static final TruffleString SEQUENCE = constant("Sequence");
+    public static final TruffleString SYSTEM = constant("System");
 
     public static TruffleString constant(String s) {
         return fromJavaString(s);

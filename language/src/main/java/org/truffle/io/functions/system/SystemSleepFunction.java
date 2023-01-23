@@ -42,12 +42,12 @@ package org.truffle.io.functions.system;
 
 import java.util.concurrent.TimeUnit;
 
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IOLanguageException;
+
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
 
 @NodeInfo(shortName = "sleep")
 public abstract class SystemSleepFunction extends FunctionBodyNode {

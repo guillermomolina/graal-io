@@ -41,9 +41,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io;
+package org.truffle.io.runtime;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
+
+import org.truffle.io.IOLanguage;
+import org.truffle.io.runtime.interop.IOLanguageView;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
@@ -52,8 +55,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
-
-import org.truffle.io.runtime.interop.IOLanguageView;
 
 /**
  * IO does not need a sophisticated error checking and reporting mechanism, so all unexpected

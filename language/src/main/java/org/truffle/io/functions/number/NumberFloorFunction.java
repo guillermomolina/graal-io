@@ -40,12 +40,12 @@
  */
 package org.truffle.io.functions.number;
 
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IOLanguageException;
+
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.IOLanguageException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
 
 @NodeInfo(shortName = "floor")
 public abstract class NumberFloorFunction extends FunctionBodyNode {
