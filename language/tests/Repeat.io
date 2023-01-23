@@ -1,3 +1,4 @@
+2 repeat() println
 a := 1
 5 repeat(
     a println

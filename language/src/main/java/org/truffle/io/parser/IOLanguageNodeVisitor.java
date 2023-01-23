@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -42,6 +38,10 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -309,7 +309,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
     public IONode visitSlotNamesMessage(final MessageContext ctx, IONode receiverNode) {
         IONode result = null;
-        if(receiverNode == null) {
+        if (receiverNode == null) {
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
             result = factory.createListLocalSlotNames(start, length);
@@ -358,9 +358,14 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
     public IONode visitRepeatMessage(final MessageContext ctx, IONode r) {
         factory.startLoop();
-        IONode bodyNode = visitExpression(ctx.expression(0));
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
+        final IONode bodyNode;
+        if (ctx.expression() == null || ctx.expression().isEmpty()) {
+            bodyNode = visitEmptyExpression(start, length);
+        } else {
+            bodyNode = visitExpression(ctx.expression(0));
+        }
         IONode receiverNode = r;
         if (receiverNode == null) {
             receiverNode = factory.createReadSelf();

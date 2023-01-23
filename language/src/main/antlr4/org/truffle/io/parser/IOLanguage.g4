@@ -94,7 +94,8 @@ message:
     | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
     | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
-    | REPEAT OPEN EOL* expression EOL* CLOSE
+    | REPEAT OPEN EOL* expression? EOL* CLOSE
+    | DO OPEN EOL* expression? EOL* CLOSE
     | id=IDENTIFIER arguments?
     ;
 
@@ -162,6 +163,7 @@ identifier:
     | BLOCK
     | BREAK
     | CONTINUE
+    | DO
     | ELSE
     | FALSE
     | FOR
@@ -186,6 +188,7 @@ identifier:
 BLOCK: 'block';
 BREAK: 'break';
 CONTINUE: 'continue';
+DO: 'do';
 ELSE: 'else';
 FALSE: 'false';
 FOR: 'for';
