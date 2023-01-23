@@ -3,6 +3,10 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -38,10 +42,6 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
-
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -94,7 +94,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         String location = "-- line " + line + " col " + col + ": ";
         int length = token == null ? 1 : Math.max(token.getStopIndex() - token.getStartIndex(), 0);
         throw new ParseException(source, line, col, length,
-                String.format("Error(s) parsing script:%n" + location + message));
+                String.format("Error(s) parsing script:" + location + message));
     }
 
     public RootCallTarget parseIO(IOLanguage language, Source source) {
