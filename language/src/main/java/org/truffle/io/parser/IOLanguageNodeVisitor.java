@@ -94,8 +94,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         int col = charPositionInLine + 1;
         String location = "-- line " + line + " col " + col + ": ";
         int length = token == null ? 1 : Math.max(token.getStopIndex() - token.getStartIndex(), 0);
-        throw new ParseException(source, line, col, length,
-                String.format("Error(s) parsing script:" + location + message));
+        throw new ParseException(source, line, col, length, "Error(s) parsing script:" + location + message);
     }
 
     public RootCallTarget parseIO(IOLanguage language, Source source) {
