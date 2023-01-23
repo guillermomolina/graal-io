@@ -290,6 +290,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.REPEAT() != null) {
             return visitRepeatMessage(ctx, receiverNode);
         }
+        if (ctx.DO() != null) {
+            return visitDoMessage(ctx, receiverNode);
+        }
         IONode result = null;
         if (ctx.SLOT_NAMES() != null) {
             result = visitSlotNamesMessage(ctx, receiverNode);
@@ -358,10 +361,10 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
     public IONode visitRepeatMessage(final MessageContext ctx, IONode r) {
         factory.startLoop();
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
         final IONode bodyNode;
         if (ctx.expression() == null || ctx.expression().isEmpty()) {
+            int start = ctx.OPEN().getSymbol().getStartIndex();
+            int length = ctx.CLOSE().getSymbol().getStopIndex() - start + 1;
             bodyNode = visitEmptyExpression(start, length);
         } else {
             bodyNode = visitExpression(ctx.expression(0));
@@ -370,7 +373,38 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (receiverNode == null) {
             receiverNode = factory.createReadSelf();
         }
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
         IONode result = factory.createRepeat(receiverNode, bodyNode, start, length);
+        assert result != null;
+        return result;
+    }
+
+    public IONode visitTargetExpression(final ExpressionContext ctx, int startPos, int length) {
+        List<IONode> body = new ArrayList<>();
+        if(ctx != null) {
+            for (final OperationContext operationCtx : ctx.operation()) {
+                IONode operationNode = visitOperation(operationCtx);
+                if (operationNode != null) {
+                    body.add(operationNode);
+                }
+            }    
+        }
+        body.add(factory.createReadTarget());
+        final IONode result = factory.createExpression(body, startPos, length);
+        assert result != null;
+        return result;
+    }
+
+    public IONode visitDoMessage(final MessageContext ctx, IONode receiverNode) {
+        int bodyStart = ctx.OPEN().getSymbol().getStartIndex();
+        int length = ctx.CLOSE().getSymbol().getStopIndex() - bodyStart + 1;
+        factory.enterNewScope(bodyStart);
+        final IONode bodyNode = visitTargetExpression(ctx.expression(0), bodyStart, length);
+        FunctionLiteralNode functionNode = factory.createFunction(bodyNode, bodyStart, length);
+        int start = ctx.start.getStartIndex();
+        length = ctx.stop.getStopIndex() - start + 1;
+        IONode result = factory.createDo(receiverNode, functionNode, start, length);
         assert result != null;
         return result;
     }

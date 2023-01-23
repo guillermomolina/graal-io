@@ -273,7 +273,7 @@ public class NodeFactory {
         if (hasLocals()) {
             homeNode = createReadCallSender();
         } else {
-            homeNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+            homeNode = createReadTarget();
         }
         final BlockLiteralNode blockLiteralNode = new BlockLiteralNode(rootNode, argNames, homeNode);
         blockLiteralNode.setSourceSection(startPos, length);
@@ -561,11 +561,20 @@ public class NodeFactory {
     }
 
     public IONode createReadSelf() {
-        assert hasLocals() == true;
+        assert hasLocals();
         final StringLiteralNode selfNode = new StringLiteralNode(Symbols.SELF);
         final IONode result = createReadLocalSlot(selfNode);
         assert result != null;
         return result;
+    }
+
+    public IONode createReadTarget() {
+        assert !hasLocals();
+        IONode result = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+        //result.addExpressionTag();
+        assert result != null;
+        return result;
+        
     }
 
     public IONode createReadCall() {
@@ -686,7 +695,7 @@ public class NodeFactory {
                 }
                 return resultNode;
             }
-            targetNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+            targetNode = createReadTarget();
         }
         return createReadProperty(targetNode, nameNode, 0, 0);
     }
@@ -703,13 +712,30 @@ public class NodeFactory {
                     targetNode = createReadSelf();
                 }
             } else {
-                targetNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+                targetNode = createReadTarget();
             }
         }
         TruffleString identifier = asTruffleString(identifierToken, false);
         assert targetNode != null;
         IONode result = new InvokeNode(targetNode, valueNode, identifier,
                 argumentNodes.toArray(new IONode[argumentNodes.size()]));
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+        return result;
+    }
+
+    public IONode createDo(IONode receiverNode, IONode functionNode, int startPos, int length) {
+        IONode targetNode = receiverNode;
+        if (targetNode == null) {
+            if (hasLocals()) {
+                targetNode = createReadSelf();
+            } else {
+                targetNode = createReadTarget();
+            }
+        }
+        TruffleString identifier = Symbols.fromJavaString("do");
+        assert targetNode != null;
+        IONode result = new InvokeNode(targetNode, functionNode, identifier, new IONode[0]);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
@@ -737,7 +763,7 @@ public class NodeFactory {
                 if (hasLocals()) {
                     receiverNode = createReadCallSender();
                 } else {
-                    receiverNode = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+                    receiverNode = createReadTarget();
                 }
             }
         }
