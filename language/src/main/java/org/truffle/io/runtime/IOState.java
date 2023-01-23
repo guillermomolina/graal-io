@@ -82,6 +82,7 @@ import org.truffle.io.functions.list.ListSizeFunctionFactory;
 import org.truffle.io.functions.lobby.LobbyExitFunctionFactory;
 import org.truffle.io.functions.number.NumberFloorFunctionFactory;
 import org.truffle.io.functions.object.ObjectCloneFunctionFactory;
+import org.truffle.io.functions.object.ObjectDoFileFunctionFactory;
 import org.truffle.io.functions.object.ObjectDoStringFunctionFactory;
 import org.truffle.io.functions.object.ObjectHasProtoFunctionFactory;
 import org.truffle.io.functions.object.ObjectIsActivatableFunctionFactory;
@@ -226,6 +227,7 @@ public final class IOState {
 
     private void installBuiltins() {
         installBuiltin(ObjectCloneFunctionFactory.getInstance());
+        installBuiltin(ObjectDoFileFunctionFactory.getInstance());
         installBuiltin(ObjectDoStringFunctionFactory.getInstance());
         installBuiltin(ObjectHasProtoFunctionFactory.getInstance());
         installBuiltin(ObjectIsActivatableFunctionFactory.getInstance());
