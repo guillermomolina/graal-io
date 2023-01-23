@@ -37,6 +37,7 @@ import org.truffle.io.parser.IOLanguageParser.PseudoVariableContext;
 import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SequenceContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
+import org.truffle.io.parser.IOLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -264,6 +265,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         }
         if (ctx.whileMessage() != null) {
             return visitWhileMessage(ctx.whileMessage());
+        }
+        if (ctx.tryMessage() != null) {
+            return visitTryMessage(ctx.tryMessage());
         }
         throw new ShouldNotBeHereException();
     }
@@ -499,6 +503,14 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
             elementNodes.add(elementNode);
         }
         return factory.createListLiteral(elementNodes, ctx.start.getStartIndex(),
+                ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
+    }
+
+    @Override
+    public IONode visitTryMessage(TryMessageContext ctx) {
+        IONode bodyNode = visitExpression(ctx.expression());
+        assert bodyNode != null;
+        return factory.createTry(bodyNode, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
     }
 

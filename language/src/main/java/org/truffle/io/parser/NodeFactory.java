@@ -63,6 +63,7 @@ import org.truffle.io.nodes.controlflow.DebuggerNode;
 import org.truffle.io.nodes.controlflow.IfNode;
 import org.truffle.io.nodes.controlflow.RepeatNode;
 import org.truffle.io.nodes.controlflow.ReturnNode;
+import org.truffle.io.nodes.controlflow.TryNode;
 import org.truffle.io.nodes.controlflow.WhileNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.InvokeNode;
@@ -374,6 +375,16 @@ public class NodeFactory {
             repeatNode.setSourceSection(startPos, length);
         }
         return repeatNode;
+    }
+
+    public IONode createTry(IONode bodyNode, int startPos,  int length) {
+        IONode tryNode = null;
+        if (bodyNode != null) {
+            tryNode = new TryNode(bodyNode);
+            tryNode.addExpressionTag();
+            tryNode.setSourceSection(startPos, length);
+        }
+        return tryNode;
     }
 
     public IONode createIf(Token ifToken, IONode conditionNode, IONode thenPartNode,

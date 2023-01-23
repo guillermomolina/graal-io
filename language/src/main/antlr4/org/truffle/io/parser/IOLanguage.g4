@@ -86,6 +86,7 @@ literalMessage:
     | forMessage
     | listMessage
     | blockMessage
+    | tryMessage
     ;
 
 message:
@@ -141,6 +142,7 @@ literal:
     | str=STRING
     | pseudoVariable
     ;
+tryMessage: TRY OPEN EOL* expression EOL* CLOSE;
 
 number:
     decimal
@@ -181,6 +183,7 @@ identifier:
     | SUPER
     | THEN
     | TRUE
+    | TRY
     | UPDATE_SLOT
     | WHILE
     ;
@@ -206,6 +209,7 @@ SLOT_NAMES: 'slotNames';
 SUPER: 'super';
 THEN: 'then';
 TRUE: 'true';
+TRY: 'try';
 UPDATE_SLOT: 'updateSlot';
 WHILE: 'while';
 

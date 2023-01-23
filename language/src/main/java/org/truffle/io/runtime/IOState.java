@@ -84,6 +84,7 @@ import org.truffle.io.runtime.objects.IOBlock;
 import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOCoroutine;
 import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.objects.IOException;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOList;
@@ -471,6 +472,21 @@ public final class IOState {
         IOCall call = new IOCall(sender, target, message, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);
         return call;
+    }
+
+    public IOException createException(final TruffleString error, final IOCoroutine coroutine,
+            final IOMessage caughtMessage) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IOException exception = new IOException(error, coroutine, caughtMessage);
+        allocationReporter.onReturnValue(exception, 0, AllocationReporter.SIZE_UNKNOWN);
+        return exception;
+    }
+
+    public IOException createException(final TruffleString error, final IOCoroutine coroutine) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IOException exception = new IOException(error, coroutine);
+        allocationReporter.onReturnValue(exception, 0, AllocationReporter.SIZE_UNKNOWN);
+        return exception;
     }
 
     public IOCoroutine createCoroutine() {
