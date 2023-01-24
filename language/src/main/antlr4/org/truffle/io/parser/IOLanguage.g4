@@ -112,7 +112,7 @@ literalMessage
     : returnMessage
     | breakMessage
     | continueMessage
-    | ifMessage
+    | ifMessageVariants
     | whileMessage 
     | forMessage
     | listMessage
@@ -126,21 +126,6 @@ continueMessage: CONTINUE;
 listMessage: LIST arguments?;
 blockMessage: (BLOCK|METHOD) OPEN EOL* parameterList? body=expression? EOL* CLOSE;
 parameterList: (identifier EOL* COMMA EOL*)+;
-ifMessage:
-    ifMessage1 (EOL* elseifMessage)* EOL* thenMessage (EOL* elseMessage)?
-    | ifThenElseMessage
-    ;
-ifMessage1: IF OPEN EOL* condition=expression EOL* CLOSE;
-thenMessage: THEN OPEN EOL* thenPart=expression EOL* CLOSE;
-elseMessage: ELSE OPEN EOL* elsePart=expression EOL* CLOSE;
-elseifMessage: ELSEIF OPEN EOL* condition=expression EOL* CLOSE;
-ifThenElseMessage: 
-    IF OPEN EOL* 
-        condition=expression EOL* COMMA EOL* 
-        thenPart=expression EOL* (COMMA EOL* 
-        elsePart=expression EOL*)? 
-    CLOSE
-    ;
 whileMessage: 
     WHILE OPEN EOL* 
         condition=expression EOL* COMMA EOL* 
@@ -158,6 +143,28 @@ forMessage:
     ;
 tryMessage
     : TRY OPEN EOL* expression EOL* CLOSE
+    ;
+ifMessageVariants:
+    ifMessage EOL* thenMessage (EOL* elseMessageVariants)?
+    | IF ifArguments
+    ;
+elseMessageVariants:
+    elseifMessage EOL* thenMessage (EOL* elseMessageVariants)?
+    | ELSEIF ifArguments
+    | elseMessage
+    ;
+
+ifMessage: IF OPEN EOL* condition=expression EOL* CLOSE;
+elseifMessage: ELSEIF OPEN EOL* condition=expression EOL* CLOSE;
+thenMessage: THEN OPEN EOL* thenPart=expression EOL* CLOSE;
+elseMessage: ELSE OPEN EOL* elsePart=expression EOL* CLOSE;
+
+ifArguments: 
+    OPEN EOL* 
+        condition=expression EOL* COMMA EOL* 
+        thenPart=expression EOL* (COMMA EOL* 
+        elsePart=expression EOL*)? 
+    CLOSE
     ;
 
 literal

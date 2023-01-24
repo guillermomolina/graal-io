@@ -387,7 +387,7 @@ public class NodeFactory {
         return tryNode;
     }
 
-    public IONode createIf(Token ifToken, IONode conditionNode, IONode thenPartNode,
+    public IONode createIfThenElse(Token ifToken, IONode conditionNode, IONode thenPartNode,
             IONode elsePartNode) {
         if (conditionNode == null || thenPartNode == null) {
             return null;

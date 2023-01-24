@@ -22,12 +22,12 @@ import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
 import org.truffle.io.parser.IOLanguageParser.BlockMessageContext;
 import org.truffle.io.parser.IOLanguageParser.DecimalContext;
 import org.truffle.io.parser.IOLanguageParser.DoMessageContext;
+import org.truffle.io.parser.IOLanguageParser.ElseMessageVariantsContext;
 import org.truffle.io.parser.IOLanguageParser.ExpressionContext;
 import org.truffle.io.parser.IOLanguageParser.ForMessageContext;
 import org.truffle.io.parser.IOLanguageParser.GetSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.IdentifierContext;
-import org.truffle.io.parser.IOLanguageParser.IfMessageContext;
-import org.truffle.io.parser.IOLanguageParser.IfThenElseMessageContext;
+import org.truffle.io.parser.IOLanguageParser.IfMessageVariantsContext;
 import org.truffle.io.parser.IOLanguageParser.IolanguageContext;
 import org.truffle.io.parser.IOLanguageParser.ListMessageContext;
 import org.truffle.io.parser.IOLanguageParser.LiteralContext;
@@ -262,8 +262,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.blockMessage() != null) {
             return visitBlockMessage(ctx.blockMessage());
         }
-        if (ctx.ifMessage() != null) {
-            return visitIfMessage(ctx.ifMessage());
+        if (ctx.ifMessageVariants() != null) {
+            return visitIfMessageVariants(ctx.ifMessageVariants());
         }
         if (ctx.forMessage() != null) {
             return visitForMessage(ctx.forMessage());
@@ -456,29 +456,54 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     }
 
     @Override
-    public IONode visitIfMessage(IfMessageContext ctx) {
-        if (ctx.ifMessage1() != null) {
-            throw new NotImplementedException();
-        }
-        if (ctx.ifThenElseMessage() != null) {
-            return visitIfThenElseMessage(ctx.ifThenElseMessage());
-        }
-        throw new ShouldNotBeHereException();
-    }
-
-    @Override
-    public IONode visitIfThenElseMessage(IfThenElseMessageContext ctx) {
-        IONode conditionNode = visitExpression(ctx.condition);
-        IONode thenPartNode = visitExpression(ctx.thenPart);
+    public IONode visitIfMessageVariants(IfMessageVariantsContext ctx) {
+        IONode conditionNode = null;
+        IONode thenPartNode = null;
         IONode elsePartNode = null;
-        if (ctx.elsePart != null) {
-            elsePartNode = visitExpression(ctx.elsePart);
+        if (ctx.ifArguments() != null) {
+            conditionNode = visitExpression(ctx.ifArguments().condition);
+            thenPartNode = visitExpression(ctx.ifArguments().thenPart);
+            if(ctx.ifArguments().elsePart != null) {
+                elsePartNode = visitExpression(ctx.ifArguments().elsePart);
+            }
+        } else {
+            conditionNode = visitExpression(ctx.ifMessage().condition);
+            thenPartNode = visitExpression(ctx.thenMessage().thenPart);
+            if (ctx.elseMessageVariants() != null) {
+                elsePartNode = visitElseMessageVariants(ctx.elseMessageVariants());
+            }    
         }
-        IONode result = factory.createIf(ctx.IF().getSymbol(), conditionNode, thenPartNode, elsePartNode);
+        IONode result = factory.createIfThenElse(ctx.start, conditionNode, thenPartNode, elsePartNode);
         assert result != null;
         return result;
     }
 
+    @Override
+    public IONode visitElseMessageVariants(ElseMessageVariantsContext ctx) {
+        if (ctx.elseMessage() != null) {
+            return visitExpression(ctx.elseMessage().elsePart);
+        }
+        IONode conditionNode = null;
+        IONode thenPartNode = null;
+        IONode elsePartNode = null;
+        if (ctx.ifArguments() != null) {
+            conditionNode = visitExpression(ctx.ifArguments().condition);
+            thenPartNode = visitExpression(ctx.ifArguments().thenPart);
+            if(ctx.ifArguments().elsePart != null) {
+                elsePartNode = visitExpression(ctx.ifArguments().elsePart);
+            }
+        } else {
+            conditionNode = visitExpression(ctx.elseifMessage().condition);
+            thenPartNode = visitExpression(ctx.thenMessage().thenPart);
+            if (ctx.elseMessageVariants() != null) {
+                elsePartNode = visitElseMessageVariants(ctx.elseMessageVariants());
+            }    
+        }
+        IONode result = factory.createIfThenElse(ctx.start, conditionNode, thenPartNode, elsePartNode);
+        assert result != null;
+        return result;
+    }
+    
     @Override
     public IONode visitWhileMessage(WhileMessageContext ctx) {
         factory.startLoop();
