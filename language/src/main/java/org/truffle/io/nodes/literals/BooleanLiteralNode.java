@@ -43,14 +43,10 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.objects.IOFalse;
-import org.truffle.io.runtime.objects.IOTrue;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 /**
  * Constant literal for a primitive {@code boolean} value. The unboxed value can be returned when the
@@ -67,13 +63,7 @@ public final class BooleanLiteralNode extends IONode {
     }
 
     @Override
-    public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
-        throw new ShouldNotBeHereException();
-        //return value;
-    }
-
-    @Override
     public Object executeGeneric(VirtualFrame frame) {
-        return value? IOTrue.SINGLETON : IOFalse.SINGLETON;
+        return value;
     }
 }
