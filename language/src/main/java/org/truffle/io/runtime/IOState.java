@@ -226,17 +226,9 @@ public final class IOState {
         IOObjectUtil.put(lib, protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
         IOObjectUtil.put(lib, protos, Symbols.EXCEPTION, IOPrototype.EXCEPTION);
 
-        IOObject nilPrototype = IONil.SINGLETON.getPrototype();
-        IOObjectUtil.put(lib, protos, Symbols.NIL, nilPrototype);
-        IOObjectUtil.put(lib, nilPrototype, IOPrototype.SYMBOL_TYPE, Symbols.NIL);
-
-        IOObject truePrototype = IOTrue.SINGLETON.getPrototype();
-        IOObjectUtil.put(lib, protos, Symbols.TRUE, truePrototype);
-        IOObjectUtil.put(lib, truePrototype, IOPrototype.SYMBOL_TYPE, Symbols.TRUE);
-
-        IOObject falsePrototype = IOFalse.SINGLETON.getPrototype();
-        IOObjectUtil.put(lib, protos, Symbols.FALSE, falsePrototype);
-        IOObjectUtil.put(lib, falsePrototype, IOPrototype.SYMBOL_TYPE, Symbols.FALSE);
+        IOObjectUtil.put(lib, protos, Symbols.NIL, IONil.SINGLETON);
+        IOObjectUtil.put(lib, protos, Symbols.TRUE, IOTrue.SINGLETON);
+        IOObjectUtil.put(lib, protos, Symbols.FALSE, IOFalse.SINGLETON);
 
         IOObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
         IOObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
@@ -330,13 +322,9 @@ public final class IOState {
     public IOObject getPrototype(Object obj) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
         if (interop.isNull(obj)) {
-            return IONil.SINGLETON.getPrototype();
-        } else if (interop.isBoolean(obj)) {
-            try {
-                return interop.asBoolean(obj) ? IOTrue.SINGLETON.getPrototype() : IOFalse.SINGLETON.getPrototype();
-            } catch (UnsupportedMessageException e) {
-                throw new ShouldNotBeHereException();
-            }
+            return IONil.SINGLETON;
+        } else if (interop.isBoolean(obj)) {          
+            return (Boolean)obj == Boolean.TRUE ? IOTrue.SINGLETON : IOFalse.SINGLETON;
         } else if (obj instanceof IOObject) {
             return ((IOObject) obj).getPrototype();
         } else if (obj instanceof String) {
