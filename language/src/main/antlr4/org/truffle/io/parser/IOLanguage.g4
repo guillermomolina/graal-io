@@ -41,12 +41,16 @@
  
  grammar IOLanguage;
 
-iolanguage: EOL* expression? EOF;
+iolanguage
+    : EOL* expression? EOF
+    ;
 
-expression: operation (terminator+ operation terminator*)* EOL*;
+expression
+    : operation (terminator+ operation terminator*)* EOL*
+    ;
 
-operation: 
-    operation op=('@' | '@@' | '\'' | '.' | '?' | ':') operation
+operation
+    : operation op=('@' | '@@' | '\'' | '.' | '?' | ':') operation
     | operation op='**' operation
     | operation op=('++' | '--') operation
     | operation op=('*' | '/' | '%') operation
@@ -57,28 +61,55 @@ operation:
     | operation op='&' operation
     | operation op='^' operation
     | operation op='|' operation
-    | operation op=('and' | '&&') operation
-    | operation op=('or' | '||') operation
+    | operation op=(AND | '&&') operation
+    | operation op=(OR | '||') operation
     | operation op='..' operation
     | operation op=OPERATOR operation
     | assignment
-    | sequence
+    | message
     ;
 
-assignment:
-    sequence? name=identifier assign=('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '<-' | '<->' | '->') operation
-    | sequence? name=identifier assign=('=' | ':=' | '::=') operation
+assignment
+    : message? name=identifier assign=('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '<-' | '<->' | '->') operation
+    | message? name=identifier assign=('=' | ':=' | '::=') operation
     ;
 
-sequence:
-    (literal | literalMessage | subexpression) message*
-    | message+
+message
+    : subexpression
+    | literalMessage
+    | literal messageNext?
+    | message messageNext
+    | messageNext
     ;
 
-subexpression: OPEN EOL* expression? CLOSE;
+subexpression
+    : OPEN EOL* expression? CLOSE
+    ;
 
-literalMessage: 
-    returnMessage
+messageNext
+    : repeatMessage
+    | doMessage
+    | getSlotMessage
+    | newSlotMessage
+    | setSlotMessage
+    | updateSlotMessage
+    | slotNamesMessage
+    | messageInvoke
+    ;
+
+messageInvoke: identifier arguments?;
+arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
+
+slotNamesMessage: SLOT_NAMES;
+getSlotMessage: GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE;
+newSlotMessage: NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE;
+setSlotMessage: SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE;
+updateSlotMessage: UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE;
+repeatMessage: REPEAT OPEN EOL* expression? EOL* CLOSE;
+doMessage: DO OPEN EOL* expression? EOL* CLOSE;
+
+literalMessage
+    : returnMessage
     | breakMessage
     | continueMessage
     | ifMessage
@@ -88,19 +119,6 @@ literalMessage:
     | blockMessage
     | tryMessage
     ;
-
-message:
-    id=SLOT_NAMES
-    | GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE
-    | NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
-    | SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
-    | UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE
-    | REPEAT OPEN EOL* expression? EOL* CLOSE
-    | DO OPEN EOL* expression? EOL* CLOSE
-    | id=IDENTIFIER arguments?
-    ;
-
-arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 
 returnMessage: RETURN operation?;
 breakMessage: BREAK;
@@ -137,31 +155,41 @@ forMessage:
         body=expression EOL* 
     CLOSE
     ;
-literal: 
-    number 
+tryMessage
+    : TRY OPEN EOL* expression EOL* CLOSE
+    ;
+
+literal
+    : number 
     | str=STRING
     | pseudoVariable
     ;
-tryMessage: TRY OPEN EOL* expression EOL* CLOSE;
 
-number:
-    decimal
+pseudoVariable
+    : NIL
+    | TRUE
+    | FALSE
+    ;
+
+number
+    : decimal
     | FLOAT
     ;
 
-decimal:
-    INTEGER 
+decimal
+    : INTEGER 
     | HEXADECIMAL 
     | OCTAL 
     | BINARY
     ;
 
-pseudoVariable: NIL | TRUE | FALSE | SELF | SUPER;
+terminator
+    : ';' 
+    | EOL
+    ;
 
-terminator: ';' | EOL;
-
-identifier: 
-    IDENTIFIER
+identifier
+    : AND
     | BLOCK
     | BREAK
     | CONTINUE
@@ -175,19 +203,20 @@ identifier:
     | METHOD
     | NEW_SLOT
     | NIL
+    | OR
     | REPEAT
     | RETURN
-    | SELF
     | SET_SLOT
     | SLOT_NAMES
-    | SUPER
     | THEN
     | TRUE
     | TRY
     | UPDATE_SLOT
     | WHILE
+    | IDENTIFIER
     ;
 
+AND: 'and';
 BLOCK: 'block';
 BREAK: 'break';
 CONTINUE: 'continue';
@@ -201,12 +230,11 @@ LIST: 'list';
 METHOD: 'method';
 NEW_SLOT: 'newSlot';
 NIL: 'nil';
+OR: 'or';
 REPEAT: 'repeat';
 RETURN: 'return';
-SELF: 'self';
 SET_SLOT: 'setSlot';
 SLOT_NAMES: 'slotNames';
-SUPER: 'super';
 THEN: 'then';
 TRUE: 'true';
 TRY: 'try';
@@ -227,7 +255,6 @@ fragment HEX_DIGIT: [0-9] | [a-f] | [A-F];
 fragment OCT_DIGIT: [0-7];
 fragment BIN_DIGIT: [01];
 fragment TAB: '\t';
-fragment STRING_CHAR: ~('"' | '\r' | '\n');
 fragment RN: '\r'? '\n';
 
 fragment EXPONENT_OR_POINT_FLOAT
@@ -240,6 +267,37 @@ fragment POINT_FLOAT
     | [0-9]+ '.'
     ;
 
+/// shortstring     ::=  "'" shortstringitem* "'" | '"' shortstringitem* '"'
+/// shortstringitem ::=  shortstringchar | stringescapeseq
+/// shortstringchar ::=  <any source character except "\" or newline or the quote>
+fragment SHORT_STRING
+    : '\'' ( STRING_ESCAPE_SEQ | ~[\\\r\n\f'] )* '\''
+    | '"' ( STRING_ESCAPE_SEQ | ~[\\\r\n\f"] )* '"'
+    ;
+    
+/// longstring      ::=  "'''" longstringitem* "'''" | '"""' longstringitem* '"""'
+fragment LONG_STRING
+    : '\'\'\'' LONG_STRING_ITEM*? '\'\'\''
+    | '"""' LONG_STRING_ITEM*? '"""'
+    ;
+
+/// longstringitem  ::=  longstringchar | stringescapeseq
+fragment LONG_STRING_ITEM
+    : LONG_STRING_CHAR
+    | STRING_ESCAPE_SEQ
+    ;
+
+/// longstringchar  ::=  <any source character except "\">
+fragment LONG_STRING_CHAR
+    : ~'\\'
+    ;
+
+/// stringescapeseq ::=  "\" <any source character>
+fragment STRING_ESCAPE_SEQ
+    : '\\' .
+    | '\\' RN
+    ;
+
 IDENTIFIER: (LETTER | '_') (LETTER | '_' | DIGIT)*;
 
 OPERATOR:  (':' | '.' | '\'' | '~' | '!' | '@' | '$' | 
@@ -250,9 +308,7 @@ OPERATOR:  (':' | '.' | '\'' | '~' | '!' | '@' | '$' |
 COMMA: ',';
 OPEN: '(' | '[' | '{';
 CLOSE:')' | ']' | '}';
-STRING: MONOQUOTE | TRIQUOTE;
-MONOQUOTE: '"' STRING_CHAR* '"';
-TRIQUOTE: '"""' STRING_CHAR* '"""';
+STRING: SHORT_STRING | LONG_STRING;
 
 INTEGER: [1-9] [0-9]*
                 | '0'+

@@ -21,8 +21,10 @@ import org.truffle.io.parser.IOLanguageParser.ArgumentsContext;
 import org.truffle.io.parser.IOLanguageParser.AssignmentContext;
 import org.truffle.io.parser.IOLanguageParser.BlockMessageContext;
 import org.truffle.io.parser.IOLanguageParser.DecimalContext;
+import org.truffle.io.parser.IOLanguageParser.DoMessageContext;
 import org.truffle.io.parser.IOLanguageParser.ExpressionContext;
 import org.truffle.io.parser.IOLanguageParser.ForMessageContext;
+import org.truffle.io.parser.IOLanguageParser.GetSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.IdentifierContext;
 import org.truffle.io.parser.IOLanguageParser.IfMessageContext;
 import org.truffle.io.parser.IOLanguageParser.IfThenElseMessageContext;
@@ -31,13 +33,19 @@ import org.truffle.io.parser.IOLanguageParser.ListMessageContext;
 import org.truffle.io.parser.IOLanguageParser.LiteralContext;
 import org.truffle.io.parser.IOLanguageParser.LiteralMessageContext;
 import org.truffle.io.parser.IOLanguageParser.MessageContext;
+import org.truffle.io.parser.IOLanguageParser.MessageInvokeContext;
+import org.truffle.io.parser.IOLanguageParser.MessageNextContext;
+import org.truffle.io.parser.IOLanguageParser.NewSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.NumberContext;
 import org.truffle.io.parser.IOLanguageParser.OperationContext;
 import org.truffle.io.parser.IOLanguageParser.PseudoVariableContext;
+import org.truffle.io.parser.IOLanguageParser.RepeatMessageContext;
 import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
-import org.truffle.io.parser.IOLanguageParser.SequenceContext;
+import org.truffle.io.parser.IOLanguageParser.SetSlotMessageContext;
+import org.truffle.io.parser.IOLanguageParser.SlotNamesMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.TryMessageContext;
+import org.truffle.io.parser.IOLanguageParser.UpdateSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
 
 import com.oracle.truffle.api.RootCallTarget;
@@ -158,8 +166,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.assignment() != null) {
             return visitAssignment(ctx.assignment());
         }
-        if (ctx.sequence() != null) {
-            return visitSequence(ctx.sequence());
+        if (ctx.message() != null) {
+            return visitMessage(ctx.message());
         }
         if (ctx.op == null) {
             throw new ShouldNotBeHereException();
@@ -183,8 +191,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     public IONode visitAssignment(final AssignmentContext ctx) {
         if (ctx.assign.getText().equals(":=")) {
             IONode receiverNode = null;
-            if (ctx.sequence() != null) {
-                receiverNode = visitSequence(ctx.sequence());
+            if (ctx.message() != null) {
+                receiverNode = visitMessage(ctx.message());
                 assert receiverNode != null;
             }
             IONode assignmentNameNode = visitIdentifier(ctx.name);
@@ -201,26 +209,24 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     }
 
     @Override
-    public IONode visitSequence(final SequenceContext ctx) {
-        IONode result = null;
+    public IONode visitMessage(final MessageContext ctx) {
+        if (ctx.subexpression() != null) {
+            return visitSubexpression(ctx.subexpression());
+        }
+        if (ctx.literalMessage() != null) {
+            return visitLiteralMessage(ctx.literalMessage());
+        }
+
+        IONode receiver = null;
         if (ctx.literal() != null) {
-            result = visitLiteral(ctx.literal());
-            assert result != null;
-        } else if (ctx.literalMessage() != null) {
-            result = visitLiteralMessage(ctx.literalMessage());
-            assert result != null;
-        } else if (ctx.subexpression() != null) {
-            result = visitSubexpression(ctx.subexpression());
-            assert result != null;
+            receiver = visitLiteral(ctx.literal());
+        } else if (ctx.message() != null) {
+            receiver = visitMessage(ctx.message());
         }
-        if (ctx.message() != null && !ctx.message().isEmpty()) {
-            for (final MessageContext messageCtx : ctx.message()) {
-                IONode receiver = result;
-                result = visitMessage(messageCtx, receiver);
-            }
-            assert result != null;
+        if (ctx.messageNext() == null) {
+            return receiver;
         }
-        return result;
+        return visitMessageNext(ctx.messageNext(), receiver);
     }
 
     @Override
@@ -272,62 +278,72 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     }
 
     @Override
-    public IONode visitMessage(final MessageContext ctx) {
+    public IONode visitMessageNext(final MessageNextContext ctx) {
         throw new ShouldNotBeHereException();
     }
 
-    public IONode visitMessage(final MessageContext ctx, IONode receiverNode) {
-        if (ctx.GET_SLOT() != null) {
-            return visitGetSlotMessage(ctx, receiverNode);
+    public IONode visitMessageNext(final MessageNextContext ctx, IONode receiverNode) {
+        if (ctx.repeatMessage() != null) {
+            return visitRepeatMessage(ctx.repeatMessage(), receiverNode);
         }
-        if (ctx.NEW_SLOT() != null) {
-            return visitNewSlotMessage(ctx, receiverNode);
+        if (ctx.doMessage() != null) {
+            return visitDoMessage(ctx.doMessage(), receiverNode);
         }
-        if (ctx.SET_SLOT() != null) {
-            return visitSetSlotMessage(ctx, receiverNode);
+        if (ctx.getSlotMessage() != null) {
+            return visitGetSlotMessage(ctx.getSlotMessage(), receiverNode);
         }
-        if (ctx.UPDATE_SLOT() != null) {
-            return visitUpdateSlotMessage(ctx, receiverNode);
+        if (ctx.newSlotMessage() != null) {
+            return visitNewSlotMessage(ctx.newSlotMessage(), receiverNode);
         }
-        if (ctx.REPEAT() != null) {
-            return visitRepeatMessage(ctx, receiverNode);
+        if (ctx.setSlotMessage() != null) {
+            return visitSetSlotMessage(ctx.setSlotMessage(), receiverNode);
         }
-        if (ctx.DO() != null) {
-            return visitDoMessage(ctx, receiverNode);
+        if (ctx.updateSlotMessage() != null) {
+            return visitUpdateSlotMessage(ctx.updateSlotMessage(), receiverNode);
         }
+        if (ctx.slotNamesMessage() != null) {
+            return visitSlotNamesMessage(ctx.slotNamesMessage(), receiverNode);
+        }
+        if (ctx.messageInvoke() != null) {
+            return visitMessageInvoke(ctx.messageInvoke(), receiverNode);
+         }
+        throw new ShouldNotBeHereException();
+    }
+
+    public IONode visitMessageInvoke(final MessageInvokeContext ctx, IONode receiverNode) {
         IONode result = null;
-        if (ctx.SLOT_NAMES() != null) {
-            result = visitSlotNamesMessage(ctx, receiverNode);
-            if (result != null)
-                return result;
-        }
-        if (ctx.id != null) {
-            int start = ctx.start.getStartIndex();
-            int length = ctx.stop.getStopIndex() - start + 1;
-            List<IONode> argumentNodes = createArgumentsList(ctx.arguments());
-            result = factory.createInvokeSlot(receiverNode, ctx.id, argumentNodes, start, length);
-            assert result != null;
-            return result;
-        }
-        throw new ShouldNotBeHereException();
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        List<IONode> argumentNodes = createArgumentsList(ctx.arguments());
+        result = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, start, length);
+        assert result != null;
+        return result;
     }
 
-    public IONode visitSlotNamesMessage(final MessageContext ctx, IONode receiverNode) {
+    public IONode visitSlotNamesMessage(final SlotNamesMessageContext ctx, IONode receiverNode) {
         IONode result = null;
         if (receiverNode == null) {
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
             result = factory.createListLocalSlotNames(start, length);
+            if(result != null) {
+                return result;
+            }
         }
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        List<IONode> argumentNodes = new ArrayList<>();
+        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        assert result != null;
         return result;
     }
 
-    public IONode visitGetSlotMessage(final MessageContext ctx, IONode receiverNode) {
+    public IONode visitGetSlotMessage(final GetSlotMessageContext ctx, IONode receiverNode) {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         final IONode nameNode;
         if (ctx.name == null) {
-            nameNode = visitExpression(ctx.expression(0));
+            nameNode = visitExpression(ctx.expression());
         } else {
             nameNode = factory.createStringLiteral(ctx.name, true);
         }
@@ -336,15 +352,15 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         return result;
     }
 
-    public IONode visitNewSlotMessage(final MessageContext ctx, IONode receiverNode) {
+    public IONode visitNewSlotMessage(final NewSlotMessageContext ctx, IONode receiverNode) {
         throw new NotImplementedException();
     }
 
-    public IONode visitUpdateSlotMessage(final MessageContext ctx, IONode receiverNode) {
+    public IONode visitUpdateSlotMessage(final UpdateSlotMessageContext ctx, IONode receiverNode) {
         throw new NotImplementedException();
     }
 
-    public IONode visitSetSlotMessage(final MessageContext ctx, IONode receiverNode) {
+    public IONode visitSetSlotMessage(final SetSlotMessageContext ctx, IONode receiverNode) {
         final IONode nameNode;
         if (ctx.name == null) {
             nameNode = visitExpression(ctx.expression(0));
@@ -361,15 +377,15 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         return result;
     }
 
-    public IONode visitRepeatMessage(final MessageContext ctx, IONode r) {
+    public IONode visitRepeatMessage(final RepeatMessageContext ctx, IONode r) {
         factory.startLoop();
         final IONode bodyNode;
-        if (ctx.expression() == null || ctx.expression().isEmpty()) {
+        if (ctx.expression() == null) {
             int start = ctx.OPEN().getSymbol().getStartIndex();
             int length = ctx.CLOSE().getSymbol().getStopIndex() - start + 1;
             bodyNode = visitEmptyExpression(start, length);
         } else {
-            bodyNode = visitExpression(ctx.expression(0));
+            bodyNode = visitExpression(ctx.expression());
         }
         IONode receiverNode = r;
         if (receiverNode == null) {
@@ -398,11 +414,11 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         return result;
     }
 
-    public IONode visitDoMessage(final MessageContext ctx, IONode receiverNode) {
+    public IONode visitDoMessage(final DoMessageContext ctx, IONode receiverNode) {
         int bodyStart = ctx.OPEN().getSymbol().getStartIndex();
         int length = ctx.CLOSE().getSymbol().getStopIndex() - bodyStart + 1;
         factory.enterNewScope(bodyStart);
-        final IONode bodyNode = visitTargetExpression(ctx.expression(0), bodyStart, length);
+        final IONode bodyNode = visitTargetExpression(ctx.expression(), bodyStart, length);
         FunctionLiteralNode functionNode = factory.createFunction(bodyNode, bodyStart, length);
         int start = ctx.start.getStartIndex();
         length = ctx.stop.getStopIndex() - start + 1;
@@ -593,9 +609,6 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         }
         if (ctx.NIL() != null) {
             return factory.createNil(ctx.NIL().getSymbol());
-        }
-        if (ctx.SELF() != null) {
-            return factory.createReadSelf();
         }
         throw new ShouldNotBeHereException();
     }
