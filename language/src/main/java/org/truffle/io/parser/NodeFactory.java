@@ -377,7 +377,7 @@ public class NodeFactory {
         return repeatNode;
     }
 
-    public IONode createTry(IONode bodyNode, int startPos,  int length) {
+    public IONode createTry(IONode bodyNode, int startPos, int length) {
         IONode tryNode = null;
         if (bodyNode != null) {
             tryNode = new TryNode(bodyNode);
@@ -473,13 +473,46 @@ public class NodeFactory {
         return result;
     }
 
+    public IONode createWriteProperty(IONode receiverNode, IONode nameNode,
+            IONode valueNode, int startPos, int length) {
+        if (receiverNode == null || nameNode == null || valueNode == null) {
+            return null;
+        }
+
+        final IONode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+
+        return result;
+    }
+
+    public IONode createWriteSlot(IONode receiverNode, IONode assignmentNameNode,
+            IONode valueNode, int startPos, int length) {
+        IONode result = null;
+        if (receiverNode == null) {
+            result = createWriteSlot(assignmentNameNode, valueNode, startPos, length, false);
+            if (result == null) {
+                if (hasLocals()) {
+                    receiverNode = createReadCallSender();
+                } else {
+                    receiverNode = createReadTarget();
+                }
+            }
+        }
+        if (result == null) {
+            result = createWriteProperty(receiverNode, assignmentNameNode, valueNode, startPos, length);
+        }
+        assert result != null;
+        return result;
+    }
+
     public IONode createWriteSlot(IONode nameNode, IONode valueNode, int startPos,
             int length, boolean forceLocal) {
         return createWriteSlot(nameNode, valueNode, null, startPos, length, forceLocal);
     }
 
-    public IONode createWriteSlot(IONode nameNode, IONode valueNode,
-            Integer argumentIndex, int startPos, int length, boolean forceLocal) {
+    public IONode createWriteSlot(IONode nameNode, IONode valueNode, Integer argumentIndex,
+            int startPos, int length, boolean forceLocal) {
         if (nameNode == null || valueNode == null) {
             return null;
         }
@@ -585,7 +618,7 @@ public class NodeFactory {
         //result.addExpressionTag();
         assert result != null;
         return result;
-        
+
     }
 
     public IONode createReadCall() {
@@ -749,39 +782,6 @@ public class NodeFactory {
         IONode result = new InvokeNode(targetNode, functionNode, identifier, new IONode[0]);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
-        return result;
-    }
-
-    public IONode createWriteProperty(IONode receiverNode, IONode nameNode,
-            IONode valueNode, int startPos, int length) {
-        if (receiverNode == null || nameNode == null || valueNode == null) {
-            return null;
-        }
-
-        final IONode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode);
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-
-        return result;
-    }
-
-    public IONode createWriteSlot(IONode receiverNode, IONode assignmentNameNode,
-            IONode valueNode, int startPos, int length) {
-        IONode result = null;
-        if (receiverNode == null) {
-            result = createWriteSlot(assignmentNameNode, valueNode, startPos, length, false);
-            if (result == null) {
-                if (hasLocals()) {
-                    receiverNode = createReadCallSender();
-                } else {
-                    receiverNode = createReadTarget();
-                }
-            }
-        }
-        if (result == null) {
-            result = createWriteProperty(receiverNode, assignmentNameNode, valueNode, startPos, length);
-        }
-        assert result != null;
         return result;
     }
 

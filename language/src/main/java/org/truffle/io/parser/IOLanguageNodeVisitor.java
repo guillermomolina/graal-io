@@ -189,23 +189,34 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
     @Override
     public IONode visitAssignment(final AssignmentContext ctx) {
-        if (ctx.assign.getText().equals(":=")) {
-            IONode receiverNode = null;
-            if (ctx.message() != null) {
-                receiverNode = visitMessage(ctx.message());
-                assert receiverNode != null;
-            }
-            IONode assignmentNameNode = visitIdentifier(ctx.name);
-            assert assignmentNameNode != null;
-            IONode valueNode = visitOperation(ctx.operation());
-            assert valueNode != null;
-            int start = ctx.start.getStartIndex();
-            int length = ctx.stop.getStopIndex() - start + 1;
-            IONode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length);
-            assert result != null;
-            return result;
+        boolean initialize = false;
+        switch (ctx.assign.getText()) {
+            case "::=":
+                initialize = true;
+                break;
+            case ":=":
+                initialize = true;
+                break;
+            case "=":
+                initialize = false;
+                break;
+            default:
+                throw new NotImplementedException();
         }
-        throw new NotImplementedException();
+        IONode receiverNode = null;
+        if (ctx.message() != null) {
+            receiverNode = visitMessage(ctx.message());
+            assert receiverNode != null;
+        }
+        IONode assignmentNameNode = visitIdentifier(ctx.name);
+        assert assignmentNameNode != null;
+        IONode valueNode = visitOperation(ctx.operation());
+        assert valueNode != null;
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        IONode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length);
+        assert result != null;
+        return result;
     }
 
     @Override
