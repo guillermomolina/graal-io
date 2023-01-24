@@ -40,20 +40,20 @@
  */
 package org.truffle.io.functions.sequence;
 
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.Symbols;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.Symbols;
-
 @NodeInfo(shortName = "atPut")
 public abstract class SequenceAtPutFunction extends FunctionBodyNode {
 
-    static final TruffleString AT_PUT = Symbols.constant("atPut");
+    static final TruffleString SYMBOL_AT_PUT = Symbols.constant("atPut");
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")

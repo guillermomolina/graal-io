@@ -61,7 +61,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 @ExportLibrary(InteropLibrary.class)
 public class IOPrototype extends IOObject {
-    public static final TruffleString TYPE = Symbols.constant("type");
+    public static final TruffleString SYMBOL_TYPE = Symbols.constant("type");
 
     public static final IOPrototype OBJECT = new IOPrototype(null, Symbols.OBJECT, (l, v) -> l.hasMembers(v) || l.isBoolean(v));
     public static final IOPrototype NUMBER = new IOPrototype(OBJECT, Symbols.NUMBER,
@@ -88,15 +88,15 @@ public class IOPrototype extends IOObject {
     public IOPrototype(IOPrototype prototype, TruffleString type, TypeCheck isInstance) {
         super(prototype);
         this.isInstance = isInstance;
-        setType(type);
+        setSymbolType(type);
     }
 
-    public TruffleString getType() {
-        return (TruffleString) IOObjectUtil.getOrDefaultUncached(this, TYPE);
+    public TruffleString getSymbolType() {
+        return (TruffleString) IOObjectUtil.getOrDefaultUncached(this, SYMBOL_TYPE);
     }
 
-    public void setType(TruffleString type) {
-        IOObjectUtil.putUncached(this, TYPE, type);
+    public void setSymbolType(TruffleString type) {
+        IOObjectUtil.putUncached(this, SYMBOL_TYPE, type);
     }
 
     public boolean isInstance(Object value, InteropLibrary interop) {
@@ -117,7 +117,7 @@ public class IOPrototype extends IOObject {
     @ExportMessage(name = "getMetaQualifiedName")
     @ExportMessage(name = "getMetaSimpleName")
     public Object getName() {
-        return getType();
+        return getSymbolType();
     }
 
     @ExportMessage(name = "toDisplayString")
@@ -128,9 +128,9 @@ public class IOPrototype extends IOObject {
     @Override
     public String toString(int depth) {
         if(depth == 0) {
-            return String.format("%s_0x%08x: %s", getType(), hashCode(), IOObjectUtil.toString(this));
+            return String.format("%s_0x%08x: %s", getSymbolType(), hashCode(), IOObjectUtil.toString(this));
         }
-        return String.format("%s_0x%08x", getType(), hashCode());
+        return String.format("%s_0x%08x", getSymbolType(), hashCode());
     }
 
     @ExportMessage

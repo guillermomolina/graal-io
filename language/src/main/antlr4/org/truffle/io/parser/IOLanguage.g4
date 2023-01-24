@@ -127,12 +127,13 @@ listMessage: LIST arguments?;
 blockMessage: (BLOCK|METHOD) OPEN EOL* parameterList? body=expression? EOL* CLOSE;
 parameterList: (identifier EOL* COMMA EOL*)+;
 ifMessage:
-    ifMessage1 EOL* thenMessage (EOL* elseMessage)?
+    ifMessage1 (EOL* elseifMessage)* EOL* thenMessage (EOL* elseMessage)?
     | ifThenElseMessage
     ;
 ifMessage1: IF OPEN EOL* condition=expression EOL* CLOSE;
 thenMessage: THEN OPEN EOL* thenPart=expression EOL* CLOSE;
 elseMessage: ELSE OPEN EOL* elsePart=expression EOL* CLOSE;
+elseifMessage: ELSEIF OPEN EOL* condition=expression EOL* CLOSE;
 ifThenElseMessage: 
     IF OPEN EOL* 
         condition=expression EOL* COMMA EOL* 
@@ -194,6 +195,7 @@ identifier
     | BREAK
     | CONTINUE
     | DO
+    | ELSEIF
     | ELSE
     | FALSE
     | FOR
@@ -221,6 +223,7 @@ BLOCK: 'block';
 BREAK: 'break';
 CONTINUE: 'continue';
 DO: 'do';
+ELSEIF: 'elseif';
 ELSE: 'else';
 FALSE: 'false';
 FOR: 'for';

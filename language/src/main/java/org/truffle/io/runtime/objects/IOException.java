@@ -46,11 +46,11 @@ import org.truffle.io.runtime.Symbols;
 import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOException extends IOObject { 
-    private static final TruffleString ERROR = Symbols.constant("error");
-    private static final TruffleString COROUTINE = Symbols.constant("coroutine");
-    private static final TruffleString CAUGHT_MESSAGE = Symbols.constant("caughtMessage");
-    private static final TruffleString NESTED_EXCEPTION = Symbols.constant("nestedException");
-    private static final TruffleString ORIGINAL_CALL = Symbols.constant("originalCall");
+    private static final TruffleString SYMBOL_ERROR = Symbols.constant("error");
+    private static final TruffleString SYMBOL_COROUTINE = Symbols.constant("coroutine");
+    private static final TruffleString SYMBOL_CAUGHT_MESSAGE = Symbols.constant("caughtMessage");
+    private static final TruffleString SYMBOL_NESTED_EXCEPTION = Symbols.constant("nestedException");
+    private static final TruffleString SYMBOL_ORIGINAL_CALL = Symbols.constant("originalCall");
 
     @DynamicField
     private TruffleString caughtMessage;
@@ -59,7 +59,7 @@ public class IOException extends IOObject {
 
     public IOException(final TruffleString error, final IOCoroutine coroutine) {
         super(IOPrototype.EXCEPTION);
-        setError(error);
+        setSymbolError(error);
         setCoroutine(coroutine);
     }
 
@@ -69,43 +69,43 @@ public class IOException extends IOObject {
         setCaughtMessage(caughtMessage);
     }
 
-    public TruffleString getError() {
-        return (TruffleString)IOObjectUtil.getOrDefaultUncached(this, ERROR);
+    public TruffleString getSymbolError() {
+        return (TruffleString)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_ERROR);
     }
 
-    protected void setError(TruffleString error) {
-        IOObjectUtil.putUncached(this, ERROR, error);
+    protected void setSymbolError(TruffleString error) {
+        IOObjectUtil.putUncached(this, SYMBOL_ERROR, error);
     }
 
-    public IOCoroutine getCoroutine() {
-        return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, COROUTINE);
+    public IOCoroutine getSymbolCoroutine() {
+        return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
     }
 
     protected void setCoroutine(IOCoroutine coroutine) {
-        IOObjectUtil.putUncached(this, COROUTINE, coroutine);
+        IOObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
     }
 
-    public IOMessage getCaughtMessage() {
-        return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, CAUGHT_MESSAGE);
+    public IOMessage getSymbolCaughtMessage() {
+        return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_CAUGHT_MESSAGE);
     }
 
     protected void setCaughtMessage(IOMessage caughtMessage) {
-        IOObjectUtil.putUncached(this, CAUGHT_MESSAGE, caughtMessage);
+        IOObjectUtil.putUncached(this, SYMBOL_CAUGHT_MESSAGE, caughtMessage);
     }
 
-    public IOException getNestedException() {
-        return (IOException)IOObjectUtil.getOrDefaultUncached(this, NESTED_EXCEPTION);
+    public IOException getSymbolNestedException() {
+        return (IOException)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_NESTED_EXCEPTION);
     }
 
     protected void setNestedException(IOException nestedException) {
-        IOObjectUtil.putUncached(this, NESTED_EXCEPTION, nestedException);
+        IOObjectUtil.putUncached(this, SYMBOL_NESTED_EXCEPTION, nestedException);
     }
 
-    public IOCall getOriginalCall() {
-        return (IOCall)IOObjectUtil.getOrDefaultUncached(this, ORIGINAL_CALL);
+    public IOCall getSymbolOriginalCall() {
+        return (IOCall)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_ORIGINAL_CALL);
     }
 
     protected void setOriginalCall(IOCall originalCall) {
-        IOObjectUtil.putUncached(this, ORIGINAL_CALL, originalCall);
+        IOObjectUtil.putUncached(this, SYMBOL_ORIGINAL_CALL, originalCall);
     }
 }

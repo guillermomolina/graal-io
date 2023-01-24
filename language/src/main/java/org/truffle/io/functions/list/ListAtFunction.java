@@ -40,6 +40,11 @@
  */
 package org.truffle.io.functions.list;
 
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.OutOfBoundsException;
+import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.UndefinedNameException;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -48,15 +53,10 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.OutOfBoundsException;
-import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.UndefinedNameException;
-
 @NodeInfo(shortName = "at")
 public abstract class ListAtFunction extends FunctionBodyNode {
 
-    static final TruffleString AT = Symbols.constant("at");
+    static final TruffleString SYMBOL_AT = Symbols.constant("at");
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
@@ -67,7 +67,7 @@ public abstract class ListAtFunction extends FunctionBodyNode {
             long indexasLong = numbers.asLong(index);
             return arrays.readArrayElement(receiver, indexasLong);
         } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedField(this, AT);
+            throw UndefinedNameException.undefinedField(this, SYMBOL_AT);
         } catch (InvalidArrayIndexException e) {
             throw OutOfBoundsException.outOfBoundsInteger(this, index);
         }

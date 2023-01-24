@@ -40,16 +40,16 @@
  */
  package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOObjectUtil;
 import org.truffle.io.runtime.Symbols;
 
+import com.oracle.truffle.api.strings.TruffleString;
+
 
 public class IOMessage extends IOObject {
 
-    private static final TruffleString NAME = Symbols.constant("name");
+    private static final TruffleString SYMBOL_NAME = Symbols.constant("name");
 
     @DynamicField
     private Object name;
@@ -58,16 +58,16 @@ public class IOMessage extends IOObject {
 
     public IOMessage(final TruffleString name, final IONode[] argumentNodes) {
         super(IOPrototype.MESSAGE);
-        setName(name);
+        setSymbolName(name);
         this.argumentNodes = argumentNodes;
     }
 
-    public TruffleString getName() {
-        return (TruffleString)IOObjectUtil.getOrDefaultUncached(this, NAME);
+    public TruffleString getSymbolName() {
+        return (TruffleString)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_NAME);
     }
 
-    protected void setName(final TruffleString name) {
-        IOObjectUtil.putUncached(this, NAME, name);
+    protected void setSymbolName(final TruffleString name) {
+        IOObjectUtil.putUncached(this, SYMBOL_NAME, name);
     }
 
     public IONode[] getArgumentNodes() {
@@ -76,7 +76,7 @@ public class IOMessage extends IOObject {
 
     @Override
     public String toString(int depth) {
-        TruffleString name = getName();
+        TruffleString name = getSymbolName();
         if(name == null) {
             return "[unnamed]";
         }

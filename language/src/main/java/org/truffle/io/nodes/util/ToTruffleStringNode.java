@@ -70,7 +70,7 @@ public abstract class ToTruffleStringNode extends Node {
 
     static final int LIMIT = 5;
 
-    private static final TruffleString FOREIGN_OBJECT = Symbols.constant("[foreign object]");
+    private static final TruffleString SYMBOL_FOREIGN_OBJECT = Symbols.constant("[foreign object]");
 
     public abstract TruffleString execute(Object value);
 
@@ -124,7 +124,7 @@ public abstract class ToTruffleStringNode extends Node {
             } else if (interop.isNull(value)) {
                 return Symbols.NIL;
             } else {
-                return FOREIGN_OBJECT;
+                return SYMBOL_FOREIGN_OBJECT;
             }
         } catch (UnsupportedMessageException e) {
             throw new ShouldNotBeHereException(e);

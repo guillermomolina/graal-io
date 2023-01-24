@@ -40,6 +40,11 @@
  */
 package org.truffle.io.functions.list;
 
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.OutOfBoundsException;
+import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.UndefinedNameException;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -49,15 +54,10 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.OutOfBoundsException;
-import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.UndefinedNameException;
-
 @NodeInfo(shortName = "atPut")
 public abstract class ListAtPutFunction extends FunctionBodyNode {
 
-    static final TruffleString AT_PUT = Symbols.constant("atPut");
+    static final TruffleString SYMBOL_AT_PUT = Symbols.constant("atPut");
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")

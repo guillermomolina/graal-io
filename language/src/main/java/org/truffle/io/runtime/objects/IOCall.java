@@ -46,12 +46,12 @@ import org.truffle.io.runtime.Symbols;
 import com.oracle.truffle.api.strings.TruffleString;
 
 public class IOCall extends IOObject { 
-    private static final TruffleString SENDER = Symbols.constant("sender");
-    private static final TruffleString MESSAGE = Symbols.constant("message");
-    private static final TruffleString TARGET = Symbols.constant("target");
-    private static final TruffleString SLOT_CONTEXT = Symbols.constant("slotContext");
-    private static final TruffleString ACTIVATED = Symbols.constant("activated");
-    private static final TruffleString COROUTINE = Symbols.constant("coroutine");
+    private static final TruffleString SYMBOL_SENDER = Symbols.constant("sender");
+    private static final TruffleString SYMBOL_MESSAGE = Symbols.constant("message");
+    private static final TruffleString SYMBOL_TARGET = Symbols.constant("target");
+    private static final TruffleString SYMBOL_SLOT_CONTEXT = Symbols.constant("slotContext");
+    private static final TruffleString SYMBOL_ACTIVATED = Symbols.constant("activated");
+    private static final TruffleString SYMBOL_COROUTINE = Symbols.constant("coroutine");
 
     @DynamicField
     private Object sender;
@@ -77,51 +77,51 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public IOLocals getSender() {
-        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SENDER);
+    public IOLocals getSymbolSender() {
+        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_SENDER);
     }
 
     protected void setSender(IOLocals sender) {
-        IOObjectUtil.putUncached(this, SENDER, sender);
+        IOObjectUtil.putUncached(this, SYMBOL_SENDER, sender);
     }
 
-    public IOMessage getMessage() {
-        return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, MESSAGE);
+    public IOMessage getSymbolMessage() {
+        return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_MESSAGE);
     }
 
     protected void setMessage(IOMessage message) {
-        IOObjectUtil.putUncached(this, MESSAGE, message);
+        IOObjectUtil.putUncached(this, SYMBOL_MESSAGE, message);
     }
 
-    public Object getTarget() {
-        return IOObjectUtil.getOrDefaultUncached(this, TARGET);
+    public Object getSymbolTarget() {
+        return IOObjectUtil.getOrDefaultUncached(this, SYMBOL_TARGET);
     }
 
     protected void setTarget(Object target) {
-        IOObjectUtil.putUncached(this, TARGET, target);
+        IOObjectUtil.putUncached(this, SYMBOL_TARGET, target);
     }
 
-    public IOLocals getSlotContext() {
-        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SLOT_CONTEXT);
+    public IOLocals getSymbolSlotContext() {
+        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_SLOT_CONTEXT);
     }
 
     protected void setSlotContext(IOLocals slotcontext) {
-        IOObjectUtil.putUncached(this, SLOT_CONTEXT, slotcontext);
+        IOObjectUtil.putUncached(this, SYMBOL_SLOT_CONTEXT, slotcontext);
     }
 
-    public IOInvokable getActivated() {
-        return (IOInvokable)IOObjectUtil.getOrDefaultUncached(this, ACTIVATED);
+    public IOInvokable getSymbolActivated() {
+        return (IOInvokable)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_ACTIVATED);
     }
 
     protected void setActivated(IOInvokable activated) {
-        IOObjectUtil.putUncached(this, ACTIVATED, activated);
+        IOObjectUtil.putUncached(this, SYMBOL_ACTIVATED, activated);
     }
 
-    public IOCoroutine getCoroutine() {
-        return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, COROUTINE);
+    public IOCoroutine getSymbolCoroutine() {
+        return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
     }
 
     protected void setCoroutine(IOCoroutine coroutine) {
-        IOObjectUtil.putUncached(this, COROUTINE, coroutine);
+        IOObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
     }
 }

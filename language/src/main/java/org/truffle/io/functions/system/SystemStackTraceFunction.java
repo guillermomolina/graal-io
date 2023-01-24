@@ -43,6 +43,12 @@
  */
 package org.truffle.io.functions.system;
 
+import org.truffle.io.IOLanguage;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.nodes.root.EvalRootNode;
+import org.truffle.io.nodes.root.FunctionRootNode;
+import org.truffle.io.runtime.Symbols;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
@@ -58,18 +64,12 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.strings.TruffleStringBuilder;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.nodes.root.EvalRootNode;
-import org.truffle.io.nodes.root.FunctionRootNode;
-import org.truffle.io.runtime.Symbols;
-
 @NodeInfo(shortName = "stacktrace")
 public abstract class SystemStackTraceFunction extends FunctionBodyNode {
 
-    public static final TruffleString FRAME = Symbols.constant("Frame: root ");
-    public static final TruffleString SEPARATOR = Symbols.constant(", ");
-    public static final TruffleString EQUALS = Symbols.constant("=");
+    public static final TruffleString SYMBOL_FRAME = Symbols.constant("Frame: root ");
+    public static final TruffleString SYMBOL_SEPARATOR = Symbols.constant(", ");
+    public static final TruffleString SYMBOL_EQUALS = Symbols.constant("=");
 
     @Specialization
     public Object doMethod(Object self) {
@@ -99,14 +99,14 @@ public abstract class SystemStackTraceFunction extends FunctionBodyNode {
                 if (str.byteLength() > 0) {
                     str.appendStringUncached(Symbols.fromJavaString(System.getProperty("line.separator")));
                 }
-                str.appendStringUncached(FRAME);
+                str.appendStringUncached(SYMBOL_FRAME);
                 str.appendStringUncached(getRootNodeName(rn));
                 FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
                 int count = frameDescriptor.getNumberOfSlots();
                 for (int i = 0; i < count; i++) {
-                    str.appendStringUncached(SEPARATOR);
+                    str.appendStringUncached(SYMBOL_SEPARATOR);
                     str.appendStringUncached((TruffleString) frameDescriptor.getSlotName(i));
-                    str.appendStringUncached(EQUALS);
+                    str.appendStringUncached(SYMBOL_EQUALS);
                     str.appendStringUncached(Symbols.fromObject(frame.getValue(i)));
                 }
                 return null;

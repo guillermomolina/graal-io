@@ -85,6 +85,7 @@ import org.truffle.io.runtime.objects.IOCall;
 import org.truffle.io.runtime.objects.IOCoroutine;
 import org.truffle.io.runtime.objects.IODate;
 import org.truffle.io.runtime.objects.IOException;
+import org.truffle.io.runtime.objects.IOFalse;
 import org.truffle.io.runtime.objects.IOFunction;
 import org.truffle.io.runtime.objects.IOInvokable;
 import org.truffle.io.runtime.objects.IOList;
@@ -94,6 +95,7 @@ import org.truffle.io.runtime.objects.IOMethod;
 import org.truffle.io.runtime.objects.IONil;
 import org.truffle.io.runtime.objects.IOObject;
 import org.truffle.io.runtime.objects.IOPrototype;
+import org.truffle.io.runtime.objects.IOTrue;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -224,7 +226,16 @@ public final class IOState {
         IOObjectUtil.put(lib, protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
         IOObjectUtil.put(lib, protos, Symbols.EXCEPTION, IOPrototype.EXCEPTION);
 
+        IOObject truePrototype = IOTrue.SINGLETON.getPrototype();
+        IOObjectUtil.put(lib, protos, Symbols.TRUE, truePrototype);
+        IOObjectUtil.put(lib, truePrototype, IOPrototype.SYMBOL_TYPE, Symbols.TRUE);
+        IOObject falsePrototype = IOFalse.SINGLETON.getPrototype();
+        IOObjectUtil.put(lib, protos, Symbols.TRUE, falsePrototype);
+        IOObjectUtil.put(lib, falsePrototype, IOPrototype.SYMBOL_TYPE, Symbols.FALSE);
+
         IOObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
+        IOObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
+
         IOObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
     }
 
@@ -312,8 +323,16 @@ public final class IOState {
     }
 
     public IOObject getPrototype(Object obj) {
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached();
-        if (obj instanceof IOObject) {
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
+        if (interop.isNull(obj)) {
+            return IONil.SINGLETON.getPrototype();
+        } else if (interop.isBoolean(obj)) {
+            try {
+                return interop.asBoolean(obj) ? IOTrue.SINGLETON.getPrototype() : IOFalse.SINGLETON.getPrototype();
+            } catch (UnsupportedMessageException e) {
+                throw new ShouldNotBeHereException();
+            }
+        } else if (obj instanceof IOObject) {
             return ((IOObject) obj).getPrototype();
         } else if (obj instanceof String) {
             return IOPrototype.SEQUENCE;
@@ -323,8 +342,6 @@ public final class IOState {
             return IOPrototype.NUMBER;
         } else if (interop.fitsInDouble(obj)) {
             return IOPrototype.NUMBER;
-        } else if (interop.isNull(obj)) {
-            return IONil.SINGLETON.getPrototype();
         } else {
             return IOPrototype.OBJECT;
         }
