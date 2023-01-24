@@ -226,11 +226,16 @@ public final class IOState {
         IOObjectUtil.put(lib, protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
         IOObjectUtil.put(lib, protos, Symbols.EXCEPTION, IOPrototype.EXCEPTION);
 
+        IOObject nilPrototype = IONil.SINGLETON.getPrototype();
+        IOObjectUtil.put(lib, protos, Symbols.NIL, nilPrototype);
+        IOObjectUtil.put(lib, nilPrototype, IOPrototype.SYMBOL_TYPE, Symbols.NIL);
+
         IOObject truePrototype = IOTrue.SINGLETON.getPrototype();
         IOObjectUtil.put(lib, protos, Symbols.TRUE, truePrototype);
         IOObjectUtil.put(lib, truePrototype, IOPrototype.SYMBOL_TYPE, Symbols.TRUE);
+
         IOObject falsePrototype = IOFalse.SINGLETON.getPrototype();
-        IOObjectUtil.put(lib, protos, Symbols.TRUE, falsePrototype);
+        IOObjectUtil.put(lib, protos, Symbols.FALSE, falsePrototype);
         IOObjectUtil.put(lib, falsePrototype, IOPrototype.SYMBOL_TYPE, Symbols.FALSE);
 
         IOObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
