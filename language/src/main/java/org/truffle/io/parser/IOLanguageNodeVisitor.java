@@ -3,6 +3,10 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -47,10 +51,6 @@ import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IOLanguageParser.UpdateSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
-
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -189,16 +189,16 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
     @Override
     public IONode visitAssignment(final AssignmentContext ctx) {
-        boolean initialize = false;
+        //boolean initialize = false;
         switch (ctx.assign.getText()) {
             case "::=":
-                initialize = true;
+                // initialize = true;
                 break;
             case ":=":
-                initialize = true;
+                // initialize = true;
                 break;
             case "=":
-                initialize = false;
+                // initialize = false;
                 break;
             default:
                 throw new NotImplementedException();

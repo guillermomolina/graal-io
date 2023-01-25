@@ -64,10 +64,12 @@ public abstract class IOInvokable extends IOObject {
 
     /** The current implementation of this method. */
     private final RootCallTarget callTarget;
+    private final boolean hasCall; 
     
     public IOInvokable(IOObject prototype, final RootCallTarget callTarget) {
         super(prototype);
         this.callTarget = callTarget;
+        this.hasCall = false;
     }
 
     public RootCallTarget getCallTarget() {
@@ -76,6 +78,10 @@ public abstract class IOInvokable extends IOObject {
 
     public boolean hasLocals() {
         return false;
+    }
+
+    public boolean hasLCall() {
+        return hasCall;
     }
 
     @Override

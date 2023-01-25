@@ -48,6 +48,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Pair;
 import org.truffle.io.IOLanguage;
@@ -97,16 +103,58 @@ import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IOLocals;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 public class NodeFactory {
 
-    static class SlotScope {
-        protected final SlotScope outer;
+    static class Scope {
+        protected final Scope outer;
+        protected int bodyStartPos;
+        protected boolean inLoop;
+        protected int argumentCount;
+        protected final List<TruffleString> locals;
+
+        Scope(final Scope outer, int bodyStartPos) {
+            this.outer = outer;
+            this.bodyStartPos = bodyStartPos;
+            this.inLoop = false;
+            this.argumentCount = 0;
+            this.locals = new ArrayList<>();
+        }
+        
+        boolean hasLocals() {
+            return !locals.isEmpty();
+        }
+        
+        boolean hasCall() {
+            return locals.contains(CALL_SYMBOL);
+        }
+
+        int addArgument(TruffleString name) {
+            if(addLocal(name) != ++argumentCount) {
+                throw new RuntimeException("Arguments should be set first: " + name);
+            }
+            return argumentCount;
+        }
+        
+        int addLocal(TruffleString name) {
+            locals.add(name);
+            return locals.size();
+        }
+
+        int findLocal(TruffleString name) {
+            return locals.indexOf(name);
+        }
+
+        int findOrAddLocal(TruffleString name) {
+            int index = findLocal(name);
+            if(index != -1) {
+                return index;
+            }
+            return addLocal(name);
+        }
+    }
+
+    static class SlotScopeOld {
+        protected final SlotScopeOld outer;
         protected int bodyStartPos;
         protected int parameterCount;
         protected FrameDescriptor.Builder frameDescriptorBuilder;
@@ -115,7 +163,7 @@ public class NodeFactory {
         protected boolean inLoop;
         protected List<IONode> initializationNodes;
 
-        SlotScope(final SlotScope outer, int bodyStartPos) {
+        SlotScopeOld(final SlotScopeOld outer, int bodyStartPos) {
             this.outer = outer;
             this.bodyStartPos = bodyStartPos;
             this.argumentsNames = new ArrayList<>();
@@ -127,7 +175,7 @@ public class NodeFactory {
         }
 
         public Pair<Integer, Integer> findSlot(TruffleString slotName) {
-            SlotScope scope = this;
+            SlotScopeOld scope = this;
             int level = 0;
             while (scope != null) {
                 if (scope.localSlots.containsKey(slotName)) {
@@ -176,7 +224,7 @@ public class NodeFactory {
     private final Source source;
     private final TruffleString sourceString;
     private final IOLanguage language;
-    private SlotScope currentScope;
+    private SlotScopeOld currentScope;
 
     public NodeFactory(IOLanguage language, Source source) {
         this.language = language;
@@ -189,7 +237,7 @@ public class NodeFactory {
     }
 
     public void enterNewScope(int startPos) {
-        currentScope = new SlotScope(currentScope, startPos);
+        currentScope = new SlotScopeOld(currentScope, startPos);
     }
 
     protected void leaveCurrentScope() {
