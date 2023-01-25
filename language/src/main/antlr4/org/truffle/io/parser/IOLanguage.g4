@@ -90,9 +90,7 @@ messageNext
     : repeatMessage
     | doMessage
     | getSlotMessage
-    | newSlotMessage
     | setSlotMessage
-    | updateSlotMessage
     | slotNamesMessage
     | messageInvoke
     ;
@@ -100,13 +98,21 @@ messageNext
 messageInvoke: identifier arguments?;
 arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 
-slotNamesMessage: SLOT_NAMES;
-getSlotMessage: GET_SLOT OPEN EOL* (name=STRING|expression) EOL* CLOSE;
-newSlotMessage: NEW_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE;
-setSlotMessage: SET_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE;
-updateSlotMessage: UPDATE_SLOT OPEN EOL* (name=STRING|expression) COMMA EOL* value=expression CLOSE;
 repeatMessage: REPEAT OPEN EOL* expression? EOL* CLOSE;
 doMessage: DO OPEN EOL* expression? EOL* CLOSE;
+
+slotNamesMessage: SLOT_NAMES;
+getSlotMessage: 
+    GET_SLOT OPEN EOL* 
+        (name=STRING|expression) EOL* 
+    CLOSE
+    ;
+setSlotMessage:
+    (NEW_SLOT|SET_SLOT|UPDATE_SLOT) OPEN EOL* 
+        (name=STRING|expression) COMMA EOL* 
+        value=expression EOL*
+    CLOSE
+    ;
 
 literalMessage
     : returnMessage

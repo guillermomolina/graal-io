@@ -43,8 +43,15 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.util.ToMemberNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
@@ -54,19 +61,15 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.util.ToMemberNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOObject;
-
 @NodeInfo(shortName = "setSlot")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
 @NodeChild("valueNode")
+@NodeField(name="initialize", type=Boolean.class)
 public abstract class WriteMemberNode extends IONode {
 
     static final int LIBRARY_LIMIT = 3;
+    protected abstract boolean getInitialize();
 
     @Specialization(limit = "LIBRARY_LIMIT")
     protected Object writeIOObject(IOObject receiver, Object name, Object value,

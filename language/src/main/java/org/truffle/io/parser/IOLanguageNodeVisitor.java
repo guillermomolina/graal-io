@@ -3,10 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -39,7 +35,6 @@ import org.truffle.io.parser.IOLanguageParser.LiteralMessageContext;
 import org.truffle.io.parser.IOLanguageParser.MessageContext;
 import org.truffle.io.parser.IOLanguageParser.MessageInvokeContext;
 import org.truffle.io.parser.IOLanguageParser.MessageNextContext;
-import org.truffle.io.parser.IOLanguageParser.NewSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.NumberContext;
 import org.truffle.io.parser.IOLanguageParser.OperationContext;
 import org.truffle.io.parser.IOLanguageParser.PseudoVariableContext;
@@ -49,8 +44,11 @@ import org.truffle.io.parser.IOLanguageParser.SetSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SlotNamesMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IOLanguageParser.TryMessageContext;
-import org.truffle.io.parser.IOLanguageParser.UpdateSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
+import com.oracle.truffle.api.source.Source;
 
 public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
@@ -189,16 +187,16 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
 
     @Override
     public IONode visitAssignment(final AssignmentContext ctx) {
-        //boolean initialize = false;
+        boolean initialize = false;
         switch (ctx.assign.getText()) {
             case "::=":
-                // initialize = true;
+                initialize = true;
                 break;
             case ":=":
-                // initialize = true;
+                initialize = true;
                 break;
             case "=":
-                // initialize = false;
+                initialize = false;
                 break;
             default:
                 throw new NotImplementedException();
@@ -214,7 +212,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         assert valueNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IONode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length);
+        IONode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length, initialize);
         assert result != null;
         return result;
     }
@@ -303,14 +301,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.getSlotMessage() != null) {
             return visitGetSlotMessage(ctx.getSlotMessage(), receiverNode);
         }
-        if (ctx.newSlotMessage() != null) {
-            return visitNewSlotMessage(ctx.newSlotMessage(), receiverNode);
-        }
         if (ctx.setSlotMessage() != null) {
             return visitSetSlotMessage(ctx.setSlotMessage(), receiverNode);
-        }
-        if (ctx.updateSlotMessage() != null) {
-            return visitUpdateSlotMessage(ctx.updateSlotMessage(), receiverNode);
         }
         if (ctx.slotNamesMessage() != null) {
             return visitSlotNamesMessage(ctx.slotNamesMessage(), receiverNode);
@@ -363,15 +355,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         return result;
     }
 
-    public IONode visitNewSlotMessage(final NewSlotMessageContext ctx, IONode receiverNode) {
-        throw new NotImplementedException();
-    }
-
-    public IONode visitUpdateSlotMessage(final UpdateSlotMessageContext ctx, IONode receiverNode) {
-        throw new NotImplementedException();
-    }
-
     public IONode visitSetSlotMessage(final SetSlotMessageContext ctx, IONode receiverNode) {
+        boolean initialize = ctx.UPDATE_SLOT() == null;
         final IONode nameNode;
         if (ctx.name == null) {
             nameNode = visitExpression(ctx.expression(0));
@@ -383,7 +368,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         assert valueNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IONode result = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length);
+        IONode result = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length, initialize);
         assert result != null;
         return result;
     }
@@ -573,8 +558,7 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         } else {
             blockStartPos = ctx.expression().start.getStartIndex();
         }
-        factory.enterNewScope(blockStartPos);
-        factory.setupLocals();
+        factory.enterNewLocalsScope(blockStartPos);
         if (ctx.parameterList() != null) {
             for (final IdentifierContext identifierCtx : ctx.parameterList().identifier()) {
                 factory.addFormalParameter(identifierCtx.start);
