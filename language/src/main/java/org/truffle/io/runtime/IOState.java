@@ -71,6 +71,7 @@ import org.truffle.io.functions.object.ObjectPrintlnFunction;
 import org.truffle.io.functions.object.ObjectPrintlnFunctionFactory;
 import org.truffle.io.functions.object.ObjectProtoFunctionFactory;
 import org.truffle.io.functions.object.ObjectSlotNamesFunctionFactory;
+import org.truffle.io.functions.object.ObjectThisContextFunctionFactory;
 import org.truffle.io.functions.sequence.SequenceAtFunctionFactory;
 import org.truffle.io.functions.sequence.SequenceAtPutFunctionFactory;
 import org.truffle.io.functions.system.SystemRegisterShutdownHookFunctionFactory;
@@ -248,6 +249,7 @@ public final class IOState {
         installBuiltin(ObjectProtoFunctionFactory.getInstance());
         // installBuiltin(ObjectReadlnFunctionFactory.getInstance());
         installBuiltin(ObjectSlotNamesFunctionFactory.getInstance());
+        installBuiltin(ObjectThisContextFunctionFactory.getInstance());
         installBuiltin(ListSizeFunctionFactory.getInstance(), IOPrototype.LIST, "List");
         installBuiltin(ListAtFunctionFactory.getInstance(), IOPrototype.LIST, "List");
         installBuiltin(ListAtPutFunctionFactory.getInstance(), IOPrototype.LIST, "List");

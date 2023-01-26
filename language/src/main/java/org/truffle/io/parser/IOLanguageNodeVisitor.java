@@ -43,6 +43,7 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SetSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SlotNamesMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
+import org.truffle.io.parser.IOLanguageParser.ThisContextMessageContext;
 import org.truffle.io.parser.IOLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
 
@@ -307,6 +308,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.slotNamesMessage() != null) {
             return visitSlotNamesMessage(ctx.slotNamesMessage(), receiverNode);
         }
+        if (ctx.thisContextMessage() != null) {
+            return visitThisContextMessage(ctx.thisContextMessage(), receiverNode);
+        }
         if (ctx.messageInvoke() != null) {
             return visitMessageInvoke(ctx.messageInvoke(), receiverNode);
          }
@@ -329,6 +333,22 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
             result = factory.createListLocalSlotNames(start, length);
+            if(result != null) {
+                return result;
+            }
+        }
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        List<IONode> argumentNodes = new ArrayList<>();
+        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        assert result != null;
+        return result;
+    }
+
+    public IONode visitThisContextMessage(final ThisContextMessageContext ctx, IONode receiverNode) {
+        IONode result = null;
+        if (receiverNode == null) {
+            result = factory.createThisContext(ctx.THIS_CONTEXT().getSymbol());
             if(result != null) {
                 return result;
             }

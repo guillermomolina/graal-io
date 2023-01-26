@@ -623,6 +623,16 @@ public class NodeFactory {
         return result;
     }
 
+    public IONode createThisContext(Token token) {
+        if(hasLocals()) {
+            final IONode result = createReadCallSender();
+            assert result != null;
+            result.setSourceSection(token.getStartIndex(), token.getText().length());
+            return result;
+        }
+        return null;
+    }
+
     public IONode createReadCallTarget() {
         final StringLiteralNode targetNode = new StringLiteralNode(TARGET_SYMBOL);
         final IONode result = createReadProperty(createReadCall(), targetNode, 0, 0);
