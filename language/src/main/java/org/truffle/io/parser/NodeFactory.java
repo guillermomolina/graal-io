@@ -66,6 +66,7 @@ import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
+import org.truffle.io.nodes.expression.ThisContextNodeGen;
 import org.truffle.io.nodes.literals.BlockLiteralNode;
 import org.truffle.io.nodes.literals.BooleanLiteralNode;
 import org.truffle.io.nodes.literals.DoubleLiteralNode;
@@ -272,7 +273,7 @@ public class NodeFactory {
         final IONode homeNode;
         leaveCurrentScope();
         if (hasLocals()) {
-            homeNode = createReadCallSender();
+            homeNode = createReadCallSender(startPos, length);
         } else {
             homeNode = createReadTarget();
         }
@@ -616,21 +617,11 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createReadCallSender() {
+    public IONode createReadCallSender(int startPos, int length) {
         final StringLiteralNode senderNode = new StringLiteralNode(SENDER_SYMBOL);
-        final IONode result = createReadProperty(createReadCall(), senderNode, 0, 0);
+        final IONode result = createReadProperty(createReadCall(), senderNode, startPos, length);
         assert result != null;
         return result;
-    }
-
-    public IONode createThisContext(Token token) {
-        if(hasLocals()) {
-            final IONode result = createReadCallSender();
-            assert result != null;
-            result.setSourceSection(token.getStartIndex(), token.getText().length());
-            return result;
-        }
-        return null;
     }
 
     public IONode createReadCallTarget() {
@@ -731,6 +722,23 @@ public class NodeFactory {
         return null;
     }
 
+    public IONode createThisContext(IONode receiverNode, int startPos, int length) {
+        final IONode targetNode;
+        if(receiverNode == null) {
+            if (hasLocals()) {
+                targetNode = createReadCall();
+            } else {
+                targetNode = createReadTarget();
+            }
+        } else {
+            targetNode = receiverNode;
+        }
+        final IONode result = ThisContextNodeGen.create(targetNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+        return result;
+    }
+
     public IONode createGetSlot(IONode receiverNode, IONode nameNode, int startPos, int length) {
         IONode targetNode = receiverNode;
         if (receiverNode == null) {
@@ -754,7 +762,7 @@ public class NodeFactory {
         IONode valueNode = null;
         if (targetNode == null) {
             if (hasLocals()) {
-                targetNode = createReadCallSender();
+                targetNode = createReadCallSender(startPos, length);
                 valueNode = createReadLocalSlot(identifierToken);
                 if (valueNode == null) {
                     targetNode = createReadSelf();

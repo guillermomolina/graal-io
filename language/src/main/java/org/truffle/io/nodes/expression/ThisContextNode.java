@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,38 +41,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.functions.object;
+package org.truffle.io.nodes.expression;
 
-import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.nodes.IONode;
 import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.interop.IOLanguageView;
+import org.truffle.io.runtime.objects.IOCall;
+import org.truffle.io.runtime.objects.IOObject;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Builtin function to write a value to the {@link IOState#getOutput() standard output}. The
- * different specialization leverage the typed {@code println} methods available in Java, i.e.,
- * primitive values are printed without converting them to a {@link String} first.
- * <p>
- * Printing involves a lot of Java code, so we need to tell the optimizing system that it should not
- * unconditionally inline everything reachable from the println() method. This is done via the
- * {@link TruffleBoundary} annotations.
- */
-@NodeInfo(shortName = "println")
-public abstract class ObjectPrintlnFunction extends FunctionBodyNode {
+@NodeInfo(shortName = "thisContext")
+@NodeChild("receiverNode")
+public abstract class ThisContextNode extends IONode {
 
     @Specialization
-    @TruffleBoundary
-    public Object println(Object value,
-                    @CachedLibrary(limit = "3") InteropLibrary interop) {
-        Object languageView = IOLanguageView.forValue(value);
-        Object displayString = interop.toDisplayString(languageView);
-        IOState.get(this).getOutput().println(displayString);
-        return value;
+    public Object thisContext(VirtualFrame frame, IOCall receiver) {
+        return thisContext(frame, receiver.getTarget());
+    }
+
+    @Specialization
+    public Object thisContext(VirtualFrame frame, IOObject receiver) {
+        return receiver;
+    }
+
+    @Specialization
+    public Object thisContext(VirtualFrame frame, Object receiver) {
+        IOObject prototype = IOState.get(this).getPrototype(receiver);
+        return IOState.get(this).createLocals(prototype, frame.materialize());
     }
 
 }

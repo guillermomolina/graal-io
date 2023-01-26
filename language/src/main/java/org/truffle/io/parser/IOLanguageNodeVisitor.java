@@ -346,17 +346,9 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
     }
 
     public IONode visitThisContextMessage(final ThisContextMessageContext ctx, IONode receiverNode) {
-        IONode result = null;
-        if (receiverNode == null) {
-            result = factory.createThisContext(ctx.THIS_CONTEXT().getSymbol());
-            if(result != null) {
-                return result;
-            }
-        }
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        List<IONode> argumentNodes = new ArrayList<>();
-        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        final IONode result =  factory.createThisContext(receiverNode, start, length);
         assert result != null;
         return result;
     }

@@ -77,7 +77,7 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public IOLocals getSymbolSender() {
+    public IOLocals getSender() {
         return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_SENDER);
     }
 
@@ -85,7 +85,7 @@ public class IOCall extends IOObject {
         IOObjectUtil.putUncached(this, SYMBOL_SENDER, sender);
     }
 
-    public IOMessage getSymbolMessage() {
+    public IOMessage getMessage() {
         return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_MESSAGE);
     }
 
@@ -93,7 +93,7 @@ public class IOCall extends IOObject {
         IOObjectUtil.putUncached(this, SYMBOL_MESSAGE, message);
     }
 
-    public Object getSymbolTarget() {
+    public Object getTarget() {
         return IOObjectUtil.getOrDefaultUncached(this, SYMBOL_TARGET);
     }
 
@@ -101,7 +101,7 @@ public class IOCall extends IOObject {
         IOObjectUtil.putUncached(this, SYMBOL_TARGET, target);
     }
 
-    public IOLocals getSymbolSlotContext() {
+    public IOLocals getSlotContext() {
         return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_SLOT_CONTEXT);
     }
 
@@ -109,7 +109,7 @@ public class IOCall extends IOObject {
         IOObjectUtil.putUncached(this, SYMBOL_SLOT_CONTEXT, slotcontext);
     }
 
-    public IOInvokable getSymbolActivated() {
+    public IOInvokable getActivated() {
         return (IOInvokable)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_ACTIVATED);
     }
 
@@ -117,7 +117,7 @@ public class IOCall extends IOObject {
         IOObjectUtil.putUncached(this, SYMBOL_ACTIVATED, activated);
     }
 
-    public IOCoroutine getSymbolCoroutine() {
+    public IOCoroutine getCoroutine() {
         return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
     }
 

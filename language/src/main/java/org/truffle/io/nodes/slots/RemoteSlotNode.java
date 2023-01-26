@@ -92,7 +92,7 @@ public abstract class RemoteSlotNode extends IONode {
             throw new NotImplementedException();
         }
         IOCall call = (IOCall) argument;
-        IOLocals locals = call.getSymbolSender();
+        IOLocals locals = call.getSender();
 
         int i = getContextLevel() - 1;
         while (i > 0) {
@@ -100,7 +100,7 @@ public abstract class RemoteSlotNode extends IONode {
             if (call == null) {
                 throw new NotImplementedException();
             }
-            locals = call.getSymbolSender();
+            locals = call.getSender();
             i--;
         }
 
