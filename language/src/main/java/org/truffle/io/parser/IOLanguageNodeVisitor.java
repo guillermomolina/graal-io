@@ -43,7 +43,7 @@ import org.truffle.io.parser.IOLanguageParser.ReturnMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SetSlotMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SlotNamesMessageContext;
 import org.truffle.io.parser.IOLanguageParser.SubexpressionContext;
-import org.truffle.io.parser.IOLanguageParser.ThisContextMessageContext;
+import org.truffle.io.parser.IOLanguageParser.ThisLocalContextMessageContext;
 import org.truffle.io.parser.IOLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IOLanguageParser.WhileMessageContext;
 
@@ -308,8 +308,8 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         if (ctx.slotNamesMessage() != null) {
             return visitSlotNamesMessage(ctx.slotNamesMessage(), receiverNode);
         }
-        if (ctx.thisContextMessage() != null) {
-            return visitThisContextMessage(ctx.thisContextMessage(), receiverNode);
+        if (ctx.thisLocalContextMessage() != null) {
+            return visitThisLocalContextMessage(ctx.thisLocalContextMessage(), receiverNode);
         }
         if (ctx.messageInvoke() != null) {
             return visitMessageInvoke(ctx.messageInvoke(), receiverNode);
@@ -345,10 +345,10 @@ public class IOLanguageNodeVisitor extends IOLanguageBaseVisitor<IONode> {
         return result;
     }
 
-    public IONode visitThisContextMessage(final ThisContextMessageContext ctx, IONode receiverNode) {
+    public IONode visitThisLocalContextMessage(final ThisLocalContextMessageContext ctx, IONode receiverNode) {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        final IONode result =  factory.createThisContext(receiverNode, start, length);
+        final IONode result =  factory.createThisLocalContext(receiverNode, start, length);
         assert result != null;
         return result;
     }

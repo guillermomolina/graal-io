@@ -92,7 +92,7 @@ messageNext
     | getSlotMessage
     | setSlotMessage
     | slotNamesMessage
-    | thisContextMessage
+    | thisLocalContextMessage
     | messageInvoke
     ;
 
@@ -103,7 +103,7 @@ repeatMessage: REPEAT OPEN EOL* expression? EOL* CLOSE;
 doMessage: DO OPEN EOL* expression? EOL* CLOSE;
 
 slotNamesMessage: SLOT_NAMES;
-thisContextMessage: THIS_CONTEXT;
+thisLocalContextMessage: THIS_LOCAL_CONTEXT;
 getSlotMessage: 
     GET_SLOT OPEN EOL* 
         (name=STRING|expression) EOL* 
@@ -226,7 +226,7 @@ identifier
     | SET_SLOT
     | SLOT_NAMES
     | THEN
-    | THIS_CONTEXT
+    | THIS_LOCAL_CONTEXT
     | TRUE
     | TRY
     | UPDATE_SLOT
@@ -255,7 +255,7 @@ RETURN: 'return';
 SET_SLOT: 'setSlot';
 SLOT_NAMES: 'slotNames';
 THEN: 'then';
-THIS_CONTEXT: 'thisContext';
+THIS_LOCAL_CONTEXT: 'thisLocalContext';
 TRUE: 'true';
 TRY: 'try';
 UPDATE_SLOT: 'updateSlot';

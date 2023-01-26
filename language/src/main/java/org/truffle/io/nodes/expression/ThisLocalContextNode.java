@@ -53,9 +53,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeInfo(shortName = "thisContext")
+@NodeInfo(shortName = "thisLocalContext")
 @NodeChild("receiverNode")
-public abstract class ThisContextNode extends IONode {
+public abstract class ThisLocalContextNode extends IONode {
 
     @Specialization
     public Object thisContext(VirtualFrame frame, IOCall receiver) {

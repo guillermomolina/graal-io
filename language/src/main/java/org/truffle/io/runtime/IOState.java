@@ -120,16 +120,6 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
-/**
- * The run-time state of IO during execution. The context is created by the
- * {@link IOLanguage}. It is used, for example, by
- * {@link FunctionBodyNode#getLocals() builtin functions}.
- * <p>
- * It would be an error to have two different context instances during the
- * execution of one script. However, if two separate scripts run in one Java VM
- * at the same time, they have a different context. Therefore, the context is
- * not a singleton.
- */
 public final class IOState {
 
     private final IOLanguage language;
@@ -223,7 +213,6 @@ public final class IOState {
         IOObjectUtil.put(lib, protos, Symbols.CALL, IOPrototype.CALL);
         IOObjectUtil.put(lib, protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
         IOObjectUtil.put(lib, protos, Symbols.BLOCK, IOPrototype.BLOCK);
-        IOObjectUtil.put(lib, protos, Symbols.LOCALS, IOPrototype.LOCALS);
         IOObjectUtil.put(lib, protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
         IOObjectUtil.put(lib, protos, Symbols.EXCEPTION, IOPrototype.EXCEPTION);
 

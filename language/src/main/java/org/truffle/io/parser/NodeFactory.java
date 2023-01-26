@@ -66,7 +66,7 @@ import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
-import org.truffle.io.nodes.expression.ThisContextNodeGen;
+import org.truffle.io.nodes.expression.ThisLocalContextNodeGen;
 import org.truffle.io.nodes.literals.BlockLiteralNode;
 import org.truffle.io.nodes.literals.BooleanLiteralNode;
 import org.truffle.io.nodes.literals.DoubleLiteralNode;
@@ -722,7 +722,7 @@ public class NodeFactory {
         return null;
     }
 
-    public IONode createThisContext(IONode receiverNode, int startPos, int length) {
+    public IONode createThisLocalContext(IONode receiverNode, int startPos, int length) {
         final IONode targetNode;
         if(receiverNode == null) {
             if (hasLocals()) {
@@ -733,7 +733,7 @@ public class NodeFactory {
         } else {
             targetNode = receiverNode;
         }
-        final IONode result = ThisContextNodeGen.create(targetNode);
+        final IONode result = ThisLocalContextNodeGen.create(targetNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;

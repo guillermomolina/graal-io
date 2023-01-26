@@ -73,7 +73,6 @@ public class IOPrototype extends IOObject {
     public static final IOPrototype SYSTEM = new IOPrototype(OBJECT, Symbols.SYSTEM, (l, v) -> v == IOPrototype.SYSTEM);
     public static final IOPrototype MESSAGE = new IOPrototype(OBJECT, Symbols.MESSAGE, (l, v) -> v == IOPrototype.MESSAGE);
     public static final IOPrototype CALL = new IOPrototype(OBJECT, Symbols.CALL, (l, v) -> v == IOPrototype.CALL);
-    public static final IOPrototype LOCALS = new IOPrototype(OBJECT, Symbols.LOCALS, (l, v) -> v == IOPrototype.LOCALS);
     public static final IOPrototype COROUTINE = new IOPrototype(OBJECT, Symbols.COROUTINE, (l, v) -> v == IOPrototype.COROUTINE);
     public static final IOPrototype EXCEPTION = new IOPrototype(OBJECT, Symbols.EXCEPTION, (l, v) -> v == IOPrototype.EXCEPTION);
 
