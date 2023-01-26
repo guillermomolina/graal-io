@@ -44,7 +44,7 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.object.Shape;
 
-public class IOLocals extends IOObject {
+public final class IOLocals extends IOObject {
 
     public static final int CALL_ARGUMENT_INDEX = 0;
     public static final int TARGET_ARGUMENT_INDEX = 0;
