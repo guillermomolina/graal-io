@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.objects.IOList;
+import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -12,13 +19,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.objects.IODate;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
 
 public final class IOObjectUtil {
     private static int TO_STRING_MAX_DEPTH = 1;
@@ -57,6 +57,14 @@ public final class IOObjectUtil {
     }
 
     public static Object getOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object defaultValue) {
+        return lib.getOrDefault(obj, key, defaultValue);
+    }
+
+    public static Object getSlotOrDefault(DynamicObject obj, Object key) {
+        return getSlotOrDefault(DynamicObjectLibrary.getUncached(), obj, key, null);
+    }
+
+    public static Object getSlotOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object defaultValue) {
         if(obj instanceof IOObject) {
             if(obj instanceof IOLocals) {
                 Object value = ((IOLocals)obj).getLocal(key);
@@ -64,7 +72,11 @@ public final class IOObjectUtil {
                     return value;
                 }
             }
-            return getSlotOrDefault(lib, (IOObject)obj, key, defaultValue);
+            IOObject prototype = findPrototypeWithSlot(lib, (IOObject)obj, key);
+            if(prototype == null) {
+                return defaultValue;
+            }
+            return lib.getOrDefault(prototype, key, defaultValue);
         }
         return lib.getOrDefault(obj, key, defaultValue);
     }
@@ -82,6 +94,21 @@ public final class IOObjectUtil {
             object = object.getPrototype();
         }
         return defaultValue;
+    }
+
+    protected static IOObject findPrototypeWithSlot(DynamicObjectLibrary lib, IOObject obj, Object key) {
+        List<IOObject> visitedProtos = new ArrayList<IOObject>();
+        IOObject object = obj;
+        while (!visitedProtos.contains(object)) {
+            assert object != null;
+            containsKey(lib, object, key);
+            if (containsKey(lib, object, key)) {
+                return object;
+            }
+            visitedProtos.add(object);
+            object = object.getPrototype();
+        }
+        return null;
     }
 
     public static boolean hasPrototype(IOObject obj, Object prototype) {
