@@ -44,7 +44,6 @@
 package org.truffle.io.nodes.expression;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.objects.IoCall;
 import org.truffle.io.runtime.objects.IoObject;
@@ -70,8 +69,7 @@ public abstract class ThisLocalContextNode extends IoNode {
 
     @Specialization
     public Object thisContext(VirtualFrame frame, Object receiver) {
-        IoObject prototype = IoTypes.getPrototype(receiver);
-        return IoState.get(this).createLocals(prototype, frame.materialize());
+        return IoState.get(this).createLocals(receiver, frame.materialize());
     }
 
 }

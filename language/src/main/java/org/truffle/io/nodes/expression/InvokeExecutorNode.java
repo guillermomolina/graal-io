@@ -41,7 +41,6 @@
 package org.truffle.io.nodes.expression;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.UndefinedNameException;
 import org.truffle.io.runtime.objects.IoBlock;
@@ -52,7 +51,6 @@ import org.truffle.io.runtime.objects.IoInvokable;
 import org.truffle.io.runtime.objects.IoLocals;
 import org.truffle.io.runtime.objects.IoMessage;
 import org.truffle.io.runtime.objects.IoMethod;
-import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -105,13 +103,7 @@ public abstract class InvokeExecutorNode extends IoNode {
     @Specialization
     protected final Object executeMethod(VirtualFrame frame, IoMethod method) {
         final Object receiver = getReceiver();
-        final IoObject prototype;
-        if (receiver instanceof IoObject) {
-            prototype = (IoObject) receiver;
-        } else {
-            prototype = IoTypes.getPrototype(receiver);
-        }
-        IoLocals sender = IoState.get(this).createLocals(prototype, frame.materialize());
+        IoLocals sender = IoState.get(this).createLocals(receiver, frame.materialize());
         IoMessage message = IoState.get(this).createMessage(getName(), getArgumentNodes());
         IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
         IoCall call = IoState.get(this).createCall(sender, receiver, message, null, method, currentCoroutine);

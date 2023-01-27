@@ -78,6 +78,7 @@ import org.truffle.io.functions.system.SystemRegisterShutdownHookFunctionFactory
 import org.truffle.io.functions.system.SystemSleepFunctionFactory;
 import org.truffle.io.functions.system.SystemStackTraceFunctionFactory;
 import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
@@ -437,6 +438,13 @@ public final class IoState {
         IoMessage message = new IoMessage(name, argumentNodes);
         allocationReporter.onReturnValue(message, 0, AllocationReporter.SIZE_UNKNOWN);
         return message;
+    }
+
+    public IoLocals createLocals(final Object obj, final MaterializedFrame frame) {
+        if (obj instanceof IoObject) {
+            return createLocals((IoObject) obj, frame);
+        }
+        return createLocals(IoTypes.getPrototype(obj), frame);
     }
 
     public IoLocals createLocals(final IoObject prototype, final MaterializedFrame frame) {

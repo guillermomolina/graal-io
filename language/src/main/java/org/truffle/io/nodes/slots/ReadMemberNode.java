@@ -44,7 +44,6 @@
 package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.IoObjectUtil;
@@ -92,9 +91,8 @@ public abstract class ReadMemberNode extends IoNode {
     @Specialization
     protected Object read(Object receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
-        IoObject prototype = IoTypes.getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IoObjectUtil.getOrDefaultUncached(prototype, nameTS, IoNil.SINGLETON);
+        Object value = IoObjectUtil.getOrDefault(receiver, nameTS, IoNil.SINGLETON);
         return value;    
     }
 

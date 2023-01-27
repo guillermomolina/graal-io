@@ -41,9 +41,7 @@
 package org.truffle.io.nodes.expression;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -73,13 +71,7 @@ public final class InvokeGetterNode extends IoNode {
         Object receiver = receiverNode.executeGeneric(frame);
         Object value = null;
         if (valueNode == null) {
-            IoObject prototype = null;
-            if (receiver instanceof IoObject) {
-                prototype = (IoObject) receiver;
-            } else {
-                prototype = IoTypes.getPrototype(receiver);
-            }
-            value = IoObjectUtil.getOrDefaultUncached(prototype, name);
+            value = IoObjectUtil.getOrDefault(receiver, name);
         } else {
             value = valueNode.executeGeneric(frame);
         }

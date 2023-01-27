@@ -130,7 +130,7 @@ public final class InvokeNode extends IoNode {
     }
 
     protected final Object executeMethod(VirtualFrame frame, final Object receiver, IoMethod method, IoObject prototype) {
-        IoLocals sender = IoState.get(this).createLocals(prototype, frame.materialize());
+        IoLocals sender = IoState.get(this).createLocals(receiver, frame.materialize());
         IoMessage message = IoState.get(this).createMessage(name, argumentNodes);
         IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
         IoCall call = IoState.get(this).createCall(sender, receiver, message, prototype, method, currentCoroutine);

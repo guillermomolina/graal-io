@@ -45,7 +45,6 @@ package org.truffle.io.functions.object;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.objects.IoObject;
@@ -66,8 +65,7 @@ public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
     @Specialization
     public boolean hasProtoIOObject(Object value, IoObject prototype) {
-        IoObject objectProto = IoTypes.getPrototype(value);
-        return IoObjectUtil.hasPrototype(objectProto, prototype);
+        return IoObjectUtil.hasPrototype(value, prototype);
     }
 
     @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = /*{"hasProtoLong", "hasProtoBoolean", "hasProtoObject",*/ "hasProtoIOObject"/* } */)
@@ -83,12 +81,6 @@ public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
     @Specialization
     public boolean hasProtoObject(Object value, Object prototype) {
-        IoObject objectProto = IoTypes.getPrototype(value);
-        return IoObjectUtil.hasPrototype(objectProto, prototype);
+        return IoObjectUtil.hasPrototype(value, prototype);
     }
-   
-    /*@Specialization
-    public boolean hasProto(Object value, Object metaObject) {
-        return false;
-    }*/
 }
