@@ -447,7 +447,7 @@ public final class IoState {
     }
 
     public IoCall createCall(final IoLocals sender, final Object target, final IoMessage message,
-            final IoLocals slotContext, final IoInvokable activated, final IoCoroutine coroutine) {
+            final IoObject slotContext, final IoInvokable activated, final IoCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         IoCall call = new IoCall(sender, target, message, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);

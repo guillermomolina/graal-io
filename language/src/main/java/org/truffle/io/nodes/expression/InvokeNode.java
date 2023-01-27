@@ -87,64 +87,58 @@ public final class InvokeNode extends IoNode {
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         Object receiver = receiverNode.executeGeneric(frame);
-        Object value = null;
+        final IoObject prototype;
+        final Object value;
         if (valueNode == null) {
-            IoObject prototype = IoObjectUtil.lookupSlot(receiver, name);
-            if(prototype != null) {
-                value = IoObjectUtil.getOrDefaultUncached(prototype, name);
-            }
+            prototype = IoObjectUtil.lookupSlot(receiver, name);
+            value = IoObjectUtil.getOrDefaultUncached(prototype, name);
         } else {
             value = valueNode.executeGeneric(frame);
+            prototype = IoTypes.getPrototype(value);
         }
         if (value == null) {
-            executeNull(frame, receiver, value);
+            executeNull(frame, receiver, value, prototype);
         }
         if (value instanceof IoFunction) {
-            return executeFunction(frame, receiver, (IoFunction) value);
+            return executeFunction(frame, receiver, (IoFunction) value, prototype);
         }
         if (value instanceof IoBlock) {
-            return executeBlock(frame, receiver, (IoBlock) value);
+            return executeBlock(frame, receiver, (IoBlock) value, prototype);
         }
         if (value instanceof IoMethod) {
-            return executeMethod(frame, receiver, (IoMethod) value);
+            return executeMethod(frame, receiver, (IoMethod) value, prototype);
         }
-        return executeOther(frame, receiver, value);
+        return executeOther(frame, receiver, value, prototype);
     }
 
-    protected final Object executeNull(VirtualFrame frame, final Object receiver, Object unknown) {
+    protected final Object executeNull(VirtualFrame frame, final Object receiver, Object unknown, IoObject prototype) {
         throw UndefinedNameException.undefinedField(this, name);
     }
 
-    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IoFunction function) {
+    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IoFunction function, IoObject prototype) {
         final int argumentsCount = argumentNodes.length + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, receiver, function, argumentsCount);
     }
 
-    protected final Object executeBlock(VirtualFrame frame, final Object receiver, IoBlock block) {
+    protected final Object executeBlock(VirtualFrame frame, final Object receiver, IoBlock block, IoObject prototype) {
         IoLocals sender = block.getSender();
         IoMessage message = IoState.get(this).createMessage(name, argumentNodes);
         IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
-        IoCall call = IoState.get(this).createCall(sender, sender, message, null, block, currentCoroutine);
+        IoCall call = IoState.get(this).createCall(sender, sender, message, prototype, block, currentCoroutine);
         int argumentsCount = block.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, call, block, argumentsCount);
     }
 
-    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IoMethod method) {
-        final IoObject prototype;
-        if (receiver instanceof IoObject) {
-            prototype = (IoObject) receiver;
-        } else {
-            prototype = IoTypes.getPrototype(receiver);
-        }
+    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IoMethod method, IoObject prototype) {
         IoLocals sender = IoState.get(this).createLocals(prototype, frame.materialize());
         IoMessage message = IoState.get(this).createMessage(name, argumentNodes);
         IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
-        IoCall call = IoState.get(this).createCall(sender, receiver, message, null, method, currentCoroutine);
+        IoCall call = IoState.get(this).createCall(sender, receiver, message, prototype, method, currentCoroutine);
         int argumentsCount = method.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, call, method, argumentsCount);
     }
 
-    protected final Object executeOther(VirtualFrame frame, final Object receiver, Object value) {
+    protected final Object executeOther(VirtualFrame frame, final Object receiver, Object value, IoObject prototype) {
         return value;
     }
 

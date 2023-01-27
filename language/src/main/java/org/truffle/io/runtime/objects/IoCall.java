@@ -66,7 +66,7 @@ public class IoCall extends IoObject {
     @DynamicField
     private Object coroutine;
 
-    public IoCall(final IoLocals sender, final Object target, final IoMessage message, final IoLocals slotContext,
+    public IoCall(final IoLocals sender, final Object target, final IoMessage message, final IoObject slotContext,
             final IoInvokable activated, final IoCoroutine coroutine) {
         super(IoPrototype.CALL);
         setSender(sender);
@@ -101,11 +101,11 @@ public class IoCall extends IoObject {
         IoObjectUtil.putUncached(this, SYMBOL_TARGET, target);
     }
 
-    public IoLocals getSlotContext() {
-        return (IoLocals)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_SLOT_CONTEXT);
+    public IoObject getSlotContext() {
+        return (IoObject)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_SLOT_CONTEXT);
     }
 
-    protected void setSlotContext(IoLocals slotcontext) {
+    protected void setSlotContext(IoObject slotcontext) {
         IoObjectUtil.putUncached(this, SYMBOL_SLOT_CONTEXT, slotcontext);
     }
 
