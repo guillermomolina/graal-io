@@ -43,14 +43,15 @@
  */
 package org.truffle.io.nodes;
 
+import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IOObject;
+
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeCast;
 import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
-import org.truffle.io.runtime.objects.IONil;
-
-@TypeSystem({boolean.class, long.class, double.class})
+@TypeSystem({boolean.class, long.class, double.class, IOObject.class})
 public abstract class IOTypes {
 
     @TypeCheck(IONil.class)

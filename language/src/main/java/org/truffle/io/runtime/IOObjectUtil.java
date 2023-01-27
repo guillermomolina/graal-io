@@ -59,7 +59,7 @@ public final class IOObjectUtil {
     public static Object getOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object defaultValue) {
         return lib.getOrDefault(obj, key, defaultValue);
     }
-
+ 
     public static Object getSlotOrDefault(DynamicObject obj, Object key) {
         return getSlotOrDefault(DynamicObjectLibrary.getUncached(), obj, key, null);
     }

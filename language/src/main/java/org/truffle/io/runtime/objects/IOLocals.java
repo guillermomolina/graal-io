@@ -42,7 +42,6 @@ package org.truffle.io.runtime.objects;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.object.Shape;
 
 public final class IOLocals extends IOObject {
 
@@ -53,8 +52,6 @@ public final class IOLocals extends IOObject {
     public static final int CALL_SLOT_INDEX = 0;
     public static final int FIRST_USER_SLOT_INDEX = 1;
 
-    public static final Shape SHAPE = Shape.newBuilder().layout(IOLocals.class).build();
-
     private final MaterializedFrame frame;
 
     public IOLocals(final MaterializedFrame frame) {
@@ -62,7 +59,7 @@ public final class IOLocals extends IOObject {
     }
 
     public IOLocals(IOObject prototype, final MaterializedFrame frame) {
-        super(SHAPE, prototype);
+        super(prototype);
         this.frame = frame;
     }
 
