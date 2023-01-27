@@ -45,6 +45,7 @@ package org.truffle.io.nodes.literals;
 
 import org.truffle.io.IoLanguage;
 import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.objects.IoBlock;
@@ -83,7 +84,7 @@ public final class BlockLiteralNode extends IoNode {
         if (targetObject instanceof IoObject) {
             target = (IoObject) targetObject;
         } else {
-            target = IoState.get(this).getPrototype(targetObject);
+            target = IoTypes.getPrototype(targetObject);
         }
         final IoLocals sender = IoState.get(this).createLocals(target, frame.materialize());
 

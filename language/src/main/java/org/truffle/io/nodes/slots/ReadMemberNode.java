@@ -43,6 +43,14 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.IoTypes;
+import org.truffle.io.nodes.util.ToMemberNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -53,14 +61,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.util.ToMemberNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.IoState;
-import org.truffle.io.runtime.objects.IoNil;
-import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = ".")
 @NodeChild("receiverNode")
@@ -92,7 +92,7 @@ public abstract class ReadMemberNode extends IoNode {
     @Specialization
     protected Object read(Object receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
-        IoObject prototype = IoState.get(this).getPrototype(receiver);
+        IoObject prototype = IoTypes.getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
         Object value = IoObjectUtil.getOrDefaultUncached(prototype, nameTS, IoNil.SINGLETON);
         return value;    

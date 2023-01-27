@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.truffle.io.NotImplementedException;
+import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.objects.IoDate;
 import org.truffle.io.runtime.objects.IoList;
 import org.truffle.io.runtime.objects.IoLocals;
@@ -60,57 +61,6 @@ public final class IoObjectUtil {
         return lib.getOrDefault(obj, key, defaultValue);
     }
  
-    public static Object getSlotOrDefault(DynamicObject obj, Object key) {
-        return getSlotOrDefault(DynamicObjectLibrary.getUncached(), obj, key, null);
-    }
-
-    public static Object getSlotOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object defaultValue) {
-        if(obj instanceof IoObject) {
-            if(obj instanceof IoLocals) {
-                Object value = ((IoLocals)obj).getLocal(key);
-                if (value != null) {
-                    return value;
-                }
-            }
-            IoObject prototype = findPrototypeWithSlot(lib, (IoObject)obj, key);
-            if(prototype == null) {
-                return defaultValue;
-            }
-            return lib.getOrDefault(prototype, key, defaultValue);
-        }
-        return lib.getOrDefault(obj, key, defaultValue);
-    }
-
-    protected static Object getSlotOrDefault(DynamicObjectLibrary lib, IoObject obj, Object key, Object defaultValue) {
-        List<IoObject> visitedProtos = new ArrayList<IoObject>();
-        IoObject object = obj;
-        while (!visitedProtos.contains(object)) {
-            assert object != null;
-            Object value = getOrDefault(lib, object, key);
-            if (value != null) {
-                return value;
-            }
-            visitedProtos.add(object);
-            object = object.getPrototype();
-        }
-        return defaultValue;
-    }
-
-    protected static IoObject findPrototypeWithSlot(DynamicObjectLibrary lib, IoObject obj, Object key) {
-        List<IoObject> visitedProtos = new ArrayList<IoObject>();
-        IoObject object = obj;
-        while (!visitedProtos.contains(object)) {
-            assert object != null;
-            containsKey(lib, object, key);
-            if (containsKey(lib, object, key)) {
-                return object;
-            }
-            visitedProtos.add(object);
-            object = object.getPrototype();
-        }
-        return null;
-    }
-
     public static boolean hasPrototype(IoObject obj, Object prototype) {
         List<IoObject> visitedProtos = new ArrayList<IoObject>();
         IoObject object = obj;
@@ -248,6 +198,71 @@ public final class IoObjectUtil {
 
     public static Date getDate(IoDate date) {
         throw new NotImplementedException();
+    }
+/*
+    public static Object getSlotOrDefault(DynamicObject obj, Object key) {
+        return getSlotOrDefault(DynamicObjectLibrary.getUncached(), obj, key, null);
+    }
+
+    public static Object getSlotOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object defaultValue) {
+        if(obj instanceof IoObject) {
+            if(obj instanceof IoLocals) {
+                Object value = ((IoLocals)obj).getLocal(key);
+                if (value != null) {
+                    return value;
+                }
+            }
+            IoObject prototype = findPrototypeWithSlot(lib, (IoObject)obj, key);
+            if(prototype == null) {
+                return defaultValue;
+            }
+            return lib.getOrDefault(prototype, key, defaultValue);
+        }
+        return lib.getOrDefault(obj, key, defaultValue);
+    }
+ 
+    protected static Object getSlotOrDefault(DynamicObjectLibrary lib, IoObject obj, Object key, Object defaultValue) {
+        List<IoObject> visitedProtos = new ArrayList<IoObject>();
+        IoObject object = obj;
+        while (!visitedProtos.contains(object)) {
+            assert object != null;
+            Object value = getOrDefault(lib, object, key);
+            if (value != null) {
+                return value;
+            }
+            visitedProtos.add(object);
+            object = object.getPrototype();
+        }
+        return defaultValue;
+    }
+*/
+    public static IoObject lookupSlot(Object obj, Object key) {
+        if(obj instanceof IoLocals) {
+            throw new NotImplementedException();
+        }
+        if(obj instanceof IoObject) {
+            return lookupSlotUncached((IoObject)obj, key);
+        }
+        return lookupSlot(IoTypes.getPrototype(obj), key);
+    }
+
+    public static IoObject lookupSlotUncached(IoObject obj, Object key) {      
+        return lookupSlot(DynamicObjectLibrary.getUncached(), obj, key);
+    }
+
+    public static IoObject lookupSlot(DynamicObjectLibrary lib, IoObject obj, Object key) {      
+        List<IoObject> visitedProtos = new ArrayList<IoObject>();
+        IoObject object = obj;
+        while (!visitedProtos.contains(object)) {
+            assert object != null;
+            containsKey(lib, object, key);
+            if (containsKey(lib, object, key)) {
+                return object;
+            }
+            visitedProtos.add(object);
+            object = object.getPrototype();
+        }
+        return null;
     }
 
 }

@@ -40,14 +40,14 @@
  */
 package org.truffle.io.nodes.expression;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.IoTypes;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.objects.IoObject;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.IoState;
-import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "()")
 public final class InvokeGetterNode extends IoNode {
@@ -77,7 +77,7 @@ public final class InvokeGetterNode extends IoNode {
             if (receiver instanceof IoObject) {
                 prototype = (IoObject) receiver;
             } else {
-                prototype = IoState.get(this).getPrototype(receiver);
+                prototype = IoTypes.getPrototype(receiver);
             }
             value = IoObjectUtil.getOrDefaultUncached(prototype, name);
         } else {

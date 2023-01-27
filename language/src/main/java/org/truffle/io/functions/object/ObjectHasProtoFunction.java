@@ -45,17 +45,17 @@ package org.truffle.io.functions.object;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import org.truffle.io.nodes.IoTypes;
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.objects.IoObject;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.IoState;
-import org.truffle.io.runtime.objects.IoObject;
 
 /**
  * Built-in function that returns true if the given operand is of a given meta-object. Meta-objects
@@ -66,7 +66,7 @@ public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
     @Specialization
     public boolean hasProtoIOObject(Object value, IoObject prototype) {
-        IoObject objectProto = IoState.get(this).getPrototype(value);
+        IoObject objectProto = IoTypes.getPrototype(value);
         return IoObjectUtil.hasPrototype(objectProto, prototype);
     }
 
@@ -83,7 +83,7 @@ public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
     @Specialization
     public boolean hasProtoObject(Object value, Object prototype) {
-        IoObject objectProto = IoState.get(this).getPrototype(value);
+        IoObject objectProto = IoTypes.getPrototype(value);
         return IoObjectUtil.hasPrototype(objectProto, prototype);
     }
    

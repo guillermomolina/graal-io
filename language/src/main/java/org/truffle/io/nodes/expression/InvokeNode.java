@@ -44,6 +44,7 @@
 package org.truffle.io.nodes.expression;
 
 import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.UndefinedNameException;
@@ -88,17 +89,13 @@ public final class InvokeNode extends IoNode {
         Object receiver = receiverNode.executeGeneric(frame);
         Object value = null;
         if (valueNode == null) {
-            IoObject prototype = null;
-            if (receiver instanceof IoObject) {
-                prototype = (IoObject) receiver;
-            } else {
-                prototype = IoState.get(this).getPrototype(receiver);
+            IoObject prototype = IoObjectUtil.lookupSlot(receiver, name);
+            if(prototype != null) {
+                value = IoObjectUtil.getOrDefaultUncached(prototype, name);
             }
-            value = IoObjectUtil.getSlotOrDefault(prototype, name);
         } else {
             value = valueNode.executeGeneric(frame);
         }
-
         if (value == null) {
             executeNull(frame, receiver, value);
         }
@@ -137,7 +134,7 @@ public final class InvokeNode extends IoNode {
         if (receiver instanceof IoObject) {
             prototype = (IoObject) receiver;
         } else {
-            prototype = IoState.get(this).getPrototype(receiver);
+            prototype = IoTypes.getPrototype(receiver);
         }
         IoLocals sender = IoState.get(this).createLocals(prototype, frame.materialize());
         IoMessage message = IoState.get(this).createMessage(name, argumentNodes);

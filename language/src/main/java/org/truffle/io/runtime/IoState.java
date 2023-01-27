@@ -310,27 +310,6 @@ public final class IoState {
         }
     }
 
-    public IoObject getPrototype(Object obj) {
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
-        if (interop.isNull(obj)) {
-            return IoNil.SINGLETON;
-        } else if (interop.isBoolean(obj)) {          
-            return (Boolean)obj == Boolean.TRUE ? IoTrue.SINGLETON : IoFalse.SINGLETON;
-        } else if (obj instanceof IoObject) {
-            return ((IoObject) obj).getPrototype();
-        } else if (obj instanceof String) {
-            return IoPrototype.SEQUENCE;
-        } else if (obj instanceof TruffleString) {
-            return IoPrototype.SEQUENCE;
-        } else if (interop.fitsInLong(obj)) {
-            return IoPrototype.NUMBER;
-        } else if (interop.fitsInDouble(obj)) {
-            return IoPrototype.NUMBER;
-        } else {
-            return IoPrototype.OBJECT;
-        }
-    }
-
     public AllocationReporter getAllocationReporter() {
         return allocationReporter;
     }

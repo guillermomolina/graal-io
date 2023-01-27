@@ -43,13 +43,18 @@
  */
 package org.truffle.io.nodes;
 
+import org.truffle.io.runtime.objects.IoFalse;
 import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
+import org.truffle.io.runtime.objects.IoPrototype;
+import org.truffle.io.runtime.objects.IoTrue;
 
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeCast;
 import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @TypeSystem({boolean.class, long.class, double.class, IoObject.class})
 public abstract class IoTypes {
@@ -83,5 +88,26 @@ public abstract class IoTypes {
     @ImplicitCast
     public static double castIntToFloat(long value) {
         return value;
+    }
+
+    public static IoObject getPrototype(Object obj) {
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
+        if (interop.isNull(obj)) {
+            return IoNil.SINGLETON;
+        } else if (interop.isBoolean(obj)) {          
+            return (Boolean)obj == Boolean.TRUE ? IoTrue.SINGLETON : IoFalse.SINGLETON;
+        } else if (obj instanceof IoObject) {
+            return ((IoObject) obj).getPrototype();
+        } else if (obj instanceof String) {
+            return IoPrototype.SEQUENCE;
+        } else if (obj instanceof TruffleString) {
+            return IoPrototype.SEQUENCE;
+        } else if (interop.fitsInLong(obj)) {
+            return IoPrototype.NUMBER;
+        } else if (interop.fitsInDouble(obj)) {
+            return IoPrototype.NUMBER;
+        } else {
+            return IoPrototype.OBJECT;
+        }
     }
 }
