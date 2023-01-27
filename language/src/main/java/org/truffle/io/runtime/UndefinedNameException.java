@@ -46,7 +46,7 @@ package org.truffle.io.runtime;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
-public final class UndefinedNameException extends IOLanguageException {
+public final class UndefinedNameException extends IoLanguageException {
 
     private static final long serialVersionUID = 1L;
 

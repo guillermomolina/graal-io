@@ -44,7 +44,7 @@
 package org.truffle.io.functions.list;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -60,7 +60,7 @@ public abstract class ListSizeFunction extends FunctionBodyNode {
         try {
             return arrays.getArraySize(obj);
         } catch (UnsupportedMessageException e) {
-            throw new IOLanguageException("Element is not a valid array.", this);
+            throw new IoLanguageException("Element is not a valid array.", this);
         }
     }
 }

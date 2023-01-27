@@ -57,18 +57,18 @@ import com.oracle.truffle.api.nodes.NodeVisitor;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IoState;
 
 @NodeInfo(language = "IO", description = "The root of all IO execution trees")
-public class IORootNode extends RootNode {
+public class IoRootNode extends RootNode {
     @Child
-    private IONode bodyNode;
+    private IoNode bodyNode;
 
     private boolean isCloningAllowed;
 
@@ -77,7 +77,7 @@ public class IORootNode extends RootNode {
     @CompilerDirectives.CompilationFinal(dimensions = 1)
     private volatile WriteLocalSlotNode[] argumentNodesCache;
 
-    public IORootNode(IOLanguage language, FrameDescriptor frameDescriptor, IONode bodyNode,
+    public IoRootNode(IoLanguage language, FrameDescriptor frameDescriptor, IoNode bodyNode,
             SourceSection sourceSection) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
@@ -91,11 +91,11 @@ public class IORootNode extends RootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        assert IOState.get(this) != null;
+        assert IoState.get(this) != null;
         return bodyNode.executeGeneric(frame);
     }
 
-    public IONode getBodyNode() {
+    public IoNode getBodyNode() {
         return bodyNode;
     }
 
@@ -142,7 +142,7 @@ public class IORootNode extends RootNode {
                 } else if (wn != null && (node instanceof ReadArgumentNode)) {
                     writeArgNodes.add(wn);
                     return true;
-                } else if (wn == null && (node instanceof IONode
+                } else if (wn == null && (node instanceof IoNode
                         && !(node instanceof ExpressionNode || node instanceof MethodBodyNode))) {
                     // A different IO node - we're done.
                     return false;

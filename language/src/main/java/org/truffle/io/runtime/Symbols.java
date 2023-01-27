@@ -43,7 +43,7 @@
  */
 package org.truffle.io.runtime;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.nodes.root.EvalRootNode;
 import org.truffle.io.nodes.root.FunctionRootNode;
 
@@ -77,7 +77,7 @@ public final class Symbols {
     }
 
     public static TruffleString fromJavaString(String s) {
-        return TruffleString.fromJavaStringUncached(s, IOLanguage.STRING_ENCODING);
+        return TruffleString.fromJavaStringUncached(s, IoLanguage.STRING_ENCODING);
     }
 
     public static TruffleString fromObject(Object o) {

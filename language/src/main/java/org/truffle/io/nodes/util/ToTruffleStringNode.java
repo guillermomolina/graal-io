@@ -43,11 +43,11 @@
  */
 package org.truffle.io.nodes.util;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.nodes.IOTypes;
+import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IoNil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -64,7 +64,7 @@ import com.oracle.truffle.api.strings.TruffleString;
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
  * expression nodes need to expect.
  */
-@TypeSystemReference(IOTypes.class)
+@TypeSystemReference(IoTypes.class)
 @GenerateUncached
 public abstract class ToTruffleStringNode extends Node {
 
@@ -75,14 +75,14 @@ public abstract class ToTruffleStringNode extends Node {
     public abstract TruffleString execute(Object value);
 
     @Specialization
-    protected static TruffleString fromNull(IONil value) {
+    protected static TruffleString fromNull(IoNil value) {
         return Symbols.NIL;
     }
 
     @Specialization
     protected static TruffleString fromString(String value,
             @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-        return fromJavaStringNode.execute(value, IOLanguage.STRING_ENCODING);
+        return fromJavaStringNode.execute(value, IoLanguage.STRING_ENCODING);
     }
 
     @Specialization
@@ -99,14 +99,14 @@ public abstract class ToTruffleStringNode extends Node {
     @TruffleBoundary
     protected static TruffleString fromLong(long value,
             @Cached TruffleString.FromLongNode fromLongNode) {
-        return fromLongNode.execute(value, IOLanguage.STRING_ENCODING, true);
+        return fromLongNode.execute(value, IoLanguage.STRING_ENCODING, true);
     }
 
     @Specialization
     @TruffleBoundary
     protected static TruffleString fromDouble(double value,
                     @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-        return fromJavaStringNode.execute(String.valueOf(value), IOLanguage.STRING_ENCODING);
+        return fromJavaStringNode.execute(String.valueOf(value), IoLanguage.STRING_ENCODING);
     }
 
     @Specialization(limit = "LIMIT")
@@ -116,11 +116,11 @@ public abstract class ToTruffleStringNode extends Node {
             @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         try {
             if (interop.fitsInLong(value)) {
-                return fromLongNode.execute(interop.asLong(value), IOLanguage.STRING_ENCODING, true);
+                return fromLongNode.execute(interop.asLong(value), IoLanguage.STRING_ENCODING, true);
             } else if (interop.fitsInDouble(value)) {
-                return fromJavaStringNode.execute(String.valueOf(interop.asDouble(value)), IOLanguage.STRING_ENCODING);
+                return fromJavaStringNode.execute(String.valueOf(interop.asDouble(value)), IoLanguage.STRING_ENCODING);
             } else if (interop.isString(value)) {
-                return fromJavaStringNode.execute(interop.asString(value), IOLanguage.STRING_ENCODING);
+                return fromJavaStringNode.execute(interop.asString(value), IoLanguage.STRING_ENCODING);
             } else if (interop.isNull(value)) {
                 return Symbols.NIL;
             } else {

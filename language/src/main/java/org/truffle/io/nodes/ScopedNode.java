@@ -43,14 +43,14 @@
  */
 package org.truffle.io.nodes;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.ExpressionNode;
 import org.truffle.io.nodes.root.FunctionRootNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IoNil;
 
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -113,7 +113,7 @@ public abstract class ScopedNode extends Node {
 
     /**
      * Test if a function of that name exists. The functions are context-dependent, therefore do a
-     * context lookup via {@link IOState#getCurrent(Node)}.
+     * context lookup via {@link IoState#getCurrent(Node)}.
      */
     @ExportMessage
     final boolean hasRootInstance(Frame frame) {
@@ -129,7 +129,7 @@ public abstract class ScopedNode extends Node {
 
     /**
      * Provide function instance of that name. The function is context-dependent, therefore do a
-     * context lookup via {@link IOState#getCurrent(Node)}.
+     * context lookup via {@link IoState#getCurrent(Node)}.
      */
     @ExportMessage
     final Object getRootInstance(Frame frame) throws UnsupportedMessageException {
@@ -249,7 +249,7 @@ public abstract class ScopedNode extends Node {
 
         @ExportMessage
         Class<? extends TruffleLanguage<?>> getLanguage() {
-            return IOLanguage.class;
+            return IoLanguage.class;
         }
 
         /**
@@ -392,7 +392,7 @@ public abstract class ScopedNode extends Node {
                 if (receiver.frame != null) {
                     return receiver.frame.getArguments()[index];
                 } else {
-                    return IONil.SINGLETON;
+                    return IoNil.SINGLETON;
                 }
             }
         }
@@ -450,7 +450,7 @@ public abstract class ScopedNode extends Node {
             WriteLocalSlotNode[] writeNodes = root.getDeclaredArguments();
             for (int i = 0; i < writeNodes.length; i++) {
                 WriteLocalSlotNode writeNode = writeNodes[i];
-                if (memberTS.equalsUncached(writeNode.getSlotName(), IOLanguage.STRING_ENCODING)) {
+                if (memberTS.equalsUncached(writeNode.getSlotName(), IoLanguage.STRING_ENCODING)) {
                     return i;
                 }
             }
@@ -510,7 +510,7 @@ public abstract class ScopedNode extends Node {
 
         @ExportMessage
         Class<? extends TruffleLanguage<?>> getLanguage() {
-            return IOLanguage.class;
+            return IoLanguage.class;
         }
 
         /**
@@ -681,7 +681,7 @@ public abstract class ScopedNode extends Node {
                 if (receiver.frame != null) {
                     return receiver.frame.getValue(slot);
                 } else {
-                    return IONil.SINGLETON;
+                    return IoNil.SINGLETON;
                 }
             }
         }
@@ -769,13 +769,13 @@ public abstract class ScopedNode extends Node {
             int index = getVisibleVariablesIndex();
             for (int i = 0; i < index; i++) {
                 WriteLocalSlotNode writeNode = writeNodes[i];
-                if (memberTS.equalsUncached(writeNode.getSlotName(), IOLanguage.STRING_ENCODING)) {
+                if (memberTS.equalsUncached(writeNode.getSlotName(), IoLanguage.STRING_ENCODING)) {
                     return writeNode;
                 }
             }
             for (int i = parentBlockIndex; i < writeNodes.length; i++) {
                 WriteLocalSlotNode writeNode = writeNodes[i];
-                if (memberTS.equalsUncached(writeNode.getSlotName(), IOLanguage.STRING_ENCODING)) {
+                if (memberTS.equalsUncached(writeNode.getSlotName(), IoLanguage.STRING_ENCODING)) {
                     return writeNode;
                 }
             }
@@ -889,7 +889,7 @@ public abstract class ScopedNode extends Node {
             if (!hasSourceLocation()) {
                 throw UnsupportedMessageException.create();
             }
-            IONode nameNode = writeNode.getNameNode();
+            IoNode nameNode = writeNode.getNameNode();
             return writeNode.getRootNode().getSourceSection().getSource().createSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
         }
     }

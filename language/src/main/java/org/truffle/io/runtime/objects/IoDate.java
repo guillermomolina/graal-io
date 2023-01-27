@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,47 +41,54 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes;
+package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
+import java.util.Date;
 
-import com.oracle.truffle.api.dsl.ImplicitCast;
-import com.oracle.truffle.api.dsl.TypeCast;
-import com.oracle.truffle.api.dsl.TypeCheck;
-import com.oracle.truffle.api.dsl.TypeSystem;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-@TypeSystem({boolean.class, long.class, double.class, IOObject.class})
-public abstract class IOTypes {
+public final class IoDate extends IoObject implements Comparable<IoDate> {
 
-    @TypeCheck(IONil.class)
-    public static boolean isIONull(Object value) {
-        return value == IONil.SINGLETON;
+    private Date value;
+
+    public IoDate(Date value) {
+        super(IoPrototype.DATE);
+        this.value = value;
     }
 
-    @TypeCast(IONil.class)
-    public static IONil asIONull(Object value) {
-        assert isIONull(value);
-        return IONil.SINGLETON;
+    public IoDate() {
+        this(new Date());
     }
 
-    @ImplicitCast
-    public static long castSmallIntToInt(int value) {
+    public Date getValue() {
         return value;
     }
 
-    @ImplicitCast
-    public static double castSmallFloatToFloat(float value) {
-        return value;
+    public void setValue(final Date value) {
+        this.value = value;
     }
 
-    @ImplicitCast
-    public static double castSmallIntToFloat(int value) {
-        return value;
+    @TruffleBoundary
+    public int compareTo(IoDate o) {
+        return value.compareTo(o.getValue());
     }
 
-    @ImplicitCast
-    public static double castIntToFloat(long value) {
-        return value;
+    @Override
+    public String toString(int depth) {
+        return value.toString();
+    }
+
+    @Override
+    @TruffleBoundary
+    public boolean equals(Object obj) {
+        if (obj instanceof IoDate) {
+            return value.equals(((IoDate) obj).getValue());
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return value.hashCode();
     }
 }

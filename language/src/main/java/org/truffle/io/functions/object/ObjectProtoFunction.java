@@ -50,8 +50,8 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOPrototype;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoPrototype;
 
 /**
  * Built-in function that returns the type of a guest language value.
@@ -66,12 +66,12 @@ public abstract class ObjectProtoFunction extends FunctionBodyNode {
     @ExplodeLoop
     public Object doDefault(Object operand,
                     @CachedLibrary("operand") InteropLibrary interop) {
-        for (IOPrototype type : IOPrototype.PRECEDENCE) {
+        for (IoPrototype type : IoPrototype.PRECEDENCE) {
             if (type.isInstance(operand, interop)) {
                 return type;
             }
         }
-        return IONil.SINGLETON;
+        return IoNil.SINGLETON;
     }
 
 }

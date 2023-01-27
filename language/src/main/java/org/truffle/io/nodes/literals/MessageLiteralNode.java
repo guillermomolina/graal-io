@@ -41,32 +41,32 @@
 
 package org.truffle.io.nodes.literals;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoMessage;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOMessage;
-
 @NodeInfo(shortName = "message")
-public final class MessageLiteralNode extends IONode {
+public final class MessageLiteralNode extends IoNode {
     
     private final TruffleString name;
     @Children
-    private final IONode[] argumentNodes;
+    private final IoNode[] argumentNodes;
 
-    public MessageLiteralNode(final TruffleString name, final IONode[] argumentNodes) {
+    public MessageLiteralNode(final TruffleString name, final IoNode[] argumentNodes) {
         this.name = name;
         this.argumentNodes = argumentNodes;
     }
 
     @Override
-    public IOMessage executeGeneric(VirtualFrame frame) {
-        return IOState.get(this).createMessage(name, argumentNodes);
+    public IoMessage executeGeneric(VirtualFrame frame) {
+        return IoState.get(this).createMessage(name, argumentNodes);
     }
 
-    public IONode[] getArgumentNodes() {
+    public IoNode[] getArgumentNodes() {
         return argumentNodes;
     }
 }

@@ -50,8 +50,8 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.interop.IOLanguageView;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.interop.IoLanguageView;
 
 @NodeInfo(shortName = "print")
 public abstract class ObjectPrintFunction extends FunctionBodyNode {
@@ -60,7 +60,7 @@ public abstract class ObjectPrintFunction extends FunctionBodyNode {
     @TruffleBoundary
     public Object println(Object value,
                     @CachedLibrary(limit = "3") InteropLibrary interop) {
-        IOState.get(this).getOutput().print(interop.toDisplayString(IOLanguageView.forValue(value)));
+        IoState.get(this).getOutput().print(interop.toDisplayString(IoLanguageView.forValue(value)));
         return value;
     }
 

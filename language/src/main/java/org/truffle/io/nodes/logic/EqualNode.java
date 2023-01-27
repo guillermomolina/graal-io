@@ -43,13 +43,13 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.expression.BinaryNode;
-import org.truffle.io.runtime.objects.IOFalse;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOTrue;
+import org.truffle.io.runtime.objects.IoFalse;
+import org.truffle.io.runtime.objects.IoInvokable;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoTrue;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -110,26 +110,26 @@ public abstract class EqualNode extends BinaryNode {
     @Specialization
     protected boolean doTruffleString(TruffleString left, TruffleString right,
                     @Cached TruffleString.EqualNode equalNode) {
-        return equalNode.execute(left, right, IOLanguage.STRING_ENCODING);
+        return equalNode.execute(left, right, IoLanguage.STRING_ENCODING);
     }
 
     @Specialization
-    protected boolean doNull(IONil left, IONil right) {
+    protected boolean doNull(IoNil left, IoNil right) {
         return left == right;
     }
 
     @Specialization
-    protected boolean doTrue(IOTrue left, IOTrue right) {
+    protected boolean doTrue(IoTrue left, IoTrue right) {
         return left == right;
     }
 
     @Specialization
-    protected boolean doFalse(IOFalse left, IOFalse right) {
+    protected boolean doFalse(IoFalse left, IoFalse right) {
         return left == right;
     }
 
     @Specialization
-    protected boolean doInvokable(IOInvokable left, Object right) {
+    protected boolean doInvokable(IoInvokable left, Object right) {
         return left == right;
     }
 

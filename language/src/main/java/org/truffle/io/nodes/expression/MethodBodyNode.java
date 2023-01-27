@@ -43,29 +43,29 @@
  */
 package org.truffle.io.nodes.expression;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.controlflow.ReturnException;
+import org.truffle.io.nodes.controlflow.ReturnNode;
+import org.truffle.io.nodes.root.IoRootNode;
+import org.truffle.io.runtime.objects.IoNil;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.controlflow.ReturnException;
-import org.truffle.io.nodes.controlflow.ReturnNode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.runtime.objects.IONil;
-
 /**
- * The body of a user-defined IO method. This is the node referenced by a {@link IORootNode} for
+ * The body of a user-defined IO method. This is the node referenced by a {@link IoRootNode} for
  * user-defined methods. It handles the return value of a method: the {@link ReturnNode return
  * expression} throws an {@link ReturnException exception} with the return value. This node catches
  * the exception. If the method ends without an explicit {@code return}, return the
- * {@link IONil#SINGLETON default null value}.
+ * {@link IoNil#SINGLETON default null value}.
  */
 @NodeInfo(shortName = "body")
-public final class MethodBodyNode extends IONode {
+public final class MethodBodyNode extends IoNode {
 
     /** The body of the method. */
     @Child
-    private IONode bodyNode;
+    private IoNode bodyNode;
 
     /**
      * Profiling information, collected by the interpreter, capturing whether the method had an
@@ -75,7 +75,7 @@ public final class MethodBodyNode extends IONode {
     private final BranchProfile exceptionTaken = BranchProfile.create();
     //private final BranchProfile nullTaken = BranchProfile.create();
 
-    public MethodBodyNode(IONode bodyNode) {
+    public MethodBodyNode(IoNode bodyNode) {
         this.bodyNode = bodyNode;
         addRootTag();
     }

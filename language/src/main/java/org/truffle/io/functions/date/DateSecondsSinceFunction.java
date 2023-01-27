@@ -43,8 +43,8 @@ package org.truffle.io.functions.date;
 import java.util.Date;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOLanguageException;
-import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.IoLanguageException;
+import org.truffle.io.runtime.objects.IoDate;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -59,7 +59,7 @@ public abstract class DateSecondsSinceFunction extends FunctionBodyNode {
     }
 
     @Specialization
-    public Object doDate(IODate self, IODate other) {
+    public Object doDate(IoDate self, IoDate other) {
         Date selfDate = self.getValue();
         Date otherDate = other.getValue();
         return doDate(selfDate, otherDate);
@@ -67,6 +67,6 @@ public abstract class DateSecondsSinceFunction extends FunctionBodyNode {
     
     @Fallback
     protected Object typeError(Object self, Object other) {
-        throw IOLanguageException.typeError(this, self, other);
+        throw IoLanguageException.typeError(this, self, other);
     }
 }

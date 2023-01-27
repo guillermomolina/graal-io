@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,52 +43,47 @@
  */
 package org.truffle.io.runtime.objects;
 
-import java.util.Date;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.strings.TruffleString;
 
-public final class IODate extends IOObject implements Comparable<IODate> {
+@ExportLibrary(InteropLibrary.class)
+public class IoMethod extends IoInvokable {
 
-    private Date value;
+    private final TruffleString[] argNames;
 
-    public IODate(Date value) {
-        super(IOPrototype.DATE);
-        this.value = value;
+    public IoMethod(final RootCallTarget callTarget, final TruffleString[] argNames) {
+        super(IoPrototype.BLOCK, callTarget);
+        this.argNames = argNames;
     }
 
-    public IODate() {
-        this(new Date());
+    public int getNumArgs() {
+        return argNames.length;
     }
 
-    public Date getValue() {
-        return value;
-    }
-
-    public void setValue(final Date value) {
-        this.value = value;
-    }
-
-    @TruffleBoundary
-    public int compareTo(IODate o) {
-        return value.compareTo(o.getValue());
+    public TruffleString[] getArgNames() {
+        return argNames;
     }
 
     @Override
     public String toString(int depth) {
-        return value.toString();
+        return "method(" + printSource(depth) + ")";
     }
 
-    @Override
-    @TruffleBoundary
-    public boolean equals(Object obj) {
-        if (obj instanceof IODate) {
-            return value.equals(((IODate) obj).getValue());
+    public String printSource(int depth) {
+        if (depth == 0) {
+            return getSourceLocation().getCharacters().toString();
+        } else {
+            return "...";
         }
-        return false;
     }
 
-    @Override
-    public int hashCode() {
-        return value.hashCode();
+    @ExportMessage
+    @TruffleBoundary
+    static int identityHashCode(IoMethod receiver) {
+        return System.identityHashCode(receiver);
     }
 }

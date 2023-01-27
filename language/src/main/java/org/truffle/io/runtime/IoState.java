@@ -50,7 +50,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.graalvm.polyglot.Context;
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.functions.date.DateNowFunctionFactory;
 import org.truffle.io.functions.date.DateSecondsSinceFunctionFactory;
@@ -77,26 +77,26 @@ import org.truffle.io.functions.sequence.SequenceAtPutFunctionFactory;
 import org.truffle.io.functions.system.SystemRegisterShutdownHookFunctionFactory;
 import org.truffle.io.functions.system.SystemSleepFunctionFactory;
 import org.truffle.io.functions.system.SystemStackTraceFunctionFactory;
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOCoroutine;
-import org.truffle.io.runtime.objects.IODate;
-import org.truffle.io.runtime.objects.IOException;
-import org.truffle.io.runtime.objects.IOFalse;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IOMessage;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-import org.truffle.io.runtime.objects.IOPrototype;
-import org.truffle.io.runtime.objects.IOTrue;
+import org.truffle.io.runtime.objects.IoBlock;
+import org.truffle.io.runtime.objects.IoCall;
+import org.truffle.io.runtime.objects.IoCoroutine;
+import org.truffle.io.runtime.objects.IoDate;
+import org.truffle.io.runtime.objects.IoException;
+import org.truffle.io.runtime.objects.IoFalse;
+import org.truffle.io.runtime.objects.IoFunction;
+import org.truffle.io.runtime.objects.IoInvokable;
+import org.truffle.io.runtime.objects.IoList;
+import org.truffle.io.runtime.objects.IoLocals;
+import org.truffle.io.runtime.objects.IoMessage;
+import org.truffle.io.runtime.objects.IoMethod;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
+import org.truffle.io.runtime.objects.IoPrototype;
+import org.truffle.io.runtime.objects.IoTrue;
 
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -120,23 +120,23 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
-public final class IOState {
+public final class IoState {
 
-    private final IOLanguage language;
+    private final IoLanguage language;
     @CompilationFinal
     private Env env;
     private final BufferedReader input;
     private final PrintWriter output;
     private final AllocationReporter allocationReporter;
-    private final List<IOInvokable> shutdownHooks = new ArrayList<>();
+    private final List<IoInvokable> shutdownHooks = new ArrayList<>();
 
-    private static final Source BUILTIN_SOURCE = Source.newBuilder(IOLanguage.ID, "", "IO builtin").build();
+    private static final Source BUILTIN_SOURCE = Source.newBuilder(IoLanguage.ID, "", "IO builtin").build();
 
-    private final IOObject lobby;
-    private final IOObject protos;
-    private final IOCoroutine currentCoroutine;
+    private final IoObject lobby;
+    private final IoObject protos;
+    private final IoCoroutine currentCoroutine;
 
-    public IOState(IOLanguage language, TruffleLanguage.Env env,
+    public IoState(IoLanguage language, TruffleLanguage.Env env,
             List<NodeFactory<? extends FunctionBodyNode>> externalBuiltins) {
         this.env = env;
         this.input = new BufferedReader(new InputStreamReader(env.in()));
@@ -155,7 +155,7 @@ public final class IOState {
     }
 
     /**
-     * Patches the {@link IOState} to use a new {@link Env}. The method is called
+     * Patches the {@link IoState} to use a new {@link Env}. The method is called
      * during the
      * native image execution as a consequence of
      * {@link Context#create(java.lang.String...)}.
@@ -192,38 +192,38 @@ public final class IOState {
         return output;
     }
 
-    public IOObject getLobby() {
+    public IoObject getLobby() {
         return lobby;
     }
 
-    public IOCoroutine getCurrentCoroutine() {
+    public IoCoroutine getCurrentCoroutine() {
         return currentCoroutine;
     }
 
     private void setupLobby() {
-        IOPrototype.OBJECT.setPrototype(lobby);
+        IoPrototype.OBJECT.setPrototype(lobby);
 
         DynamicObjectLibrary lib = DynamicObjectLibrary.getUncached();
-        IOObjectUtil.put(lib, protos, Symbols.OBJECT, IOPrototype.OBJECT);
-        IOObjectUtil.put(lib, protos, Symbols.NUMBER, IOPrototype.NUMBER);
-        IOObjectUtil.put(lib, protos, Symbols.SEQUENCE, IOPrototype.SEQUENCE);
-        IOObjectUtil.put(lib, protos, Symbols.LIST, IOPrototype.LIST);
-        IOObjectUtil.put(lib, protos, Symbols.DATE, IOPrototype.DATE);
-        IOObjectUtil.put(lib, protos, Symbols.SYSTEM, IOPrototype.SYSTEM);
-        IOObjectUtil.put(lib, protos, Symbols.CALL, IOPrototype.CALL);
-        IOObjectUtil.put(lib, protos, Symbols.MESSAGE, IOPrototype.MESSAGE);
-        IOObjectUtil.put(lib, protos, Symbols.BLOCK, IOPrototype.BLOCK);
-        IOObjectUtil.put(lib, protos, Symbols.COROUTINE, IOPrototype.COROUTINE);
-        IOObjectUtil.put(lib, protos, Symbols.EXCEPTION, IOPrototype.EXCEPTION);
+        IoObjectUtil.put(lib, protos, Symbols.OBJECT, IoPrototype.OBJECT);
+        IoObjectUtil.put(lib, protos, Symbols.NUMBER, IoPrototype.NUMBER);
+        IoObjectUtil.put(lib, protos, Symbols.SEQUENCE, IoPrototype.SEQUENCE);
+        IoObjectUtil.put(lib, protos, Symbols.LIST, IoPrototype.LIST);
+        IoObjectUtil.put(lib, protos, Symbols.DATE, IoPrototype.DATE);
+        IoObjectUtil.put(lib, protos, Symbols.SYSTEM, IoPrototype.SYSTEM);
+        IoObjectUtil.put(lib, protos, Symbols.CALL, IoPrototype.CALL);
+        IoObjectUtil.put(lib, protos, Symbols.MESSAGE, IoPrototype.MESSAGE);
+        IoObjectUtil.put(lib, protos, Symbols.BLOCK, IoPrototype.BLOCK);
+        IoObjectUtil.put(lib, protos, Symbols.COROUTINE, IoPrototype.COROUTINE);
+        IoObjectUtil.put(lib, protos, Symbols.EXCEPTION, IoPrototype.EXCEPTION);
 
-        IOObjectUtil.put(lib, protos, Symbols.NIL, IONil.SINGLETON);
-        IOObjectUtil.put(lib, protos, Symbols.TRUE, IOTrue.SINGLETON);
-        IOObjectUtil.put(lib, protos, Symbols.FALSE, IOFalse.SINGLETON);
+        IoObjectUtil.put(lib, protos, Symbols.NIL, IoNil.SINGLETON);
+        IoObjectUtil.put(lib, protos, Symbols.TRUE, IoTrue.SINGLETON);
+        IoObjectUtil.put(lib, protos, Symbols.FALSE, IoFalse.SINGLETON);
 
-        IOObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
-        IOObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
+        IoObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
+        IoObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
 
-        IOObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
+        IoObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
     }
 
     private void installBuiltins() {
@@ -239,26 +239,26 @@ public final class IOState {
         // installBuiltin(ObjectReadlnFunctionFactory.getInstance());
         installBuiltin(ObjectSlotNamesFunctionFactory.getInstance());
         installBuiltin(ObjectThisContextFunctionFactory.getInstance());
-        installBuiltin(ListSizeFunctionFactory.getInstance(), IOPrototype.LIST, "List");
-        installBuiltin(ListAtFunctionFactory.getInstance(), IOPrototype.LIST, "List");
-        installBuiltin(ListAtPutFunctionFactory.getInstance(), IOPrototype.LIST, "List");
-        installBuiltin(SequenceAtFunctionFactory.getInstance(), IOPrototype.SEQUENCE, "Sequence");
-        installBuiltin(SequenceAtPutFunctionFactory.getInstance(), IOPrototype.SEQUENCE, "Sequence");
-        installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IOPrototype.DATE, "Date");
-        installBuiltin(DateNowFunctionFactory.getInstance(), IOPrototype.DATE, "Date");
-        installBuiltin(NumberFloorFunctionFactory.getInstance(), IOPrototype.NUMBER, "Number");
-        installBuiltin(SystemSleepFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(SystemStackTraceFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
-        installBuiltin(SystemRegisterShutdownHookFunctionFactory.getInstance(), IOPrototype.SYSTEM, "System");
+        installBuiltin(ListSizeFunctionFactory.getInstance(), IoPrototype.LIST, "List");
+        installBuiltin(ListAtFunctionFactory.getInstance(), IoPrototype.LIST, "List");
+        installBuiltin(ListAtPutFunctionFactory.getInstance(), IoPrototype.LIST, "List");
+        installBuiltin(SequenceAtFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
+        installBuiltin(SequenceAtPutFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
+        installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
+        installBuiltin(DateNowFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
+        installBuiltin(NumberFloorFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
+        installBuiltin(SystemSleepFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");
+        installBuiltin(SystemStackTraceFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");
+        installBuiltin(SystemRegisterShutdownHookFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");
         installBuiltin(LobbyExitFunctionFactory.getInstance(), lobby, "Lobby");
-        installBuiltin(ExceptionRaiseFunctionFactory.getInstance(), IOPrototype.EXCEPTION, "Exception");
+        installBuiltin(ExceptionRaiseFunctionFactory.getInstance(), IoPrototype.EXCEPTION, "Exception");
     }
 
     public void installBuiltin(NodeFactory<? extends FunctionBodyNode> factory) {
-        installBuiltin(factory, IOPrototype.OBJECT, "Object");
+        installBuiltin(factory, IoPrototype.OBJECT, "Object");
     }
 
-    public void installBuiltin(NodeFactory<? extends FunctionBodyNode> factory, final IOObject target,
+    public void installBuiltin(NodeFactory<? extends FunctionBodyNode> factory, final IoObject target,
             final String targetName) {
         /*
          * The builtin node factory is a class that is automatically generated by the
@@ -268,7 +268,7 @@ public final class IOState {
          * methods in the builtin classes.
          */
         int argumentCount = factory.getExecutionSignature().size();
-        IONode[] argumentNodes = new IONode[argumentCount];
+        IoNode[] argumentNodes = new IoNode[argumentCount];
         /*
          * Builtin functions are like normal functions, i.e., the arguments are passed
          * in as an Object[] array encapsulated in IOArguments. A IOReadArgumentNode
@@ -291,11 +291,11 @@ public final class IOState {
          * Wrap the builtin in a RootNode. Truffle requires all AST to start with a
          * RootNode.
          */
-        IORootNode rootNode = new IORootNode(language, new FrameDescriptor(), builtinBodyNode,
+        IoRootNode rootNode = new IoRootNode(language, new FrameDescriptor(), builtinBodyNode,
                 BUILTIN_SOURCE.createUnavailableSection());
         String functionName = targetName + "_" + name;
-        IOFunction function = createFunction(rootNode.getCallTarget(), Symbols.fromJavaString(functionName));
-        IOObjectUtil.putUncached(target, Symbols.fromJavaString(name), function);
+        IoFunction function = createFunction(rootNode.getCallTarget(), Symbols.fromJavaString(functionName));
+        IoObjectUtil.putUncached(target, Symbols.fromJavaString(name), function);
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {
@@ -310,24 +310,24 @@ public final class IOState {
         }
     }
 
-    public IOObject getPrototype(Object obj) {
+    public IoObject getPrototype(Object obj) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
         if (interop.isNull(obj)) {
-            return IONil.SINGLETON;
+            return IoNil.SINGLETON;
         } else if (interop.isBoolean(obj)) {          
-            return (Boolean)obj == Boolean.TRUE ? IOTrue.SINGLETON : IOFalse.SINGLETON;
-        } else if (obj instanceof IOObject) {
-            return ((IOObject) obj).getPrototype();
+            return (Boolean)obj == Boolean.TRUE ? IoTrue.SINGLETON : IoFalse.SINGLETON;
+        } else if (obj instanceof IoObject) {
+            return ((IoObject) obj).getPrototype();
         } else if (obj instanceof String) {
-            return IOPrototype.SEQUENCE;
+            return IoPrototype.SEQUENCE;
         } else if (obj instanceof TruffleString) {
-            return IOPrototype.SEQUENCE;
+            return IoPrototype.SEQUENCE;
         } else if (interop.fitsInLong(obj)) {
-            return IOPrototype.NUMBER;
+            return IoPrototype.NUMBER;
         } else if (interop.fitsInDouble(obj)) {
-            return IOPrototype.NUMBER;
+            return IoPrototype.NUMBER;
         } else {
-            return IOPrototype.OBJECT;
+            return IoPrototype.OBJECT;
         }
     }
 
@@ -345,7 +345,7 @@ public final class IOState {
             return fromForeignNumber(a);
         } else if (a instanceof TruffleObject) {
             return a;
-        } else if (a instanceof IOState) {
+        } else if (a instanceof IoState) {
             return a;
         }
         throw new ShouldNotBeHereException("Value is not a truffle value.");
@@ -375,9 +375,9 @@ public final class IOState {
         return (TruffleObject) env.getPolyglotBindings();
     }
 
-    private static final ContextReference<IOState> REFERENCE = ContextReference.create(IOLanguage.class);
+    private static final ContextReference<IoState> REFERENCE = ContextReference.create(IoLanguage.class);
 
-    public static IOState get(Node node) {
+    public static IoState get(Node node) {
         return REFERENCE.get(node);
     }
 
@@ -388,7 +388,7 @@ public final class IOState {
      * @param func no-parameter function to be registered as a shutdown hook
      */
     @TruffleBoundary
-    public void registerShutdownHook(IOInvokable func) {
+    public void registerShutdownHook(IoInvokable func) {
         shutdownHooks.add(func);
     }
 
@@ -398,7 +398,7 @@ public final class IOState {
      */
     public void runShutdownHooks() {
         InteropLibrary interopLibrary = InteropLibrary.getUncached();
-        for (IOInvokable shutdownHook : shutdownHooks) {
+        for (IoInvokable shutdownHook : shutdownHooks) {
             try {
                 interopLibrary.execute(shutdownHook);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
@@ -407,92 +407,92 @@ public final class IOState {
         }
     }
 
-    public IOObject cloneObject() {
-        return cloneObject(IOPrototype.OBJECT);
+    public IoObject cloneObject() {
+        return cloneObject(IoPrototype.OBJECT);
     }
 
-    public IOObject cloneObject(IOObject prototype) {
+    public IoObject cloneObject(IoObject prototype) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOObject object = new IOObject(prototype);
+        IoObject object = new IoObject(prototype);
         allocationReporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
     }
 
-    public IOList createList(final Object[] data) {
+    public IoList createList(final Object[] data) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOList list = new IOList(data);
+        IoList list = new IoList(data);
         allocationReporter.onReturnValue(list, 0, AllocationReporter.SIZE_UNKNOWN);
         return list;
     }
 
-    public IODate createDate() {
+    public IoDate createDate() {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IODate date = new IODate();
+        IoDate date = new IoDate();
         allocationReporter.onReturnValue(date, 0, AllocationReporter.SIZE_UNKNOWN);
         return date;
     }
 
-    public IOBlock createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final IOLocals locals) {
+    public IoBlock createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final IoLocals locals) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOBlock block = new IOBlock(callTarget, argNames, locals);
+        IoBlock block = new IoBlock(callTarget, argNames, locals);
         allocationReporter.onReturnValue(block, 0, AllocationReporter.SIZE_UNKNOWN);
         return block;
     }
 
-    public IOMethod createMethod(RootCallTarget callTarget, final TruffleString[] argNames) {
+    public IoMethod createMethod(RootCallTarget callTarget, final TruffleString[] argNames) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOMethod method = new IOMethod(callTarget, argNames);
+        IoMethod method = new IoMethod(callTarget, argNames);
         allocationReporter.onReturnValue(method, 0, AllocationReporter.SIZE_UNKNOWN);
         return method;
     }
 
-    public IOFunction createFunction(RootCallTarget callTarget, final TruffleString name) {
+    public IoFunction createFunction(RootCallTarget callTarget, final TruffleString name) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOFunction function = new IOFunction(callTarget, name);
+        IoFunction function = new IoFunction(callTarget, name);
         allocationReporter.onReturnValue(function, 0, AllocationReporter.SIZE_UNKNOWN);
         return function;
     }
 
-    public IOMessage createMessage(final TruffleString name, final IONode[] argumentNodes) {
+    public IoMessage createMessage(final TruffleString name, final IoNode[] argumentNodes) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOMessage message = new IOMessage(name, argumentNodes);
+        IoMessage message = new IoMessage(name, argumentNodes);
         allocationReporter.onReturnValue(message, 0, AllocationReporter.SIZE_UNKNOWN);
         return message;
     }
 
-    public IOLocals createLocals(final IOObject prototype, final MaterializedFrame frame) {
+    public IoLocals createLocals(final IoObject prototype, final MaterializedFrame frame) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOLocals locals = new IOLocals(prototype, frame);
+        IoLocals locals = new IoLocals(prototype, frame);
         allocationReporter.onReturnValue(locals, 0, AllocationReporter.SIZE_UNKNOWN);
         return locals;
     }
 
-    public IOCall createCall(final IOLocals sender, final Object target, final IOMessage message,
-            final IOLocals slotContext, final IOInvokable activated, final IOCoroutine coroutine) {
+    public IoCall createCall(final IoLocals sender, final Object target, final IoMessage message,
+            final IoLocals slotContext, final IoInvokable activated, final IoCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOCall call = new IOCall(sender, target, message, slotContext, activated, coroutine);
+        IoCall call = new IoCall(sender, target, message, slotContext, activated, coroutine);
         allocationReporter.onReturnValue(call, 0, AllocationReporter.SIZE_UNKNOWN);
         return call;
     }
 
-    public IOException createException(final TruffleString error, final IOCoroutine coroutine,
-            final IOMessage caughtMessage) {
+    public IoException createException(final TruffleString error, final IoCoroutine coroutine,
+            final IoMessage caughtMessage) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOException exception = new IOException(error, coroutine, caughtMessage);
+        IoException exception = new IoException(error, coroutine, caughtMessage);
         allocationReporter.onReturnValue(exception, 0, AllocationReporter.SIZE_UNKNOWN);
         return exception;
     }
 
-    public IOException createException(final TruffleString error, final IOCoroutine coroutine) {
+    public IoException createException(final TruffleString error, final IoCoroutine coroutine) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOException exception = new IOException(error, coroutine);
+        IoException exception = new IoException(error, coroutine);
         allocationReporter.onReturnValue(exception, 0, AllocationReporter.SIZE_UNKNOWN);
         return exception;
     }
 
-    public IOCoroutine createCoroutine() {
+    public IoCoroutine createCoroutine() {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IOCoroutine coroutine = new IOCoroutine();
+        IoCoroutine coroutine = new IoCoroutine();
         allocationReporter.onReturnValue(coroutine, 0, AllocationReporter.SIZE_UNKNOWN);
         return coroutine;
     }

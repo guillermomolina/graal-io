@@ -47,9 +47,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.antlr.v4.runtime.Token;
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.arithmetic.AddNodeGen;
 import org.truffle.io.nodes.arithmetic.DivNodeGen;
 import org.truffle.io.nodes.arithmetic.MulNodeGen;
@@ -82,7 +82,7 @@ import org.truffle.io.nodes.logic.LessThanNodeGen;
 import org.truffle.io.nodes.logic.LogicalAndNode;
 import org.truffle.io.nodes.logic.LogicalNotNodeGen;
 import org.truffle.io.nodes.logic.LogicalOrNode;
-import org.truffle.io.nodes.root.IORootNode;
+import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.nodes.slots.ListLocalSlotNamesNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
@@ -91,7 +91,7 @@ import org.truffle.io.nodes.slots.WriteLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.WriteMemberNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IoLocals;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -176,10 +176,10 @@ public class NodeFactory {
 
     private final Source source;
     private final TruffleString sourceString;
-    private final IOLanguage language;
+    private final IoLanguage language;
     private Scope currentScope;
 
-    public NodeFactory(IOLanguage language, Source source) {
+    public NodeFactory(IoLanguage language, Source source) {
         this.language = language;
         this.source = source;
         this.sourceString = Symbols.fromJavaString(source.getCharacters().toString());
@@ -202,7 +202,7 @@ public class NodeFactory {
         currentScope = currentScope.outer;
     }
 
-    public FunctionLiteralNode createFunction(IONode bodyNode, int startPos, int length) {
+    public FunctionLiteralNode createFunction(IoNode bodyNode, int startPos, int length) {
         if (bodyNode == null) {
             return null;
         }
@@ -212,7 +212,7 @@ public class NodeFactory {
         final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
         final MethodBodyNode methodBodyNode = new MethodBodyNode(bodyNode);
         methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
-        final IORootNode rootNode = new IORootNode(language, currentScope.buildFrameDescriptor(),
+        final IoRootNode rootNode = new IoRootNode(language, currentScope.buildFrameDescriptor(),
                 methodBodyNode, methodSrc);
         final FunctionLiteralNode functionLiteralNode = new FunctionLiteralNode(Symbols.fromJavaString("do"), rootNode);
         leaveCurrentScope();
@@ -225,15 +225,15 @@ public class NodeFactory {
         return currentScope.addArgument(name);
     }
 
-    public IONode createInitializationNode(int argumentIndex, int localIndex) {
+    public IoNode createInitializationNode(int argumentIndex, int localIndex) {
         final ReadArgumentNode readArgNode = new ReadArgumentNode(argumentIndex);
         StringLiteralNode nameNode = new StringLiteralNode(currentScope.locals.get(localIndex));
         return WriteLocalSlotNodeGen.create(readArgNode, localIndex, nameNode);
     }
 
-    public List<IONode> setupLocals(IONode bodyNode) {
+    public List<IoNode> setupLocals(IoNode bodyNode) {
         assert currentScope.argumentCount >= 1;
-        List<IONode> initializationNodes = new ArrayList<IONode>(currentScope.argumentCount);
+        List<IoNode> initializationNodes = new ArrayList<IoNode>(currentScope.argumentCount);
         int callSlotIndex = currentScope.findLocal(CALL_SYMBOL);
         if(callSlotIndex == -1) {
             // does not use call, intialize self with arg 0
@@ -243,7 +243,7 @@ public class NodeFactory {
             int selfSlotIndex = currentScope.findLocal(Symbols.SELF);
             assert selfSlotIndex == 0;
             StringLiteralNode nameNode = new StringLiteralNode(Symbols.SELF);
-            IONode initializeSelfNode = WriteLocalSlotNodeGen.create(createReadCallTarget(), selfSlotIndex, nameNode);
+            IoNode initializeSelfNode = WriteLocalSlotNodeGen.create(createReadCallTarget(), selfSlotIndex, nameNode);
             initializationNodes.add(initializeSelfNode);
         }
         for (int i = 1; i < currentScope.argumentCount; i++) {
@@ -253,24 +253,24 @@ public class NodeFactory {
         return initializationNodes;
     }
 
-    public IORootNode createRoot(IONode bodyNode, int startPos, int length) {
+    public IoRootNode createRoot(IoNode bodyNode, int startPos, int length) {
         assert bodyNode != null;
-        List<IONode> initializedBodyNode = setupLocals(bodyNode);
+        List<IoNode> initializedBodyNode = setupLocals(bodyNode);
         final int bodyEndPos = bodyNode.getSourceEndIndex();
         int methodBodyLength = bodyEndPos - currentScope.bodyStartPos;
         final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
-        final IONode methodBlock = createExpression(initializedBodyNode, currentScope.bodyStartPos, methodBodyLength);
+        final IoNode methodBlock = createExpression(initializedBodyNode, currentScope.bodyStartPos, methodBodyLength);
         final MethodBodyNode methodBodyNode = new MethodBodyNode(methodBlock);
         methodBodyNode.setSourceSection(methodSrc.getCharIndex(), methodSrc.getCharLength());
-        final IORootNode rootNode = new IORootNode(language, currentScope.buildFrameDescriptor(),
+        final IoRootNode rootNode = new IoRootNode(language, currentScope.buildFrameDescriptor(),
                 methodBodyNode, methodSrc);
         return rootNode;
     }
 
-    public BlockLiteralNode createBlock(IONode bodyNode, int startPos, int length) {
-        final IORootNode rootNode = createRoot(bodyNode, startPos, length);
+    public BlockLiteralNode createBlock(IoNode bodyNode, int startPos, int length) {
+        final IoRootNode rootNode = createRoot(bodyNode, startPos, length);
         TruffleString[] argNames = currentScope.getArgumentNames();
-        final IONode homeNode;
+        final IoNode homeNode;
         leaveCurrentScope();
         if (hasLocals()) {
             homeNode = createReadCallSender(startPos, length);
@@ -282,8 +282,8 @@ public class NodeFactory {
         return blockLiteralNode;
     }
 
-    public MethodLiteralNode createMethod(IONode bodyNode, int startPos, int length) {
-        final IORootNode rootNode = createRoot(bodyNode, startPos, length);
+    public MethodLiteralNode createMethod(IoNode bodyNode, int startPos, int length) {
+        final IoRootNode rootNode = createRoot(bodyNode, startPos, length);
         TruffleString[] argNames = currentScope.getArgumentNames();
         final MethodLiteralNode methodLiteralNode = new MethodLiteralNode(rootNode, argNames);
         methodLiteralNode.setSourceSection(startPos, length);
@@ -291,21 +291,21 @@ public class NodeFactory {
         return methodLiteralNode;
     }
 
-    protected IONode createExpression(List<IONode> bodyNodes, int startPos, int length) {
+    protected IoNode createExpression(List<IoNode> bodyNodes, int startPos, int length) {
         if (containsNull(bodyNodes)) {
             return null;
         }
 
-        List<IONode> flattenedNodes = new ArrayList<>(bodyNodes.size());
+        List<IoNode> flattenedNodes = new ArrayList<>(bodyNodes.size());
         flattenNodes(bodyNodes, flattenedNodes);
         int n = flattenedNodes.size();
         for (int i = 0; i < n; i++) {
-            IONode expression = flattenedNodes.get(i);
+            IoNode expression = flattenedNodes.get(i);
             if (expression.hasSource()) {
                 expression.addExpressionTag();
             }
         }
-        ExpressionNode blockNode = new ExpressionNode(flattenedNodes.toArray(new IONode[flattenedNodes.size()]));
+        ExpressionNode blockNode = new ExpressionNode(flattenedNodes.toArray(new IoNode[flattenedNodes.size()]));
         blockNode.setSourceSection(startPos, length);
         return blockNode;
     }
@@ -314,14 +314,14 @@ public class NodeFactory {
         currentScope.inLoop = true;
     }
 
-    public IONode createLoopExpression(IONode loopNode, int startPos, int length) {
-        List<IONode> bodyNodes = new ArrayList<>();
+    public IoNode createLoopExpression(IoNode loopNode, int startPos, int length) {
+        List<IoNode> bodyNodes = new ArrayList<>();
         bodyNodes.add(loopNode);
         return createExpression(bodyNodes, startPos, length);
     }
 
-    private void flattenNodes(Iterable<? extends IONode> bodyNodes, List<IONode> flattenedNodes) {
-        for (IONode n : bodyNodes) {
+    private void flattenNodes(Iterable<? extends IoNode> bodyNodes, List<IoNode> flattenedNodes) {
+        for (IoNode n : bodyNodes) {
             if (n instanceof ExpressionNode) {
                 flattenNodes(((ExpressionNode) n).getExpressions(), flattenedNodes);
             } else {
@@ -330,13 +330,13 @@ public class NodeFactory {
         }
     }
 
-    IONode createDebugger(Token debuggerToken) {
+    IoNode createDebugger(Token debuggerToken) {
         final DebuggerNode debuggerNode = new DebuggerNode();
         srcFromToken(debuggerNode, debuggerToken);
         return debuggerNode;
     }
 
-    public IONode createBreak(Token breakToken) {
+    public IoNode createBreak(Token breakToken) {
         if (currentScope.inLoop) {
             final BreakNode breakNode = new BreakNode();
             srcFromToken(breakNode, breakToken);
@@ -345,7 +345,7 @@ public class NodeFactory {
         return null;
     }
 
-    public IONode createContinue(Token continueToken) {
+    public IoNode createContinue(Token continueToken) {
         if (currentScope.inLoop) {
             final ContinueNode continueNode = new ContinueNode();
             srcFromToken(continueNode, continueToken);
@@ -354,7 +354,7 @@ public class NodeFactory {
         return null;
     }
 
-    public IONode createWhile(Token whileToken, IONode conditionNode, IONode bodyNode) {
+    public IoNode createWhile(Token whileToken, IoNode conditionNode, IoNode bodyNode) {
         WhileNode whileNode = null;
         if (conditionNode != null && bodyNode != null) {
             conditionNode.addExpressionTag();
@@ -366,7 +366,7 @@ public class NodeFactory {
         return whileNode;
     }
 
-    public IONode createRepeat(IONode receiverNode, IONode bodyNode, int startPos,
+    public IoNode createRepeat(IoNode receiverNode, IoNode bodyNode, int startPos,
             int length) {
         RepeatNode repeatNode = null;
         if (receiverNode != null && bodyNode != null) {
@@ -377,8 +377,8 @@ public class NodeFactory {
         return repeatNode;
     }
 
-    public IONode createTry(IONode bodyNode, int startPos, int length) {
-        IONode tryNode = null;
+    public IoNode createTry(IoNode bodyNode, int startPos, int length) {
+        IoNode tryNode = null;
         if (bodyNode != null) {
             tryNode = new TryNode(bodyNode);
             tryNode.addExpressionTag();
@@ -387,8 +387,8 @@ public class NodeFactory {
         return tryNode;
     }
 
-    public IONode createIfThenElse(Token ifToken, IONode conditionNode, IONode thenPartNode,
-            IONode elsePartNode) {
+    public IoNode createIfThenElse(Token ifToken, IoNode conditionNode, IoNode thenPartNode,
+            IoNode elsePartNode) {
         if (conditionNode == null || thenPartNode == null) {
             return null;
         }
@@ -401,10 +401,10 @@ public class NodeFactory {
         return ifNode;
     }
 
-    public IONode createReturn(Token t, IONode valueNodeOrNull) {
+    public IoNode createReturn(Token t, IoNode valueNodeOrNull) {
         final int startPos = t.getStartIndex();
         final int length;
-        IONode valueNode = valueNodeOrNull;
+        IoNode valueNode = valueNodeOrNull;
         if (valueNode == null) {
             length = t.getText().length();
             valueNode = createReadSelf();
@@ -416,14 +416,14 @@ public class NodeFactory {
         return returnNode;
     }
 
-    public IONode createBinary(Token opToken, IONode leftNode, IONode rightNode) {
+    public IoNode createBinary(Token opToken, IoNode leftNode, IoNode rightNode) {
         if (leftNode == null || rightNode == null) {
             return null;
         }
-        final IONode leftUnboxed = UnboxNodeGen.create(leftNode);
-        final IONode rightUnboxed = UnboxNodeGen.create(rightNode);
+        final IoNode leftUnboxed = UnboxNodeGen.create(leftNode);
+        final IoNode rightUnboxed = UnboxNodeGen.create(rightNode);
 
-        final IONode result;
+        final IoNode result;
         switch (opToken.getText()) {
             case "+":
                 result = AddNodeGen.create(leftUnboxed, rightUnboxed);
@@ -473,22 +473,22 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createWriteProperty(IONode receiverNode, IONode nameNode,
-            IONode valueNode, int startPos, int length, boolean initialize) {
+    public IoNode createWriteProperty(IoNode receiverNode, IoNode nameNode,
+            IoNode valueNode, int startPos, int length, boolean initialize) {
         if (receiverNode == null || nameNode == null || valueNode == null) {
             return null;
         }
 
-        final IONode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode, initialize);
+        final IoNode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode, initialize);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
         return result;
     }
 
-    public IONode createWriteSlot(IONode receiverNode, IONode assignmentNameNode,
-            IONode valueNode, int startPos, int length, boolean initialize) {
-        IONode result = null;
+    public IoNode createWriteSlot(IoNode receiverNode, IoNode assignmentNameNode,
+            IoNode valueNode, int startPos, int length, boolean initialize) {
+        IoNode result = null;
         if (receiverNode == null) {
             result = createWriteLocalSlot(assignmentNameNode, valueNode, startPos, length, initialize);
             if (result == null) {
@@ -507,7 +507,7 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createWriteLocalSlot(IONode nameNode, IONode valueNode, int startPos, int length, boolean initialize) {
+    public IoNode createWriteLocalSlot(IoNode nameNode, IoNode valueNode, int startPos, int length, boolean initialize) {
         if (nameNode == null || valueNode == null || !hasLocals()) {
             return null;
         }
@@ -517,20 +517,20 @@ public class NodeFactory {
         if (slotIndex < 0) {
             return null;
         }
-        final IONode result = WriteLocalSlotNodeGen.create(valueNode, slotIndex, nameNode);
+        final IoNode result = WriteLocalSlotNodeGen.create(valueNode, slotIndex, nameNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createReadLocalSlot(StringLiteralNode nameNode) {
+    public IoNode createReadLocalSlot(StringLiteralNode nameNode) {
         assert nameNode != null;
         TruffleString name = nameNode.executeGeneric(null);
         final int slotIndex = currentScope.findLocal(name);
         if (slotIndex < 0) {
             return null;
         }
-        final IONode result = ReadLocalSlotNodeGen.create(slotIndex);
+        final IoNode result = ReadLocalSlotNodeGen.create(slotIndex);
         if (nameNode.hasSource()) {
             result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
         }
@@ -538,19 +538,19 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createReadLocalSlot(Token nameToken) {
+    public IoNode createReadLocalSlot(Token nameToken) {
         TruffleString name = asTruffleString(nameToken, false);
         final int slotIndex = currentScope.findLocal(name);
         if (slotIndex < 0) {
             return null;
         }
-        final IONode result = ReadLocalSlotNodeGen.create(slotIndex);
+        final IoNode result = ReadLocalSlotNodeGen.create(slotIndex);
         srcFromToken(result, nameToken);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createReadLocalSlot(IONode nameNode, int startPos, int length) {
+    public IoNode createReadLocalSlot(IoNode nameNode, int startPos, int length) {
         if (!hasLocals()) {
             return null;
         }
@@ -560,8 +560,8 @@ public class NodeFactory {
         throw new NotImplementedException();
     }
 
-    public IONode createForSlot(IONode slotNameNode, IONode startValueNode,
-            IONode endValueNode, IONode stepValueNode, IONode bodyNode, int startPos,
+    public IoNode createForSlot(IoNode slotNameNode, IoNode startValueNode,
+            IoNode endValueNode, IoNode stepValueNode, IoNode bodyNode, int startPos,
             int length) {
         throw new NotImplementedException();
         /*ForLocalSlotNode forNode = null;
@@ -576,13 +576,13 @@ public class NodeFactory {
             if (stepValueNode != null) {
                 stepValueNode.addExpressionTag();
             }
-            final IONode result;
+            final IoNode result;
             if (contextLevel == 0) {
                 result = new ForLocalSlotNode(slotFrameIndex, slotNameNode, startValueNode, endValueNode,
                         stepValueNode, bodyNode);
             } else {
                 throw new NotImplementedException();
-                //result = new IOForRemoteSlotNode(contextLevel, slotFrameIndex, slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode);
+                //result = new IoForRemoteSlotNode(contextLevel, slotFrameIndex, slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode);
             }
             result.setSourceSection(startPos, length);
             result.addExpressionTag();
@@ -591,42 +591,42 @@ public class NodeFactory {
         return forNode;*/
     }
 
-    public IONode createReadSelf() {
+    public IoNode createReadSelf() {
         assert hasLocals();
         final StringLiteralNode selfNode = new StringLiteralNode(Symbols.SELF);
-        final IONode result = createReadLocalSlot(selfNode);
+        final IoNode result = createReadLocalSlot(selfNode);
         assert result != null;
         return result;
     }
 
-    public IONode createReadTarget() {
+    public IoNode createReadTarget() {
         assert !hasLocals();
-        IONode result = new ReadArgumentNode(IOLocals.TARGET_ARGUMENT_INDEX);
+        IoNode result = new ReadArgumentNode(IoLocals.TARGET_ARGUMENT_INDEX);
         //result.addExpressionTag();
         assert result != null;
         return result;
 
     }
 
-    public IONode createReadCall() {
+    public IoNode createReadCall() {
         assert hasLocals() == true;
         currentScope.findOrAddLocal(CALL_SYMBOL);
         final StringLiteralNode callNode = new StringLiteralNode(CALL_SYMBOL);
-        final IONode result = createReadLocalSlot(callNode);
+        final IoNode result = createReadLocalSlot(callNode);
         assert result != null;
         return result;
     }
 
-    public IONode createReadCallSender(int startPos, int length) {
+    public IoNode createReadCallSender(int startPos, int length) {
         final StringLiteralNode senderNode = new StringLiteralNode(SENDER_SYMBOL);
-        final IONode result = createReadProperty(createReadCall(), senderNode, startPos, length);
+        final IoNode result = createReadProperty(createReadCall(), senderNode, startPos, length);
         assert result != null;
         return result;
     }
 
-    public IONode createReadCallTarget() {
+    public IoNode createReadCallTarget() {
         final StringLiteralNode targetNode = new StringLiteralNode(TARGET_SYMBOL);
-        final IONode result = createReadProperty(createReadCall(), targetNode, 0, 0);
+        final IoNode result = createReadProperty(createReadCall(), targetNode, 0, 0);
         assert result != null;
         return result;
     }
@@ -648,11 +648,11 @@ public class NodeFactory {
             fromIndex += 1;
             length -= 2;
         }
-        return sourceString.substringByteIndexUncached(fromIndex * 2, length * 2, IOLanguage.STRING_ENCODING, true);
+        return sourceString.substringByteIndexUncached(fromIndex * 2, length * 2, IoLanguage.STRING_ENCODING, true);
     }
 
-    public IONode createNumericLiteral(Token literalToken) {
-        IONode result;
+    public IoNode createNumericLiteral(Token literalToken) {
+        IoNode result;
         try {
             result = new LongLiteralNode(Long.parseLong(literalToken.getText()));
         } catch (NumberFormatException ex) {
@@ -667,31 +667,31 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createBoolean(Token literalToken) {
-        IONode result;
+    public IoNode createBoolean(Token literalToken) {
+        IoNode result;
         result = new BooleanLiteralNode(literalToken.getText().equals("true"));
         srcFromToken(result, literalToken);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createNil(Token literalToken) {
-        IONode result;
+    public IoNode createNil(Token literalToken) {
+        IoNode result;
         result = new NilLiteralNode();
         srcFromToken(result, literalToken);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createListLiteral(List<IONode> elementNodes, int startPos, int length) {
-        final IONode result = new ListLiteralNode(
-                elementNodes.toArray(new IONode[elementNodes.size()]));
+    public IoNode createListLiteral(List<IoNode> elementNodes, int startPos, int length) {
+        final IoNode result = new ListLiteralNode(
+                elementNodes.toArray(new IoNode[elementNodes.size()]));
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createParenExpression(IONode expressionNode, int startPos, int length) {
+    public IoNode createParenExpression(IoNode expressionNode, int startPos, int length) {
         if (expressionNode == null) {
             return null;
         }
@@ -701,20 +701,20 @@ public class NodeFactory {
         return result;
     }
 
-    public IONode createReadProperty(IONode receiverNode, IONode nameNode, int startPos, int length) {
+    public IoNode createReadProperty(IoNode receiverNode, IoNode nameNode, int startPos, int length) {
         if (receiverNode == null || nameNode == null) {
             return null;
         }
 
-        final IONode result = ReadMemberNodeGen.create(receiverNode, nameNode);
+        final IoNode result = ReadMemberNodeGen.create(receiverNode, nameNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createListLocalSlotNames(int startPos, int length) {
+    public IoNode createListLocalSlotNames(int startPos, int length) {
         if (hasLocals()) {
-            final IONode result = new ListLocalSlotNamesNode();
+            final IoNode result = new ListLocalSlotNamesNode();
             result.setSourceSection(startPos, length);
             result.addExpressionTag();
             return result;
@@ -722,8 +722,8 @@ public class NodeFactory {
         return null;
     }
 
-    public IONode createThisLocalContext(IONode receiverNode, int startPos, int length) {
-        final IONode targetNode;
+    public IoNode createThisLocalContext(IoNode receiverNode, int startPos, int length) {
+        final IoNode targetNode;
         if(receiverNode == null) {
             if (hasLocals()) {
                 targetNode = createReadCall();
@@ -733,17 +733,17 @@ public class NodeFactory {
         } else {
             targetNode = receiverNode;
         }
-        final IONode result = ThisLocalContextNodeGen.create(targetNode);
+        final IoNode result = ThisLocalContextNodeGen.create(targetNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createGetSlot(IONode receiverNode, IONode nameNode, int startPos, int length) {
-        IONode targetNode = receiverNode;
+    public IoNode createGetSlot(IoNode receiverNode, IoNode nameNode, int startPos, int length) {
+        IoNode targetNode = receiverNode;
         if (receiverNode == null) {
             if (hasLocals()) {
-                IONode resultNode = createReadLocalSlot(nameNode, startPos, length);
+                IoNode resultNode = createReadLocalSlot(nameNode, startPos, length);
                 if (resultNode == null) {
                     resultNode = new NilLiteralNode();
                     resultNode.setSourceSection(startPos, length);
@@ -756,10 +756,10 @@ public class NodeFactory {
         return createReadProperty(targetNode, nameNode, 0, 0);
     }
 
-    public IONode createInvokeSlot(IONode receiverNode, Token identifierToken, List<IONode> argumentNodes,
+    public IoNode createInvokeSlot(IoNode receiverNode, Token identifierToken, List<IoNode> argumentNodes,
             int startPos, int length) {
-        IONode targetNode = receiverNode;
-        IONode valueNode = null;
+        IoNode targetNode = receiverNode;
+        IoNode valueNode = null;
         if (targetNode == null) {
             if (hasLocals()) {
                 targetNode = createReadCallSender(startPos, length);
@@ -773,15 +773,15 @@ public class NodeFactory {
         }
         TruffleString identifier = asTruffleString(identifierToken, false);
         assert targetNode != null;
-        IONode result = new InvokeNode(targetNode, valueNode, identifier,
-                argumentNodes.toArray(new IONode[argumentNodes.size()]));
+        IoNode result = new InvokeNode(targetNode, valueNode, identifier,
+                argumentNodes.toArray(new IoNode[argumentNodes.size()]));
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IONode createDo(IONode receiverNode, IONode functionNode, int startPos, int length) {
-        IONode targetNode = receiverNode;
+    public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
+        IoNode targetNode = receiverNode;
         if (targetNode == null) {
             if (hasLocals()) {
                 targetNode = createReadSelf();
@@ -791,13 +791,13 @@ public class NodeFactory {
         }
         TruffleString identifier = Symbols.fromJavaString("do");
         assert targetNode != null;
-        IONode result = new InvokeNode(targetNode, functionNode, identifier, new IONode[0]);
+        IoNode result = new InvokeNode(targetNode, functionNode, identifier, new IoNode[0]);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    private static void srcFromToken(IONode node, Token token) {
+    private static void srcFromToken(IoNode node, Token token) {
         node.setSourceSection(token.getStartIndex(), token.getText().length());
     }
 

@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
 import com.oracle.truffle.api.debug.DebuggerTags;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -54,7 +54,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * Implementation of the IO debugger expression. When under the debugger, execution suspends here.
  */
 @NodeInfo(shortName = "debugger", description = "The node implementing a debugger expression")
-public class DebuggerNode extends IONode {
+public class DebuggerNode extends IoNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {

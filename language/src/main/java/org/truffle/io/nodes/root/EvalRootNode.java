@@ -43,10 +43,10 @@
  */
 package org.truffle.io.nodes.root;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.objects.IoNil;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -72,7 +72,7 @@ public final class EvalRootNode extends RootNode {
     @Child
     private DirectCallNode mainCallNode;
 
-    public EvalRootNode(IOLanguage language, RootCallTarget rootFunction) {
+    public EvalRootNode(IoLanguage language, RootCallTarget rootFunction) {
         super(language);
         this.mainCallNode = rootFunction != null ? DirectCallNode.create(rootFunction) : null;
     }
@@ -105,10 +105,10 @@ public final class EvalRootNode extends RootNode {
     public Object execute(VirtualFrame frame) {
         if (mainCallNode == null) {
             /* The source code did not have a "main" function, so nothing to execute. */
-            return IONil.SINGLETON;
+            return IoNil.SINGLETON;
         } else {
             Object[] arguments = new Object[1];
-            arguments[0] = IOState.get(this).getLobby();
+            arguments[0] = IoState.get(this).getLobby();
             return mainCallNode.call(arguments);
         }
     }

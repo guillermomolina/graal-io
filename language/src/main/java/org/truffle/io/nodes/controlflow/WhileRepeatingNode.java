@@ -50,21 +50,21 @@ import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 
 public final class WhileRepeatingNode extends Node implements RepeatingNode {
 
     @Child
-    private IONode conditionNode;
+    private IoNode conditionNode;
     @Child
-    private IONode bodyNode;
+    private IoNode bodyNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
     private Object lastResult;
 
-    public WhileRepeatingNode(IONode conditionNode, IONode bodyNode) {
+    public WhileRepeatingNode(IoNode conditionNode, IoNode bodyNode) {
         this.conditionNode = UnboxNodeGen.create(conditionNode);
         this.bodyNode = bodyNode;
     }
@@ -103,7 +103,7 @@ public final class WhileRepeatingNode extends Node implements RepeatingNode {
 
     @Override
     public String toString() {
-        return IONode.formatSourceSection(this);
+        return IoNode.formatSourceSection(this);
     }
 
 }

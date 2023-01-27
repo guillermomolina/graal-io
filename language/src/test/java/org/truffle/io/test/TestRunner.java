@@ -83,7 +83,7 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.InitializationError;
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.test.TestRunner.TestCase;
 
@@ -138,9 +138,9 @@ public class TestRunner extends ParentRunner<TestCase> {
     }
 
     protected static List<TestCase> createTests(final Class<?> c) throws IOException, InitializationError {
-        IOTestSuite suite = c.getAnnotation(IOTestSuite.class);
+        IoTestSuite suite = c.getAnnotation(IoTestSuite.class);
         if (suite == null) {
-            throw new InitializationError(String.format("@%s annotation required on class '%s' to run with '%s'.", IOTestSuite.class.getSimpleName(), c.getName(), TestRunner.class.getSimpleName()));
+            throw new InitializationError(String.format("@%s annotation required on class '%s' to run with '%s'.", IoTestSuite.class.getSimpleName(), c.getName(), TestRunner.class.getSimpleName()));
         }
 
         String[] paths = suite.value();
@@ -151,7 +151,7 @@ public class TestRunner extends ParentRunner<TestCase> {
         }
 
         Class<?> testCaseDirectory = c;
-        if (suite.testCaseDirectory() != IOTestSuite.class) {
+        if (suite.testCaseDirectory() != IoTestSuite.class) {
             testCaseDirectory = suite.testCaseDirectory();
         }
         Path root = getRootViaResourceURL(testCaseDirectory, paths);
@@ -303,7 +303,7 @@ public class TestRunner extends ParentRunner<TestCase> {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             for (NodeFactory<? extends FunctionBodyNode> builtin : functions) {
-                IOLanguage.installBuiltin(builtin);
+                IoLanguage.installBuiltin(builtin);
             }
 
             Context.Builder builder = Context.newBuilder().allowExperimentalOptions(true).allowHostClassLookup((s) -> true).allowHostAccess(HostAccess.ALL).in(
@@ -331,7 +331,7 @@ public class TestRunner extends ParentRunner<TestCase> {
     private static void run(Context context, Path path, PrintWriter out) throws IOException {
         try {
             /* Parse the IO source file. */
-            Source source = Source.newBuilder(IOLanguage.ID, path.toFile()).interactive(false).build();
+            Source source = Source.newBuilder(IoLanguage.ID, path.toFile()).interactive(false).build();
 
             /* Call the main entry point, without any arguments. */
             context.eval(source);

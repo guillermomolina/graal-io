@@ -43,15 +43,15 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoState;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "slotNames")
-public final class ListLocalSlotNamesNode extends IONode {
+public final class ListLocalSlotNamesNode extends IoNode {
 
     public ListLocalSlotNamesNode() {
 
@@ -65,7 +65,7 @@ public final class ListLocalSlotNamesNode extends IONode {
         for (int i = 0; i < count; i++) {
             slotNames[i] = frameDescriptor.getSlotName(i);
         }
-        return IOState.get(this).createList(slotNames);
+        return IoState.get(this).createList(slotNames);
     }
 
 }

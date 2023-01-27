@@ -43,6 +43,12 @@
  */
 package org.truffle.io.nodes.literals;
 
+import org.truffle.io.IoLanguage;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.root.IoRootNode;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoMethod;
+
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -50,40 +56,34 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOMethod;
-
 @NodeInfo(shortName = "method")
-public final class MethodLiteralNode extends IONode {
+public final class MethodLiteralNode extends IoNode {
 
     @Child
-    private IORootNode value;
+    private IoRootNode value;
     private final TruffleString[] argNames;
 
     @CompilationFinal
-    private IOMethod cachedMethod;
+    private IoMethod cachedMethod;
 
-    public MethodLiteralNode(final IORootNode value, TruffleString[] argNames) {
+    public MethodLiteralNode(final IoRootNode value, TruffleString[] argNames) {
         this.value = value;
         this.argNames = argNames;
     }
 
     @Override
-    public IOMethod executeGeneric(VirtualFrame frame) {
-        IOLanguage l = IOLanguage.get(this);
+    public IoMethod executeGeneric(VirtualFrame frame) {
+        IoLanguage l = IoLanguage.get(this);
         CompilerAsserts.partialEvaluationConstant(l);
 
-        IOMethod method;
+        IoMethod method;
         if (l.isSingleContext()) {
             method = this.cachedMethod;
             if (method == null) {
                 /* We are about to change a @CompilationFinal field. */
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 /* First execution of the node: lookup the method in the method registry. */
-                this.cachedMethod = method = IOState.get(this).createMethod(value.getCallTarget(), argNames);
+                this.cachedMethod = method = IoState.get(this).createMethod(value.getCallTarget(), argNames);
             }
         } else {
             /*
@@ -95,12 +95,12 @@ public final class MethodLiteralNode extends IONode {
             }
             // in the multi-context case we are not allowed to store
             // IOMethod objects in the AST. Instead we always perform the lookup in the hash map.
-            method = IOState.get(this).createMethod(value.getCallTarget(), argNames);
+            method = IoState.get(this).createMethod(value.getCallTarget(), argNames);
         }
         return method;
     }
 
-    public IORootNode getValue() {
+    public IoRootNode getValue() {
         return value;
     }
 }

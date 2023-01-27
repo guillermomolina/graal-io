@@ -43,12 +43,12 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.parser.NodeFactory;
+import org.truffle.io.runtime.objects.IoNil;
+
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.parser.NodeFactory;
-import org.truffle.io.runtime.objects.IONil;
 
 /**
  * Reads a function argument. Arguments are passed in as an object array.
@@ -57,7 +57,7 @@ import org.truffle.io.runtime.objects.IONil;
  * specialized and can, e.g., be accessed without unboxing, all arguments are loaded into local
  * variables {@link NodeFactory#addFormalParameter in the method prologue}.
  */
-public class ReadArgumentNode extends IONode {
+public class ReadArgumentNode extends IoNode {
 
     /** The argument number, i.e., the index into the array of arguments. */
     private final int index;
@@ -82,7 +82,7 @@ public class ReadArgumentNode extends IONode {
             /* In the interpreter, record profiling information that the branch was used. */
             outOfBoundsTaken.enter();
             /* Use the default null value. */
-            return IONil.SINGLETON;
+            return IoNil.SINGLETON;
         }
     }
 }

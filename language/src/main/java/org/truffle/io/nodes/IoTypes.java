@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,39 +41,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime.objects;
+package org.truffle.io.nodes;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.strings.TruffleString;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
 
-@ExportLibrary(InteropLibrary.class)
-public final class IOFunction extends IOInvokable {
+import com.oracle.truffle.api.dsl.ImplicitCast;
+import com.oracle.truffle.api.dsl.TypeCast;
+import com.oracle.truffle.api.dsl.TypeCheck;
+import com.oracle.truffle.api.dsl.TypeSystem;
 
-    private final TruffleString name;
+@TypeSystem({boolean.class, long.class, double.class, IoObject.class})
+public abstract class IoTypes {
 
-    public IOFunction(final RootCallTarget callTarget, final TruffleString name) {
-        super(IOPrototype.BLOCK, callTarget);
-        this.name = name;
+    @TypeCheck(IoNil.class)
+    public static boolean isIONull(Object value) {
+        return value == IoNil.SINGLETON;
     }
 
-    public TruffleString getFunctionName() {
-        return name;
+    @TypeCast(IoNil.class)
+    public static IoNil asIONull(Object value) {
+        assert isIONull(value);
+        return IoNil.SINGLETON;
     }
 
-    @Override
-    public String toString(int depth) {
-        String string = name.toJavaStringUncached() + "()";
-        return string;
+    @ImplicitCast
+    public static long castSmallIntToInt(int value) {
+        return value;
     }
 
-    @ExportMessage
-    @TruffleBoundary
-    static int identityHashCode(IOFunction receiver) {
-        return System.identityHashCode(receiver);
+    @ImplicitCast
+    public static double castSmallFloatToFloat(float value) {
+        return value;
     }
 
+    @ImplicitCast
+    public static double castSmallIntToFloat(int value) {
+        return value;
+    }
+
+    @ImplicitCast
+    public static double castIntToFloat(long value) {
+        return value;
+    }
 }

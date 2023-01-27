@@ -43,11 +43,11 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -66,13 +66,13 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 @NodeChild("nameNode")
 @NodeChild("valueNode")
 @NodeField(name="initialize", type=Boolean.class)
-public abstract class WriteMemberNode extends IONode {
+public abstract class WriteMemberNode extends IoNode {
 
     static final int LIBRARY_LIMIT = 3;
     protected abstract boolean getInitialize();
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object writeIOObject(IOObject receiver, Object name, Object value,
+    protected Object writeIOObject(IoObject receiver, Object name, Object value,
                     @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
                     @Cached ToTruffleStringNode toTruffleStringNode) {
         objectLibrary.put(receiver, toTruffleStringNode.execute(name), value);
@@ -93,6 +93,6 @@ public abstract class WriteMemberNode extends IONode {
     }
 
     static boolean isIOObject(Object receiver) {
-        return receiver instanceof IOObject;
+        return receiver instanceof IoObject;
     }
 }

@@ -53,9 +53,9 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoObject;
 
 /**
  * Built-in function that returns true if the given operand is of a given meta-object. Meta-objects
@@ -65,9 +65,9 @@ import org.truffle.io.runtime.objects.IOObject;
 public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
     @Specialization
-    public boolean hasProtoIOObject(Object value, IOObject prototype) {
-        IOObject objectProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(objectProto, prototype);
+    public boolean hasProtoIOObject(Object value, IoObject prototype) {
+        IoObject objectProto = IoState.get(this).getPrototype(value);
+        return IoObjectUtil.hasPrototype(objectProto, prototype);
     }
 
     @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = /*{"hasProtoLong", "hasProtoBoolean", "hasProtoObject",*/ "hasProtoIOObject"/* } */)
@@ -83,8 +83,8 @@ public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
     @Specialization
     public boolean hasProtoObject(Object value, Object prototype) {
-        IOObject objectProto = IOState.get(this).getPrototype(value);
-        return IOObjectUtil.hasPrototype(objectProto, prototype);
+        IoObject objectProto = IoState.get(this).getPrototype(value);
+        return IoObjectUtil.hasPrototype(objectProto, prototype);
     }
    
     /*@Specialization

@@ -45,10 +45,10 @@ package org.truffle.io.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.runtime.objects.IOPrototype;
+import org.truffle.io.runtime.objects.IoPrototype;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -71,11 +71,11 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
  * There is more information in {@link TruffleLanguage#getLanguageView(Object, Object)}
  */
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "delegate")
-public final class IOLanguageView implements TruffleObject {
+public final class IoLanguageView implements TruffleObject {
 
     final Object delegate;
 
-    IOLanguageView(Object delegate) {
+    IoLanguageView(Object delegate) {
         this.delegate = delegate;
     }
 
@@ -90,7 +90,7 @@ public final class IOLanguageView implements TruffleObject {
      */
     @ExportMessage
     Class<? extends TruffleLanguage<?>> getLanguage() {
-        return IOLanguage.class;
+        return IoLanguage.class;
     }
 
     @ExportMessage
@@ -106,7 +106,7 @@ public final class IOLanguageView implements TruffleObject {
          * IOMethod is already associated with the IOLanguage and therefore the language view will
          * not be used.
          */
-        for (IOPrototype type : IOPrototype.PRECEDENCE) {
+        for (IoPrototype type : IoPrototype.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return true;
             }
@@ -120,7 +120,7 @@ public final class IOLanguageView implements TruffleObject {
         /*
          * We do the same as in hasMetaObject but actually return the type this time.
          */
-        for (IOPrototype type : IOPrototype.PRECEDENCE) {
+        for (IoPrototype type : IoPrototype.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return type;
             }
@@ -131,7 +131,7 @@ public final class IOLanguageView implements TruffleObject {
     @ExportMessage
     @ExplodeLoop
     Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this.delegate") InteropLibrary interop) {
-        for (IOPrototype type : IOPrototype.PRECEDENCE) {
+        for (IoPrototype type : IoPrototype.PRECEDENCE) {
             if (type.isInstance(this.delegate, interop)) {
                 try {
                     if (interop.isBoolean(delegate)) {
@@ -143,7 +143,7 @@ public final class IOLanguageView implements TruffleObject {
                     if (interop.fitsInDouble(delegate)) {
                         return doubleToString(interop.asDouble(delegate));
                     }
-                    if (type == IOPrototype.SEQUENCE) {
+                    if (type == IoPrototype.SEQUENCE) {
                         return interop.asString(delegate);
                     }
                     throw new NotImplementedException();
@@ -169,7 +169,7 @@ public final class IOLanguageView implements TruffleObject {
 
     public static Object create(Object value) {
         assert isPrimitiveOrFromOtherLanguage(value);
-        return new IOLanguageView(value);
+        return new IoLanguageView(value);
     }
 
     /*
@@ -178,7 +178,7 @@ public final class IOLanguageView implements TruffleObject {
     private static boolean isPrimitiveOrFromOtherLanguage(Object value) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(value);
         try {
-            return !interop.hasLanguage(value) || interop.getLanguage(value) != IOLanguage.class;
+            return !interop.hasLanguage(value) || interop.getLanguage(value) != IoLanguage.class;
         } catch (UnsupportedMessageException e) {
             throw shouldNotReachHere(e);
         }
@@ -196,7 +196,7 @@ public final class IOLanguageView implements TruffleObject {
         }
         InteropLibrary lib = InteropLibrary.getFactory().getUncached(value);
         try {
-            if (lib.hasLanguage(value) && lib.getLanguage(value) == IOLanguage.class) {
+            if (lib.hasLanguage(value) && lib.getLanguage(value) == IoLanguage.class) {
                 return value;
             } else {
                 return create(value);

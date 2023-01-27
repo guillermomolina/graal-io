@@ -46,7 +46,7 @@ package org.truffle.io.test;
 import org.junit.runner.RunWith;
 
 @RunWith(TestRunner.class)
-@IOTestSuite({"tests"})
+@IoTestSuite({"tests"})
 public class SimpleTestSuite {
 
     public static void main(String[] args) throws Exception {

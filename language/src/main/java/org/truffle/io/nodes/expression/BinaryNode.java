@@ -47,11 +47,11 @@ import java.math.BigInteger;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
 @NodeChild("leftNode")
 @NodeChild("rightNode")
-public abstract class BinaryNode extends IONode {
+public abstract class BinaryNode extends IoNode {
     protected static final Number reduceToLongOrDouble(final BigInteger result) {
         if (result.bitLength() > Long.SIZE - 1) {
             return result.doubleValue();

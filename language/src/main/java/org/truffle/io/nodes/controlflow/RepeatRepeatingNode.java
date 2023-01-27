@@ -48,19 +48,19 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
 public final class RepeatRepeatingNode extends Node implements RepeatingNode {
 
     @Child
-    private IONode bodyNode;
+    private IoNode bodyNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
     private Object lastResult;
     private long repetitions;
 
-    public RepeatRepeatingNode(IONode bodyNode) {
+    public RepeatRepeatingNode(IoNode bodyNode) {
         this.repetitions = 0;
         this.bodyNode = bodyNode;
     }
@@ -96,7 +96,7 @@ public final class RepeatRepeatingNode extends Node implements RepeatingNode {
 
     @Override
     public String toString() {
-        return IONode.formatSourceSection(this);
+        return IoNode.formatSourceSection(this);
     }
 
 }

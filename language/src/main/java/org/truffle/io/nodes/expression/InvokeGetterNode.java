@@ -44,24 +44,24 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "()")
-public final class InvokeGetterNode extends IONode {
+public final class InvokeGetterNode extends IoNode {
 
     @Child
-    protected IONode receiverNode;
+    protected IoNode receiverNode;
     @Child
-    protected IONode valueNode;
+    protected IoNode valueNode;
     private final TruffleString name;
     @Children
-    private final IONode[] argumentNodes;
+    private final IoNode[] argumentNodes;
 
-    public InvokeGetterNode(final IONode receiverNode, final IONode valueNode, final TruffleString name,
-            final IONode[] argumentNodes) {
+    public InvokeGetterNode(final IoNode receiverNode, final IoNode valueNode, final TruffleString name,
+            final IoNode[] argumentNodes) {
         this.receiverNode = receiverNode;
         this.valueNode = valueNode;
         this.name = name;
@@ -73,13 +73,13 @@ public final class InvokeGetterNode extends IONode {
         Object receiver = receiverNode.executeGeneric(frame);
         Object value = null;
         if (valueNode == null) {
-            IOObject prototype = null;
-            if (receiver instanceof IOObject) {
-                prototype = (IOObject) receiver;
+            IoObject prototype = null;
+            if (receiver instanceof IoObject) {
+                prototype = (IoObject) receiver;
             } else {
-                prototype = IOState.get(this).getPrototype(receiver);
+                prototype = IoState.get(this).getPrototype(receiver);
             }
-            value = IOObjectUtil.getOrDefaultUncached(prototype, name);
+            value = IoObjectUtil.getOrDefaultUncached(prototype, name);
         } else {
             value = valueNode.executeGeneric(frame);
         }

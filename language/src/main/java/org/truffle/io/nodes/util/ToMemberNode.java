@@ -57,13 +57,13 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.IOTypes;
+import org.truffle.io.nodes.IoTypes;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
  * expression nodes need to expect.
  */
-@TypeSystemReference(IOTypes.class)
+@TypeSystemReference(IoTypes.class)
 @GenerateUncached
 public abstract class ToMemberNode extends Node {
 

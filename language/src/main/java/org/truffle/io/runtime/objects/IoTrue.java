@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,49 +38,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
- package org.truffle.io.runtime.objects;
+package org.truffle.io.runtime.objects;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOObjectUtil;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.utilities.TriState;
+
 import org.truffle.io.runtime.Symbols;
 
-import com.oracle.truffle.api.strings.TruffleString;
+@ExportLibrary(InteropLibrary.class)
+public final class IoTrue extends IoPrototype {
 
+    public static final IoTrue SINGLETON = new IoTrue();
+    private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
-public class IOMessage extends IOObject {
-
-    private static final TruffleString SYMBOL_NAME = Symbols.constant("name");
-
-    @DynamicField
-    private Object name;
-
-    private final IONode[] argumentNodes;
-
-    public IOMessage(final TruffleString name, final IONode[] argumentNodes) {
-        super(IOPrototype.MESSAGE);
-        setSymbolName(name);
-        this.argumentNodes = argumentNodes;
-    }
-
-    public TruffleString getSymbolName() {
-        return (TruffleString)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_NAME);
-    }
-
-    protected void setSymbolName(final TruffleString name) {
-        IOObjectUtil.putUncached(this, SYMBOL_NAME, name);
-    }
-
-    public IONode[] getArgumentNodes() {
-        return argumentNodes;
+    private IoTrue() {
+        super(IoPrototype.OBJECT, Symbols.TRUE, (l, v) -> l.isBoolean(v) && (Boolean)v == Boolean.TRUE);
     }
 
     @Override
     public String toString(int depth) {
-        TruffleString name = getSymbolName();
-        if(name == null) {
-            return "[unnamed]";
-        }
-        return String.format("%s", name);
+        return "true";
     }
-    
+
+    @ExportMessage
+    static final class IsIdenticalOrUndefined {
+        @Specialization
+        static TriState doIOTrue(IoTrue receiver, IoTrue other) {
+            return TriState.valueOf(IoTrue.SINGLETON == other);
+        }
+
+        @Fallback
+        static TriState doOther(IoTrue receiver, Object other) {
+            return TriState.valueOf(IoTrue.SINGLETON == other);
+        }
+    }
+
+    @ExportMessage
+    static int identityHashCode(IoTrue receiver) {
+        return IDENTITY_HASH;
+    }
+
+    @ExportMessage
+    Object toDisplayString(boolean allowSideEffects) {
+        return Symbols.TRUE;
+    }
 }

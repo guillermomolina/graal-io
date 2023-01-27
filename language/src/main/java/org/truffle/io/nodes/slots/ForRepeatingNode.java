@@ -50,23 +50,23 @@ import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.controlflow.BreakException;
 import org.truffle.io.nodes.controlflow.ContinueException;
 
 public final class ForRepeatingNode extends Node implements RepeatingNode {
 
     @Child
-    private IONode hasEndedNode;
+    private IoNode hasEndedNode;
     @Child
-    private IONode bodyNode;
+    private IoNode bodyNode;
     @Child
-    private IONode stepSlotNode;
+    private IoNode stepSlotNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
 
-    public ForRepeatingNode(IONode hasEndedNode, IONode bodyNode, IONode stepSlotNode) {
+    public ForRepeatingNode(IoNode hasEndedNode, IoNode bodyNode, IoNode stepSlotNode) {
         this.hasEndedNode = hasEndedNode;
         this.bodyNode = bodyNode;
         this.stepSlotNode = stepSlotNode;
@@ -103,7 +103,7 @@ public final class ForRepeatingNode extends Node implements RepeatingNode {
 
     @Override
     public String toString() {
-        return IONode.formatSourceSection(this);
+        return IoNode.formatSourceSection(this);
     }
 
 }

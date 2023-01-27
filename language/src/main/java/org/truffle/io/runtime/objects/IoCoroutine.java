@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2022, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,50 +40,9 @@
  */
 package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.utilities.TriState;
-
-import org.truffle.io.runtime.Symbols;
-
-@ExportLibrary(InteropLibrary.class)
-public final class IOTrue extends IOPrototype {
-
-    public static final IOTrue SINGLETON = new IOTrue();
-    private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
-
-    private IOTrue() {
-        super(IOPrototype.OBJECT, Symbols.TRUE, (l, v) -> l.isBoolean(v) && (Boolean)v == Boolean.TRUE);
+public class IoCoroutine extends IoObject {
+    public IoCoroutine() {
+        super(IoPrototype.COROUTINE);
     }
-
-    @Override
-    public String toString(int depth) {
-        return "true";
-    }
-
-    @ExportMessage
-    static final class IsIdenticalOrUndefined {
-        @Specialization
-        static TriState doIOTrue(IOTrue receiver, IOTrue other) {
-            return TriState.valueOf(IOTrue.SINGLETON == other);
-        }
-
-        @Fallback
-        static TriState doOther(IOTrue receiver, Object other) {
-            return TriState.valueOf(IOTrue.SINGLETON == other);
-        }
-    }
-
-    @ExportMessage
-    static int identityHashCode(IOTrue receiver) {
-        return IDENTITY_HASH;
-    }
-
-    @ExportMessage
-    Object toDisplayString(boolean allowSideEffects) {
-        return Symbols.TRUE;
-    }
+    
 }

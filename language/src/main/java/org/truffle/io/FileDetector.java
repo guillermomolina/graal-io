@@ -54,7 +54,7 @@ public final class FileDetector implements TruffleFile.FileTypeDetector {
     public String findMimeType(TruffleFile file) throws IOException {
         String name = file.getName();
         if (name != null && name.endsWith(".io")) {
-            return IOLanguage.MIME_TYPE;
+            return IoLanguage.MIME_TYPE;
         }
         return null;
     }

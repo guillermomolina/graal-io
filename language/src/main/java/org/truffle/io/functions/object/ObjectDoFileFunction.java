@@ -50,10 +50,10 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IoState;
 
 @NodeInfo(shortName = "doFile")
 public abstract class ObjectDoFileFunction extends FunctionBodyNode {
@@ -63,8 +63,8 @@ public abstract class ObjectDoFileFunction extends FunctionBodyNode {
     public Object evalUncached(Object self, TruffleString fileName) {
         Source source;
         try {
-            source = Source.newBuilder(IOLanguage.ID, readAllLines(fileName.toJavaStringUncached()), "(eval)").build();
-            return IOState.get(this).parse(source).call(self);
+            source = Source.newBuilder(IoLanguage.ID, readAllLines(fileName.toJavaStringUncached()), "(eval)").build();
+            return IoState.get(this).parse(source).call(self);
         } catch (IOException e) {
             throw new NotImplementedException();
         }

@@ -45,7 +45,7 @@ package org.truffle.io.nodes.logic;
 
 import org.truffle.io.nodes.arithmetic.AddNode;
 import org.truffle.io.nodes.expression.BinaryNode;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -82,7 +82,7 @@ public abstract class LessThanNode extends BinaryNode {
 
     @Fallback
     protected Object typeError(Object left, Object right) {
-        throw IOLanguageException.typeError(this, left, right);
+        throw IoLanguageException.typeError(this, left, right);
     }
   
 }

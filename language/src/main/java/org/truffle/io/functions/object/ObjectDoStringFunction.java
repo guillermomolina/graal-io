@@ -52,9 +52,9 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IoState;
 
 @NodeInfo(shortName = "doString")
 public abstract class ObjectDoStringFunction extends FunctionBodyNode {
@@ -75,12 +75,12 @@ public abstract class ObjectDoStringFunction extends FunctionBodyNode {
     }
 
     protected CallTarget parse(TruffleString code) {
-        final Source source = Source.newBuilder(IOLanguage.ID, code.toJavaStringUncached(), "(eval)").build();
-        return IOState.get(this).parse(source);
+        final Source source = Source.newBuilder(IoLanguage.ID, code.toJavaStringUncached(), "(eval)").build();
+        return IoState.get(this).parse(source);
     }
 
     /* Work around findbugs warning in generate code. */
     protected static boolean stringsEqual(TruffleString.EqualNode node, TruffleString a, TruffleString b) {
-        return node.execute(a, b, IOLanguage.STRING_ENCODING);
+        return node.execute(a, b, IoLanguage.STRING_ENCODING);
     }
 }

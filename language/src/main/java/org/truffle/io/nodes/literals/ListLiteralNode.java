@@ -41,8 +41,8 @@
 
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoState;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -50,12 +50,12 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "list")
-public final class ListLiteralNode extends IONode {
+public final class ListLiteralNode extends IoNode {
 
     @Children
-    private final IONode[] elementNodes;
+    private final IoNode[] elementNodes;
 
-    public ListLiteralNode(IONode[] elementNodes) {
+    public ListLiteralNode(IoNode[] elementNodes) {
         this.elementNodes = elementNodes;
     }
 
@@ -75,6 +75,6 @@ public final class ListLiteralNode extends IONode {
             argumentValues[i] = elementNodes[i].executeGeneric(frame);
         }
 
-        return IOState.get(this).createList(argumentValues);
+        return IoState.get(this).createList(argumentValues);
     }
 }

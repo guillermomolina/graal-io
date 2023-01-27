@@ -40,12 +40,12 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.Symbols;
 
 import com.oracle.truffle.api.strings.TruffleString;
 
-public class IOException extends IOObject { 
+public class IoException extends IoObject { 
     private static final TruffleString SYMBOL_ERROR = Symbols.constant("error");
     private static final TruffleString SYMBOL_COROUTINE = Symbols.constant("coroutine");
     private static final TruffleString SYMBOL_CAUGHT_MESSAGE = Symbols.constant("caughtMessage");
@@ -55,57 +55,57 @@ public class IOException extends IOObject {
     @DynamicField
     private TruffleString caughtMessage;
     @DynamicField
-    private IOCoroutine coroutine;
+    private IoCoroutine coroutine;
 
-    public IOException(final TruffleString error, final IOCoroutine coroutine) {
-        super(IOPrototype.EXCEPTION);
+    public IoException(final TruffleString error, final IoCoroutine coroutine) {
+        super(IoPrototype.EXCEPTION);
         setSymbolError(error);
         setCoroutine(coroutine);
     }
 
 
-    public IOException(final TruffleString error, final IOCoroutine coroutine, final IOMessage caughtMessage) {
+    public IoException(final TruffleString error, final IoCoroutine coroutine, final IoMessage caughtMessage) {
         this(error, coroutine);
         setCaughtMessage(caughtMessage);
     }
 
     public TruffleString getSymbolError() {
-        return (TruffleString)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_ERROR);
+        return (TruffleString)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_ERROR);
     }
 
     protected void setSymbolError(TruffleString error) {
-        IOObjectUtil.putUncached(this, SYMBOL_ERROR, error);
+        IoObjectUtil.putUncached(this, SYMBOL_ERROR, error);
     }
 
-    public IOCoroutine getSymbolCoroutine() {
-        return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
+    public IoCoroutine getSymbolCoroutine() {
+        return (IoCoroutine)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
     }
 
-    protected void setCoroutine(IOCoroutine coroutine) {
-        IOObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
+    protected void setCoroutine(IoCoroutine coroutine) {
+        IoObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
     }
 
-    public IOMessage getSymbolCaughtMessage() {
-        return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_CAUGHT_MESSAGE);
+    public IoMessage getSymbolCaughtMessage() {
+        return (IoMessage)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_CAUGHT_MESSAGE);
     }
 
-    protected void setCaughtMessage(IOMessage caughtMessage) {
-        IOObjectUtil.putUncached(this, SYMBOL_CAUGHT_MESSAGE, caughtMessage);
+    protected void setCaughtMessage(IoMessage caughtMessage) {
+        IoObjectUtil.putUncached(this, SYMBOL_CAUGHT_MESSAGE, caughtMessage);
     }
 
-    public IOException getSymbolNestedException() {
-        return (IOException)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_NESTED_EXCEPTION);
+    public IoException getSymbolNestedException() {
+        return (IoException)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_NESTED_EXCEPTION);
     }
 
-    protected void setNestedException(IOException nestedException) {
-        IOObjectUtil.putUncached(this, SYMBOL_NESTED_EXCEPTION, nestedException);
+    protected void setNestedException(IoException nestedException) {
+        IoObjectUtil.putUncached(this, SYMBOL_NESTED_EXCEPTION, nestedException);
     }
 
-    public IOCall getSymbolOriginalCall() {
-        return (IOCall)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_ORIGINAL_CALL);
+    public IoCall getSymbolOriginalCall() {
+        return (IoCall)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_ORIGINAL_CALL);
     }
 
-    protected void setOriginalCall(IOCall originalCall) {
-        IOObjectUtil.putUncached(this, SYMBOL_ORIGINAL_CALL, originalCall);
+    protected void setOriginalCall(IoCall originalCall) {
+        IoObjectUtil.putUncached(this, SYMBOL_ORIGINAL_CALL, originalCall);
     }
 }

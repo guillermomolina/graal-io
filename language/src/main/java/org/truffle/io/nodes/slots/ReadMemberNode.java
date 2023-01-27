@@ -54,27 +54,27 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IOObjectUtil;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = ".")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
-public abstract class ReadMemberNode extends IONode {
+public abstract class ReadMemberNode extends IoNode {
 
     static final int LIBRARY_LIMIT = 3;
  
     @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object readIOObject(IOObject receiver, Object name,
+    protected Object readIOObject(IoObject receiver, Object name,
             @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefaultUncached(receiver, nameTS, IONil.SINGLETON);
+        Object value = IoObjectUtil.getOrDefaultUncached(receiver, nameTS, IoNil.SINGLETON);
         return value;
     }
 
@@ -85,21 +85,21 @@ public abstract class ReadMemberNode extends IONode {
         try {
             return objects.readMember(receiver, asMember.execute(name));
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            return IONil.SINGLETON;
+            return IoNil.SINGLETON;
         }
     }
 
     @Specialization
     protected Object read(Object receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
-        IOObject prototype = IOState.get(this).getPrototype(receiver);
+        IoObject prototype = IoState.get(this).getPrototype(receiver);
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IOObjectUtil.getOrDefaultUncached(prototype, nameTS, IONil.SINGLETON);
+        Object value = IoObjectUtil.getOrDefaultUncached(prototype, nameTS, IoNil.SINGLETON);
         return value;    
     }
 
     static boolean isIOObject(Object receiver) {
-        return receiver instanceof IOObject;
+        return receiver instanceof IoObject;
     }
 
 }

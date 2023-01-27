@@ -43,8 +43,8 @@ package org.truffle.io.functions.date;
 import java.util.Date;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOLanguageException;
-import org.truffle.io.runtime.objects.IODate;
+import org.truffle.io.runtime.IoLanguageException;
+import org.truffle.io.runtime.objects.IoDate;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -54,13 +54,13 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class DateNowFunction extends FunctionBodyNode {
 
     @Specialization
-    public Object doDate(IODate self) {
+    public Object doDate(IoDate self) {
         self.setValue(new Date());
         return self;
     }
     
     @Fallback
     protected Object typeError(Object self) {
-        throw IOLanguageException.typeError(this, self);
+        throw IoLanguageException.typeError(this, self);
     }
 }

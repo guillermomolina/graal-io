@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 
 import com.oracle.truffle.api.dsl.Fallback;
@@ -64,8 +64,8 @@ import com.oracle.truffle.api.strings.TruffleString;
  */
 @NodeChild("valueNode")
 @NodeField(name = "slot", type = int.class)
-@NodeField(name = "nameNode", type = IONode.class)
-public abstract class WriteLocalSlotNode extends IONode {
+@NodeField(name = "nameNode", type = IoNode.class)
+public abstract class WriteLocalSlotNode extends IoNode {
 
     /**
      * Returns the descriptor of the accessed local variable. The implementation of this method is
@@ -77,7 +77,7 @@ public abstract class WriteLocalSlotNode extends IONode {
      * Returns the child node <code>nameNode</code>. The implementation of this method is created by
      * the Truffle DSL based on the {@link NodeChild} annotation on the class.
      */
-    public abstract IONode getNameNode();
+    public abstract IoNode getNameNode();
 
     public final TruffleString getSlotName() {
         return (TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot());
@@ -158,7 +158,7 @@ public abstract class WriteLocalSlotNode extends IONode {
 
     @Override
     public Object getNodeObject() {
-        IONode nameNode = getNameNode();
+        IoNode nameNode = getNameNode();
         SourceSection nameSourceSection;
         if (nameNode.getSourceCharIndex() == -1) {
             nameSourceSection = null;

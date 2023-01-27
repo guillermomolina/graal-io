@@ -38,67 +38,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime.objects;
+ package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.MaterializedFrame;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.Symbols;
 
-public final class IOLocals extends IOObject {
+import com.oracle.truffle.api.strings.TruffleString;
 
-    public static final int CALL_ARGUMENT_INDEX = 0;
-    public static final int TARGET_ARGUMENT_INDEX = 0;
-    public static final int FIRST_PARAMETER_ARGUMENT_INDEX = 1;
 
-    public static final int CALL_SLOT_INDEX = 0;
-    public static final int FIRST_USER_SLOT_INDEX = 1;
+public class IoMessage extends IoObject {
 
-    private final MaterializedFrame frame;
+    private static final TruffleString SYMBOL_NAME = Symbols.constant("name");
 
-    public IOLocals(final MaterializedFrame frame) {
-        this(IOPrototype.OBJECT, frame);
+    @DynamicField
+    private Object name;
+
+    private final IoNode[] argumentNodes;
+
+    public IoMessage(final TruffleString name, final IoNode[] argumentNodes) {
+        super(IoPrototype.MESSAGE);
+        setSymbolName(name);
+        this.argumentNodes = argumentNodes;
     }
 
-    public IOLocals(IOObject prototype, final MaterializedFrame frame) {
-        super(prototype);
-        this.frame = frame;
+    public TruffleString getSymbolName() {
+        return (TruffleString)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_NAME);
     }
 
-    public MaterializedFrame getFrame() {
-        return frame;
+    protected void setSymbolName(final TruffleString name) {
+        IoObjectUtil.putUncached(this, SYMBOL_NAME, name);
     }
 
-    public IOCall getCall() {
-        Object call = frame.getArguments()[CALL_ARGUMENT_INDEX];
-        if (call instanceof IOCall) {
-            assert call instanceof IOCall;
-            return (IOCall) call;
+    public IoNode[] getArgumentNodes() {
+        return argumentNodes;
+    }
+
+    @Override
+    public String toString(int depth) {
+        TruffleString name = getSymbolName();
+        if(name == null) {
+            return "[unnamed]";
         }
-        return null; // caller is not a block 
+        return String.format("%s", name);
     }
-
-    public boolean hasLocal(final Object name) {
-        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
-
-        for (int i = 0; i < frameDescriptor.getNumberOfSlots(); i++) {
-            if (name.equals(frameDescriptor.getSlotName(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public Object getLocal(final Object name) {
-        return getLocalOrDefault(name, null);
-    }
-
-    public Object getLocalOrDefault(final Object name, final Object defaultValue) {
-        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
-
-        for (int i = 0; i < frameDescriptor.getNumberOfSlots(); i++) {
-            if (name.equals(frameDescriptor.getSlotName(i))) {
-                return frame.getValue(i);
-            }
-        }
-        return defaultValue;
-    }
+    
 }

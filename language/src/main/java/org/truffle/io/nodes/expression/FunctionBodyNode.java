@@ -43,8 +43,8 @@
  */
 package org.truffle.io.nodes.expression;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -52,16 +52,16 @@ import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
-@NodeChild(value = "arguments", type = IONode[].class)
+@NodeChild(value = "arguments", type = IoNode[].class)
 @GenerateNodeFactory
-public abstract class FunctionBodyNode extends IONode {
+public abstract class FunctionBodyNode extends IoNode {
 
     @Override
     public final Object executeGeneric(VirtualFrame frame) {
         try {
             return execute(frame);
         } catch (UnsupportedSpecializationException e) {
-            throw IOLanguageException.typeError(e.getNode(), e.getSuppliedValues());
+            throw IoLanguageException.typeError(e.getNode(), e.getSuppliedValues());
         }
     }
 

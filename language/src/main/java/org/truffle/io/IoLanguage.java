@@ -49,9 +49,9 @@ import java.util.List;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.EvalRootNode;
-import org.truffle.io.parser.IOLanguageNodeVisitor;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.interop.IOLanguageView;
+import org.truffle.io.parser.IoLanguageNodeVisitor;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.interop.IoLanguageView;
 
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
@@ -72,11 +72,11 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
 
-@TruffleLanguage.Registration(id = IOLanguage.ID, name = "IO", defaultMimeType = IOLanguage.MIME_TYPE, characterMimeTypes = IOLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = FileDetector.class, //
+@TruffleLanguage.Registration(id = IoLanguage.ID, name = "IO", defaultMimeType = IoLanguage.MIME_TYPE, characterMimeTypes = IoLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = FileDetector.class, //
                 website = "https://iolanguage.org/")
 @ProvidedTags({StandardTags.CallTag.class, StandardTags.ExpressionTag.class, StandardTags.RootTag.class, StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
                 StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class})
-public final class IOLanguage extends TruffleLanguage<IOState> {
+public final class IoLanguage extends TruffleLanguage<IoState> {
     public static volatile int counter;
 
     public static final String ID = "io";
@@ -87,17 +87,17 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
     private final Assumption singleContext = Truffle.getRuntime().createAssumption("Single IO context.");
 
 
-    public IOLanguage() {
+    public IoLanguage() {
         counter++;
     }
 
     @Override
-    protected IOState createContext(Env env) {
-        return new IOState(this, env, new ArrayList<>(EXTERNAL_BUILTINS));
+    protected IoState createContext(Env env) {
+        return new IoState(this, env, new ArrayList<>(EXTERNAL_BUILTINS));
     }
 
     @Override
-    protected boolean patchContext(IOState context, Env newEnv) {
+    protected boolean patchContext(IoState context, Env newEnv) {
         context.patchContext(newEnv);
         return true;
     }
@@ -117,7 +117,7 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
     @Override
     protected CallTarget parse(ParsingRequest request) throws Exception {
         Source source = request.getSource();
-        IOLanguageNodeVisitor nodeVisitor = new IOLanguageNodeVisitor();
+        IoLanguageNodeVisitor nodeVisitor = new IoLanguageNodeVisitor();
         RootCallTarget main = null;
         if (request.getArgumentNames().isEmpty()) {
             main = nodeVisitor.parseIO(this, source);
@@ -139,19 +139,19 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
     }
 
     @Override
-    protected Object getLanguageView(IOState context, Object value) {
-        return IOLanguageView.create(value);
+    protected Object getLanguageView(IoState context, Object value) {
+        return IoLanguageView.create(value);
     }
 
     @Override
-    protected boolean isVisible(IOState context, Object value) {
+    protected boolean isVisible(IoState context, Object value) {
         // return !InteropLibrary.getFactory().getUncached(value).isNull(value);
         return true;
     }
 
-    private static final LanguageReference<IOLanguage> REFERENCE = LanguageReference.create(IOLanguage.class);
+    private static final LanguageReference<IoLanguage> REFERENCE = LanguageReference.create(IoLanguage.class);
 
-    public static IOLanguage get(Node node) {
+    public static IoLanguage get(Node node) {
         return REFERENCE.get(node);
     }
 
@@ -162,7 +162,7 @@ public final class IOLanguage extends TruffleLanguage<IOState> {
     }
 
     @Override
-    protected void exitContext(IOState context, ExitMode exitMode, int exitCode) {
+    protected void exitContext(IoState context, ExitMode exitMode, int exitCode) {
         context.runShutdownHooks();
     }
 

@@ -40,10 +40,10 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IOCoroutine;
+import org.truffle.io.runtime.objects.IoCoroutine;
 
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -52,12 +52,12 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "try")
-public class TryNode extends IONode {
+public class TryNode extends IoNode {
 
     @Child
-    private IONode expression;
+    private IoNode expression;
 
-    public TryNode(IONode expression) {
+    public TryNode(IoNode expression) {
         this.expression = expression;
     }
 
@@ -75,7 +75,7 @@ public class TryNode extends IONode {
             throwable = ste;
         }
         TruffleString error = Symbols.fromJavaString(throwable.getMessage());
-        IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
-        return IOState.get(this).createException(error, currentCoroutine);
+        IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
+        return IoState.get(this).createException(error, currentCoroutine);
     }
 }

@@ -43,10 +43,10 @@
  */
 package org.truffle.io.nodes.expression;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoCall;
+import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -55,22 +55,22 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "thisLocalContext")
 @NodeChild("receiverNode")
-public abstract class ThisLocalContextNode extends IONode {
+public abstract class ThisLocalContextNode extends IoNode {
 
     @Specialization
-    public Object thisContext(VirtualFrame frame, IOCall receiver) {
+    public Object thisContext(VirtualFrame frame, IoCall receiver) {
         return thisContext(frame, receiver.getTarget());
     }
 
     @Specialization
-    public Object thisContext(VirtualFrame frame, IOObject receiver) {
+    public Object thisContext(VirtualFrame frame, IoObject receiver) {
         return receiver;
     }
 
     @Specialization
     public Object thisContext(VirtualFrame frame, Object receiver) {
-        IOObject prototype = IOState.get(this).getPrototype(receiver);
-        return IOState.get(this).createLocals(prototype, frame.materialize());
+        IoObject prototype = IoState.get(this).getPrototype(receiver);
+        return IoState.get(this).createLocals(prototype, frame.materialize());
     }
 
 }

@@ -44,10 +44,10 @@
 package org.truffle.io.functions.system;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOLanguageException;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.runtime.IoLanguageException;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoInvokable;
+import org.truffle.io.runtime.objects.IoNil;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -57,14 +57,14 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class SystemRegisterShutdownHookFunction extends FunctionBodyNode {
 
     @Specialization
-    public Object doMethod(Object self, IOInvokable shutdownHook) {
-        IOState.get(this).registerShutdownHook(shutdownHook);
-        return IONil.SINGLETON;
+    public Object doMethod(Object self, IoInvokable shutdownHook) {
+        IoState.get(this).registerShutdownHook(shutdownHook);
+        return IoNil.SINGLETON;
     }
    
     @Fallback
     protected Object typeError(Object self, Object shutdownHook) {
-        throw IOLanguageException.typeError(this, shutdownHook);
+        throw IoLanguageException.typeError(this, shutdownHook);
     }
 
 }

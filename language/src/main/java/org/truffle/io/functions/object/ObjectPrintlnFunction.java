@@ -44,8 +44,8 @@
 package org.truffle.io.functions.object;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.interop.IOLanguageView;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.interop.IoLanguageView;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -54,7 +54,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * Builtin function to write a value to the {@link IOState#getOutput() standard output}. The
+ * Builtin function to write a value to the {@link IoState#getOutput() standard output}. The
  * different specialization leverage the typed {@code println} methods available in Java, i.e.,
  * primitive values are printed without converting them to a {@link String} first.
  * <p>
@@ -69,9 +69,9 @@ public abstract class ObjectPrintlnFunction extends FunctionBodyNode {
     @TruffleBoundary
     public Object println(Object value,
                     @CachedLibrary(limit = "3") InteropLibrary interop) {
-        Object languageView = IOLanguageView.forValue(value);
+        Object languageView = IoLanguageView.forValue(value);
         Object displayString = interop.toDisplayString(languageView);
-        IOState.get(this).getOutput().println(displayString);
+        IoState.get(this).getOutput().println(displayString);
         return value;
     }
 

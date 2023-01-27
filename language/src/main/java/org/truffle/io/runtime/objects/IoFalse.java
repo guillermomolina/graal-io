@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,6 +40,8 @@
  */
 package org.truffle.io.runtime.objects;
 
+import org.truffle.io.runtime.Symbols;
+
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -50,53 +49,41 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
 
-import org.truffle.io.runtime.Symbols;
-
 @ExportLibrary(InteropLibrary.class)
-public final class IONil extends IOPrototype {
+public final class IoFalse extends IoPrototype {
 
-    public static final IONil SINGLETON = new IONil();
+    public static final IoFalse SINGLETON = new IoFalse();
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
-    private IONil() {
-        super(IOPrototype.OBJECT, Symbols.NIL, (l, v) -> l.isNull(v));
+    private IoFalse() {
+        super(IoPrototype.OBJECT, Symbols.FALSE, (l, v) -> l.isBoolean(v) && (Boolean)v == Boolean.FALSE);
     }
 
     @Override
     public String toString(int depth) {
-        return "nil";
-    }
-
-    @ExportMessage
-    boolean isNull() {
-        return true;
-    }
-
-    @ExportMessage
-    boolean isMetaObject() {
-        return false;
+        return "false";
     }
 
     @ExportMessage
     static final class IsIdenticalOrUndefined {
         @Specialization
-        static TriState doIONil(IONil receiver, IONil other) {
-            return TriState.valueOf(IONil.SINGLETON == other);
+        static TriState doIOFalse(IoFalse receiver, IoFalse other) {
+            return TriState.valueOf(IoFalse.SINGLETON == other);
         }
 
         @Fallback
-        static TriState doOther(IONil receiver, Object other) {
-            return TriState.valueOf(IONil.SINGLETON == other);
+        static TriState doOther(IoFalse receiver, Object other) {
+            return TriState.valueOf(IoFalse.SINGLETON == other);
         }
     }
 
     @ExportMessage
-    static int identityHashCode(IONil receiver) {
+    static int identityHashCode(IoFalse receiver) {
         return IDENTITY_HASH;
     }
 
     @ExportMessage
     Object toDisplayString(boolean allowSideEffects) {
-        return Symbols.NIL;
+        return Symbols.FALSE;
     }
 }

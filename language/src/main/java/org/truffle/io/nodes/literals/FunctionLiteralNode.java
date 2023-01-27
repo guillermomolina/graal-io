@@ -43,6 +43,13 @@
  */
 package org.truffle.io.nodes.literals;
 
+import org.truffle.io.IoLanguage;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.root.IoRootNode;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoFunction;
+import org.truffle.io.runtime.objects.IoMethod;
+
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -51,47 +58,40 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOMethod;
-
 /**
- * Constant literal for a {@link IOMethod method} value, created when a method name occurs as
+ * Constant literal for a {@link IoMethod method} value, created when a method name occurs as
  * a literal in IO source code. Note that method redefinition can change the {@link CallTarget
- * call target} that is executed when calling the method, but the {@link IOMethod} for a name
+ * call target} that is executed when calling the method, but the {@link IoMethod} for a name
  * never changes. This is guaranteed by the {@link IOMethodRegistry}.
  */
 @NodeInfo(shortName = "function")
-public final class FunctionLiteralNode extends IONode {
+public final class FunctionLiteralNode extends IoNode {
 
     final private TruffleString name;
     @Child
-    private IORootNode value;
+    private IoRootNode value;
 
     @CompilationFinal
-    private IOFunction cachedFunction;
+    private IoFunction cachedFunction;
 
-    public FunctionLiteralNode(final TruffleString name, final IORootNode value) {
+    public FunctionLiteralNode(final TruffleString name, final IoRootNode value) {
         this.name = name;
         this.value = value;
     }
 
     @Override
-    public IOFunction executeGeneric(VirtualFrame frame) {
-        IOLanguage l = IOLanguage.get(this);
+    public IoFunction executeGeneric(VirtualFrame frame) {
+        IoLanguage l = IoLanguage.get(this);
         CompilerAsserts.partialEvaluationConstant(l);
 
-        IOFunction function;
+        IoFunction function;
         if (l.isSingleContext()) {
             function = this.cachedFunction;
             if (function == null) {
                 /* We are about to change a @CompilationFinal field. */
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 /* First execution of the node: lookup the method in the method registry. */
-                this.cachedFunction = function = IOState.get(this).createFunction(value.getCallTarget(), name);
+                this.cachedFunction = function = IoState.get(this).createFunction(value.getCallTarget(), name);
             }
         } else {
             /*
@@ -103,12 +103,12 @@ public final class FunctionLiteralNode extends IONode {
             }
             // in the multi-context case we are not allowed to store
             // IOMethod objects in the AST. Instead we always perform the lookup in the hash map.
-            function = IOState.get(this).createFunction(value.getCallTarget(), name);
+            function = IoState.get(this).createFunction(value.getCallTarget(), name);
         }
         return function;
     }
 
-    public IORootNode getValue() {
+    public IoRootNode getValue() {
         return value;
     }
 }

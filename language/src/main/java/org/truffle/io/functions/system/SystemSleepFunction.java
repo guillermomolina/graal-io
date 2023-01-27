@@ -43,7 +43,7 @@ package org.truffle.io.functions.system;
 import java.util.concurrent.TimeUnit;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -63,6 +63,6 @@ public abstract class SystemSleepFunction extends FunctionBodyNode {
    
     @Fallback
     protected Object typeError(Object self, Object number) {
-        throw IOLanguageException.typeError(this, number);
+        throw IoLanguageException.typeError(this, number);
     }
 }

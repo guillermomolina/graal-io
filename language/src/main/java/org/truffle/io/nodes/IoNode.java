@@ -63,10 +63,10 @@ import com.oracle.truffle.api.source.SourceSection;
  * The annotation {@link TypeSystemReference} specifies the IO types. Specifying it here defines the
  * type system for all subclasses.
  */
-@TypeSystemReference(IOTypes.class)
+@TypeSystemReference(IoTypes.class)
 @NodeInfo(description = "The abstract base node for all expressions")
 @GenerateWrapper
-public abstract class IONode extends ScopedNode implements InstrumentableNode {
+public abstract class IoNode extends ScopedNode implements InstrumentableNode {
 
     private static final int NO_SOURCE = -1;
     private static final int UNAVAILABLE_SOURCE = -2;
@@ -163,7 +163,7 @@ public abstract class IONode extends ScopedNode implements InstrumentableNode {
     }
 
     public WrapperNode createWrapper(ProbeNode probe) {
-        return new IONodeWrapper(this, probe);
+        return new IoNodeWrapper(this, probe);
     }
 
     /**
@@ -228,10 +228,10 @@ public abstract class IONode extends ScopedNode implements InstrumentableNode {
      */
 
     public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
-        return IOTypesGen.expectLong(executeGeneric(frame));
+        return IoTypesGen.expectLong(executeGeneric(frame));
     }
 
     public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
-        return IOTypesGen.expectBoolean(executeGeneric(frame));
+        return IoTypesGen.expectBoolean(executeGeneric(frame));
     }
 }

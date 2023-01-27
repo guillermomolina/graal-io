@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
 import com.oracle.truffle.api.nodes.NodeInfo;
 
@@ -53,7 +53,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "&&")
 public final class LogicalAndNode extends ShortCircuitNode {
 
-    public LogicalAndNode(IONode left, IONode right) {
+    public LogicalAndNode(IoNode left, IoNode right) {
         super(left, right);
     }
 

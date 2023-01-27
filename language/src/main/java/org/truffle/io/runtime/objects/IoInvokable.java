@@ -58,7 +58,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
-public abstract class IOInvokable extends IOObject {
+public abstract class IoInvokable extends IoObject {
 
     public static final int INLINE_CACHE_SIZE = 2;
 
@@ -66,7 +66,7 @@ public abstract class IOInvokable extends IOObject {
     private final RootCallTarget callTarget;
     private final boolean hasCall; 
     
-    public IOInvokable(IOObject prototype, final RootCallTarget callTarget) {
+    public IoInvokable(IoObject prototype, final RootCallTarget callTarget) {
         super(prototype);
         this.callTarget = callTarget;
         this.hasCall = false;
@@ -112,19 +112,19 @@ public abstract class IOInvokable extends IOObject {
     @ExportMessage
     static final class IsIdenticalOrUndefined {
         @Specialization
-        static TriState doIOInvokable(IOInvokable receiver, IOInvokable other) {
+        static TriState doIOInvokable(IoInvokable receiver, IoInvokable other) {
             return receiver == other ? TriState.TRUE : TriState.FALSE;
         }
 
         @Fallback
-        static TriState doOther(IOInvokable receiver, Object other) {
+        static TriState doOther(IoInvokable receiver, Object other) {
             return TriState.UNDEFINED;
         }
     }
 
     @ExportMessage
     @TruffleBoundary
-    static int identityHashCode(IOInvokable receiver) {
+    static int identityHashCode(IoInvokable receiver) {
         return System.identityHashCode(receiver);
     }
 
@@ -134,7 +134,7 @@ public abstract class IOInvokable extends IOObject {
 
         @Specialization(limit = "INLINE_CACHE_SIZE", //
                 guards = "method.getCallTarget() == cachedTarget")
-        protected static Object doDirect(IOInvokable method, Object[] arguments,
+        protected static Object doDirect(IoInvokable method, Object[] arguments,
                 @Cached("method.getCallTarget()") RootCallTarget cachedTarget,
                 @Cached("create(cachedTarget)") DirectCallNode callNode) {
 
@@ -144,7 +144,7 @@ public abstract class IOInvokable extends IOObject {
         }
 
         @Specialization(replaces = "doDirect")
-        protected static Object doIndirect(IOInvokable method, Object[] arguments,
+        protected static Object doIndirect(IoInvokable method, Object[] arguments,
                 @Cached IndirectCallNode callNode) {
             return callNode.call(method.getCallTarget(), arguments);
         }

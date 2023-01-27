@@ -58,7 +58,7 @@ import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.NodeVisitor;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.ScopedNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNode;
 
@@ -66,11 +66,11 @@ import org.truffle.io.nodes.slots.WriteLocalSlotNode;
  * A expression node that just executes a list of other expressions.
  */
 @NodeInfo(shortName = "block", description = "The node implementing a source code block")
-public final class ExpressionNode extends IONode
-        implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<IONode> {
+public final class ExpressionNode extends IoNode
+        implements com.oracle.truffle.api.nodes.BlockNode.ElementExecutor<IoNode> {
 
     @Child
-    private com.oracle.truffle.api.nodes.BlockNode<IONode> block;
+    private com.oracle.truffle.api.nodes.BlockNode<IoNode> block;
 
     @CompilationFinal(dimensions = 1)
     private WriteLocalSlotNode[] writeNodesCache;
@@ -81,7 +81,7 @@ public final class ExpressionNode extends IONode
     @CompilationFinal
     private int parentBlockIndex = -1;
 
-    public ExpressionNode(IONode[] bodyNodes) {
+    public ExpressionNode(IoNode[] bodyNodes) {
         /*
          * Truffle block nodes cannot be empty, that is why we just set the entire block to null if
          * there are no elements. This is good practice as it safes memory.
@@ -92,7 +92,7 @@ public final class ExpressionNode extends IONode
     /**
      * Execute all block expressions. The block node makes sure that {@link ExplodeLoop full
      * unrolling} of the loop is triggered during compilation. This allows the
-     * {@link IONode#executeGeneric} method of all children to be inlined.
+     * {@link IoNode#executeGeneric} method of all children to be inlined.
      */
     @Override
     public Object executeGeneric(VirtualFrame frame) {
@@ -102,7 +102,7 @@ public final class ExpressionNode extends IONode
         throw new NotImplementedException();
     }
 
-    public List<IONode> getExpressions() {
+    public List<IoNode> getExpressions() {
         if (block == null) {
             return Collections.emptyList();
         }
@@ -110,12 +110,12 @@ public final class ExpressionNode extends IONode
     }
 
     @Override
-    public void executeVoid(VirtualFrame frame, IONode node, int index, int argument) {
+    public void executeVoid(VirtualFrame frame, IoNode node, int index, int argument) {
         node.executeGeneric(frame);
     }
 
     @Override
-    public Object executeGeneric(VirtualFrame frame, IONode node, int index, int argument) {
+    public Object executeGeneric(VirtualFrame frame, IoNode node, int index, int argument) {
         return node.executeGeneric(frame);
     }
 

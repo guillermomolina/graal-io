@@ -49,9 +49,9 @@ import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
-@NodeChild(value = "valueNode", type = IONode.class)
+@NodeChild(value = "valueNode", type = IoNode.class)
 public abstract class WriteRemoteSlotNode extends RemoteSlotNode {
 
     @Specialization(guards = "isLongOrIllegal(frame)")

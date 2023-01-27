@@ -43,8 +43,8 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
@@ -55,12 +55,12 @@ import com.oracle.truffle.api.profiles.ConditionProfile;
  * already decides the result of the operation, the right operand must not be executed. This is
  * expressed in using this base class for {@link LogicalAndNode} and {@link LogicalOrNode}.
  */
-public abstract class ShortCircuitNode extends IONode {
+public abstract class ShortCircuitNode extends IoNode {
 
     @Child
-    private IONode left;
+    private IoNode left;
     @Child
-    private IONode right;
+    private IoNode right;
 
     /**
      * Short circuits might be used just like a conditional expression it makes sense to profile the
@@ -68,7 +68,7 @@ public abstract class ShortCircuitNode extends IONode {
      */
     private final ConditionProfile evaluateRightProfile = ConditionProfile.createCountingProfile();
 
-    public ShortCircuitNode(IONode left, IONode right) {
+    public ShortCircuitNode(IoNode left, IoNode right) {
         this.left = left;
         this.right = right;
     }
@@ -84,7 +84,7 @@ public abstract class ShortCircuitNode extends IONode {
         try {
             leftValue = left.executeBoolean(frame);
         } catch (UnexpectedResultException e) {
-            throw IOLanguageException.typeError(this, e.getResult(), null);
+            throw IoLanguageException.typeError(this, e.getResult(), null);
         }
         boolean rightValue;
         try {
@@ -94,7 +94,7 @@ public abstract class ShortCircuitNode extends IONode {
                 rightValue = false;
             }
         } catch (UnexpectedResultException e) {
-            throw IOLanguageException.typeError(this, leftValue, e.getResult());
+            throw IoLanguageException.typeError(this, leftValue, e.getResult());
         }
         return execute(leftValue, rightValue);
     }

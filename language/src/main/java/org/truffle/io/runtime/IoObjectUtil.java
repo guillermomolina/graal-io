@@ -5,11 +5,11 @@ import java.util.Date;
 import java.util.List;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.runtime.objects.IODate;
-import org.truffle.io.runtime.objects.IOList;
-import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IoDate;
+import org.truffle.io.runtime.objects.IoList;
+import org.truffle.io.runtime.objects.IoLocals;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -20,12 +20,12 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 
-public final class IOObjectUtil {
+public final class IoObjectUtil {
     private static int TO_STRING_MAX_DEPTH = 1;
     private static int TO_STRING_MAX_ELEMENTS = 10;
     private static boolean TO_STRING_INCLUDE_ARRAY_LENGTH = false;
 
-    private IOObjectUtil() {
+    private IoObjectUtil() {
     }
 
     public static void putUncached(DynamicObject obj, Object key, Object value) {
@@ -65,14 +65,14 @@ public final class IOObjectUtil {
     }
 
     public static Object getSlotOrDefault(DynamicObjectLibrary lib, DynamicObject obj, Object key, Object defaultValue) {
-        if(obj instanceof IOObject) {
-            if(obj instanceof IOLocals) {
-                Object value = ((IOLocals)obj).getLocal(key);
+        if(obj instanceof IoObject) {
+            if(obj instanceof IoLocals) {
+                Object value = ((IoLocals)obj).getLocal(key);
                 if (value != null) {
                     return value;
                 }
             }
-            IOObject prototype = findPrototypeWithSlot(lib, (IOObject)obj, key);
+            IoObject prototype = findPrototypeWithSlot(lib, (IoObject)obj, key);
             if(prototype == null) {
                 return defaultValue;
             }
@@ -81,9 +81,9 @@ public final class IOObjectUtil {
         return lib.getOrDefault(obj, key, defaultValue);
     }
 
-    protected static Object getSlotOrDefault(DynamicObjectLibrary lib, IOObject obj, Object key, Object defaultValue) {
-        List<IOObject> visitedProtos = new ArrayList<IOObject>();
-        IOObject object = obj;
+    protected static Object getSlotOrDefault(DynamicObjectLibrary lib, IoObject obj, Object key, Object defaultValue) {
+        List<IoObject> visitedProtos = new ArrayList<IoObject>();
+        IoObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
             Object value = getOrDefault(lib, object, key);
@@ -96,9 +96,9 @@ public final class IOObjectUtil {
         return defaultValue;
     }
 
-    protected static IOObject findPrototypeWithSlot(DynamicObjectLibrary lib, IOObject obj, Object key) {
-        List<IOObject> visitedProtos = new ArrayList<IOObject>();
-        IOObject object = obj;
+    protected static IoObject findPrototypeWithSlot(DynamicObjectLibrary lib, IoObject obj, Object key) {
+        List<IoObject> visitedProtos = new ArrayList<IoObject>();
+        IoObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
             containsKey(lib, object, key);
@@ -111,9 +111,9 @@ public final class IOObjectUtil {
         return null;
     }
 
-    public static boolean hasPrototype(IOObject obj, Object prototype) {
-        List<IOObject> visitedProtos = new ArrayList<IOObject>();
-        IOObject object = obj;
+    public static boolean hasPrototype(IoObject obj, Object prototype) {
+        List<IoObject> visitedProtos = new ArrayList<IoObject>();
+        IoObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
             if (object == prototype) {
@@ -125,13 +125,13 @@ public final class IOObjectUtil {
         return false;
     }
 
-    public static String toString(IOObject object) {
+    public static String toString(IoObject object) {
         return toString(object, 0);
     }
 
-    public static String toString(IOObject object, int depth) {
-        if (object instanceof IOList) {
-            return toString((IOList) object, depth);
+    public static String toString(IoObject object, int depth) {
+        if (object instanceof IoList) {
+            return toString((IoList) object, depth);
         }
         CompilerAsserts.neverPartOfCompilation();
         StringBuilder sb = new StringBuilder();
@@ -180,7 +180,7 @@ public final class IOObjectUtil {
         return sb.toString();
     }
 
-    public static String toString(IOList object, int depth) {
+    public static String toString(IoList object, int depth) {
         CompilerAsserts.neverPartOfCompilation();
         StringBuilder sb = new StringBuilder();
         try {
@@ -221,7 +221,7 @@ public final class IOObjectUtil {
 
     public static String toStringInner(Object value, int depth) {
         CompilerAsserts.neverPartOfCompilation();
-        if (value == IONil.SINGLETON) {
+        if (value == IoNil.SINGLETON) {
             return "nil";
         }
         try {
@@ -240,13 +240,13 @@ public final class IOObjectUtil {
         if (value instanceof IOList) {
             return ((IOList)value).toString(depth);
         }*/
-        if (value instanceof IOObject) {
-            return ((IOObject)value).toString(depth);
+        if (value instanceof IoObject) {
+            return ((IoObject)value).toString(depth);
         }
         return value.toString();
     }
 
-    public static Date getDate(IODate date) {
+    public static Date getDate(IoDate date) {
         throw new NotImplementedException();
     }
 

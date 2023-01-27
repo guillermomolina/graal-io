@@ -50,7 +50,7 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface IOTestSuite {
+public @interface IoTestSuite {
 
     /**
      * Defines the base path of the test suite. Multiple base paths can be specified. However only
@@ -63,7 +63,7 @@ public @interface IOTestSuite {
      * directory}. If the member is not specified, the class that declares the annotation is used,
      * i.e., the test cases must be in the same project as the test class.
      */
-    Class<?> testCaseDirectory() default IOTestSuite.class;
+    Class<?> testCaseDirectory() default IoTestSuite.class;
 
     /**
      * The options passed to {@code Context.Builder} to configure the {@code Context} executing the

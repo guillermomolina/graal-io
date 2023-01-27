@@ -41,7 +41,7 @@
 package org.truffle.io.functions.number;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -62,6 +62,6 @@ public abstract class NumberFloorFunction extends FunctionBodyNode {
    
     @Fallback
     protected Object typeError(Object self) {
-        throw IOLanguageException.typeError(this, self);
+        throw IoLanguageException.typeError(this, self);
     }
 }

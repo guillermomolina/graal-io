@@ -43,8 +43,8 @@
  */
 package org.truffle.io.nodes.root;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 
@@ -61,13 +61,13 @@ import com.oracle.truffle.api.strings.TruffleString;
  * functions, the {@link #bodyNode} is a {@link MethodBodyNode}.
  */
 @NodeInfo(language = "IO", description = "The root of all IO execution trees")
-public class FunctionRootNode extends IORootNode {
+public class FunctionRootNode extends IoRootNode {
 
     /** The name of the function, for printing purposes only. */
     private final TruffleString name;
 
 
-    public FunctionRootNode(IOLanguage language, FrameDescriptor frameDescriptor, IONode bodyNode, SourceSection sourceSection, TruffleString name) {
+    public FunctionRootNode(IoLanguage language, FrameDescriptor frameDescriptor, IoNode bodyNode, SourceSection sourceSection, TruffleString name) {
         super(language, frameDescriptor, bodyNode, sourceSection);
         this.name = name;
     }

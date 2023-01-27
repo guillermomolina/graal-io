@@ -43,7 +43,7 @@
  */
 package org.truffle.io.functions.system;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.EvalRootNode;
 import org.truffle.io.nodes.root.FunctionRootNode;
@@ -78,7 +78,7 @@ public abstract class SystemStackTraceFunction extends FunctionBodyNode {
 
     @TruffleBoundary
     private static TruffleString createStackTrace() {
-        final TruffleStringBuilder str = TruffleStringBuilder.create(IOLanguage.STRING_ENCODING);
+        final TruffleStringBuilder str = TruffleStringBuilder.create(IoLanguage.STRING_ENCODING);
 
         Truffle.getRuntime().iterateFrames(new FrameInstanceVisitor<Integer>() {
             private int skip = 1; // skip stack trace builtin

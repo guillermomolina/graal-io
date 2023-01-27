@@ -45,11 +45,11 @@ package org.truffle.io.nodes.util;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.IOTypes;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IONil;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.IoTypes;
+import org.truffle.io.runtime.objects.IoMethod;
+import org.truffle.io.runtime.objects.IoNil;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -64,16 +64,16 @@ import com.oracle.truffle.api.strings.TruffleString;
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
  * expression nodes need to expect.
  */
-@TypeSystemReference(IOTypes.class)
+@TypeSystemReference(IoTypes.class)
 @NodeChild
-public abstract class UnboxNode extends IONode {
+public abstract class UnboxNode extends IoNode {
 
     static final int LIMIT = 5;
 
     @Specialization
     protected static TruffleString fromString(String value,
                     @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
-        return fromJavaStringNode.execute(value, IOLanguage.STRING_ENCODING);
+        return fromJavaStringNode.execute(value, IoLanguage.STRING_ENCODING);
     }
 
     @Specialization
@@ -97,12 +97,12 @@ public abstract class UnboxNode extends IONode {
     }
 
     @Specialization
-    protected static IOMethod fromMethod(IOMethod value) {
+    protected static IoMethod fromMethod(IoMethod value) {
         return value;
     }
 
     @Specialization
-    protected static IONil fromMethod(IONil value) {
+    protected static IoNil fromMethod(IoNil value) {
         return value;
     }
 

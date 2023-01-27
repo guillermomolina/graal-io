@@ -43,12 +43,12 @@
  */
 package org.truffle.io.functions.lobby;
 
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoNil;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IONil;
 
 /**
  * Builtin function that performs context exit.
@@ -58,16 +58,16 @@ public abstract class LobbyExitFunction extends FunctionBodyNode {
     @Specialization
     public Object exit(Object obj, long exitCode) {
         doExit((int) exitCode);
-        return IONil.SINGLETON;
+        return IoNil.SINGLETON;
     }
 
     @Specialization
     public Object exit(Object obj, Object exitCode) {
         doExit(0);
-        return IONil.SINGLETON;
+        return IoNil.SINGLETON;
     }
 
     private void doExit(int exitCode) {
-        IOState.get(this).getEnv().getContext().closeExited(this, exitCode);
+        IoState.get(this).getEnv().getContext().closeExited(this, exitCode);
     }
 }

@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.root;
 
-import org.truffle.io.IOLanguage;
+import org.truffle.io.IoLanguage;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -56,7 +56,7 @@ final class EvaluateLocalNode extends RootNode {
     private final TruffleString variable;
     private final MaterializedFrame inspectFrame;
 
-    EvaluateLocalNode(IOLanguage language, TruffleString variableName, MaterializedFrame frame) {
+    EvaluateLocalNode(IoLanguage language, TruffleString variableName, MaterializedFrame frame) {
         super(language);
         this.variable = variableName;
         this.inspectFrame = frame;

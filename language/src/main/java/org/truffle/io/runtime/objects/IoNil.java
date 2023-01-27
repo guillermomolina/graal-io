@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,35 +43,60 @@
  */
 package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
+import org.truffle.io.runtime.Symbols;
+
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
-public final class IOBlock extends IOMethod {
+public final class IoNil extends IoPrototype {
 
-    protected final IOLocals sender;
+    public static final IoNil SINGLETON = new IoNil();
+    private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
-    public IOBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final IOLocals sender) {
-        super(callTarget, argNames);
-        this.sender = sender;
+    private IoNil() {
+        super(IoPrototype.OBJECT, Symbols.NIL, (l, v) -> l.isNull(v));
     }
-   
-    public IOLocals getSender() {
-        return sender;
-    }
- 
+
     @Override
     public String toString(int depth) {
-        return "block(" + printSource(depth) + ")";
+        return "nil";
     }
 
     @ExportMessage
-    @TruffleBoundary
-    static int identityHashCode(IOBlock receiver) {
-        return System.identityHashCode(receiver);
+    boolean isNull() {
+        return true;
+    }
+
+    @ExportMessage
+    boolean isMetaObject() {
+        return false;
+    }
+
+    @ExportMessage
+    static final class IsIdenticalOrUndefined {
+        @Specialization
+        static TriState doIONil(IoNil receiver, IoNil other) {
+            return TriState.valueOf(IoNil.SINGLETON == other);
+        }
+
+        @Fallback
+        static TriState doOther(IoNil receiver, Object other) {
+            return TriState.valueOf(IoNil.SINGLETON == other);
+        }
+    }
+
+    @ExportMessage
+    static int identityHashCode(IoNil receiver) {
+        return IDENTITY_HASH;
+    }
+
+    @ExportMessage
+    Object toDisplayString(boolean allowSideEffects) {
+        return Symbols.NIL;
     }
 }

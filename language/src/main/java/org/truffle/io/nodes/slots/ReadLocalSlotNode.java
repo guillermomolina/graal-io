@@ -51,7 +51,7 @@ import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
 
 /**
@@ -65,7 +65,7 @@ import org.truffle.io.nodes.interop.NodeObjectDescriptor;
  * stored boxed.
  */
 @NodeField(name = "slot", type = int.class)
-public abstract class ReadLocalSlotNode extends IONode {
+public abstract class ReadLocalSlotNode extends IoNode {
 
     /**
      * Returns the descriptor of the accessed local variable. The implementation of this method is

@@ -43,9 +43,9 @@
  */
 package org.truffle.io.nodes.logic;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.arithmetic.AddNode;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -58,7 +58,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  */
 @NodeChild("valueNode")
 @NodeInfo(shortName = "!")
-public abstract class LogicalNotNode extends IONode {
+public abstract class LogicalNotNode extends IoNode {
 
     @Specialization
     protected boolean doBoolean(boolean value) {
@@ -67,7 +67,7 @@ public abstract class LogicalNotNode extends IONode {
 
     @Fallback
     protected Object typeError(Object value) {
-        throw IOLanguageException.typeError(this, value);
+        throw IoLanguageException.typeError(this, value);
     }
 
 }

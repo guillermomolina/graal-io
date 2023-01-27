@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -54,7 +54,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * the primitive value is automatically boxed by Java.
  */
 @NodeInfo(shortName = "const")
-public final class BooleanLiteralNode extends IONode {
+public final class BooleanLiteralNode extends IoNode {
 
     private final boolean value;
 

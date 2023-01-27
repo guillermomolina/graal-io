@@ -45,8 +45,8 @@ package org.truffle.io.runtime;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.interop.IOLanguageView;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.runtime.interop.IoLanguageView;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
@@ -61,13 +61,13 @@ import com.oracle.truffle.api.source.SourceSection;
  * conditions just abort execution. This exception class is used when we abort from within the IO
  * implementation.
  */
-public class IOLanguageException extends AbstractTruffleException {
+public class IoLanguageException extends AbstractTruffleException {
 
     private static final long serialVersionUID = -6799734410727348507L;
     private static final InteropLibrary UNCACHED_LIB = InteropLibrary.getFactory().getUncached();
 
     @TruffleBoundary
-    public IOLanguageException(String message, Node location) {
+    public IoLanguageException(String message, Node location) {
         super(message, location);
     }
 
@@ -76,7 +76,7 @@ public class IOLanguageException extends AbstractTruffleException {
      * are no automatic type conversions of values.
      */
     @TruffleBoundary
-    public static IOLanguageException typeError(Node operation, Object... values) {
+    public static IoLanguageException typeError(Node operation, Object... values) {
         StringBuilder result = new StringBuilder();
         result.append("Type error");
 
@@ -89,7 +89,7 @@ public class IOLanguageException extends AbstractTruffleException {
 
         result.append(": operation");
         if (operation != null) {
-            NodeInfo nodeInfo = IOLanguage.lookupNodeInfo(operation.getClass());
+            NodeInfo nodeInfo = IoLanguage.lookupNodeInfo(operation.getClass());
             if (nodeInfo != null) {
                 result.append(" \"").append(nodeInfo.shortName()).append("\"");
             }
@@ -107,7 +107,7 @@ public class IOLanguageException extends AbstractTruffleException {
              * Using the language view for core functions like the typeOf builtin might not be a good
              * idea for performance reasons.
              */
-            Object value = IOLanguageView.forValue(values[i]);
+            Object value = IoLanguageView.forValue(values[i]);
             result.append(sep);
             sep = ", ";
             if (value == null) {
@@ -133,7 +133,7 @@ public class IOLanguageException extends AbstractTruffleException {
                 }
             }
         }
-        return new IOLanguageException(result.toString(), operation);
+        return new IoLanguageException(result.toString(), operation);
     }
 
 }

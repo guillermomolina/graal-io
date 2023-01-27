@@ -43,9 +43,9 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
-import org.truffle.io.runtime.IOLanguageException;
+import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -53,17 +53,17 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 @NodeInfo(shortName = "if", description = "The node implementing a condional expression")
-public final class IfNode extends IONode {
+public final class IfNode extends IoNode {
 
     @Child
-    private IONode conditionNode;
+    private IoNode conditionNode;
     @Child
-    private IONode thenPartNode;
+    private IoNode thenPartNode;
     @Child
-    private IONode elsePartNode;
+    private IoNode elsePartNode;
     private final ConditionProfile condition = ConditionProfile.createCountingProfile();
 
-    public IfNode(IONode conditionNode, IONode thenPartNode, IONode elsePartNode) {
+    public IfNode(IoNode conditionNode, IoNode thenPartNode, IoNode elsePartNode) {
         this.conditionNode = UnboxNodeGen.create(conditionNode);
         this.thenPartNode = thenPartNode;
         this.elsePartNode = elsePartNode;
@@ -86,7 +86,7 @@ public final class IfNode extends IONode {
         try {
             return conditionNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
-            throw IOLanguageException.typeError(this, ex.getResult());
+            throw IoLanguageException.typeError(this, ex.getResult());
         }
     }
 }

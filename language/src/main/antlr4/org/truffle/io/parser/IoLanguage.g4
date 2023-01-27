@@ -39,7 +39,7 @@
  * SOFTWARE.
  */
  
- grammar IOLanguage;
+ grammar IoLanguage;
 
 iolanguage
     : EOL* expression? EOF

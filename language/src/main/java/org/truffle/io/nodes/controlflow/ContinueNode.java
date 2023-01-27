@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -55,7 +55,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * by the {@link WhileNode#executeVoid loop node}.
  */
 @NodeInfo(shortName = "continue", description = "The node implementing a continue expression")
-public final class ContinueNode extends IONode {
+public final class ContinueNode extends IoNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {

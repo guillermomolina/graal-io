@@ -43,8 +43,8 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.Symbols;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -67,32 +67,32 @@ import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
-public class IOObject extends DynamicObject {
+public class IoObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
-    public static final Shape SHAPE = Shape.newBuilder().layout(IOObject.class).build();
+    public static final Shape SHAPE = Shape.newBuilder().layout(IoObject.class).build();
 
-    protected IOObject prototype;
+    protected IoObject prototype;
 
-    public IOObject() {
+    public IoObject() {
         super(SHAPE);
-        this.prototype = IOPrototype.OBJECT;
+        this.prototype = IoPrototype.OBJECT;
     }
 
-    public IOObject(final Shape shape, IOObject prototype) {
+    public IoObject(final Shape shape, IoObject prototype) {
         super(shape);
         this.prototype = prototype;
     }
 
-    public IOObject(IOObject prototype) {
+    public IoObject(IoObject prototype) {
         super(SHAPE);
         this.prototype = prototype;
     }
 
-    public IOObject getPrototype() {
+    public IoObject getPrototype() {
         return prototype;
     }
 
-    public void setPrototype(final IOObject prototype) {
+    public void setPrototype(final IoObject prototype) {
         this.prototype = prototype;
     }
 
@@ -103,18 +103,18 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<?>> getLanguage() {
-        return IOLanguage.class;
+        return IoLanguage.class;
     }
 
     @ExportMessage
     static final class IsIdenticalOrUndefined {
         @Specialization
-        static TriState doIOObject(IOObject receiver, IOObject other) {
+        static TriState doIOObject(IoObject receiver, IoObject other) {
             return TriState.valueOf(receiver == other);
         }
 
         @Fallback
-        static TriState doOther(IOObject receiver, Object other) {
+        static TriState doOther(IoObject receiver, Object other) {
             return TriState.UNDEFINED;
         }
     }
@@ -143,7 +143,7 @@ public class IOObject extends DynamicObject {
     public String toString(int depth) {
         String string = String.format("Object_0x%08x", hashCode());
         if (depth == 0) {
-            string += ":" + IOObjectUtil.toString(this);
+            string += ":" + IoObjectUtil.toString(this);
         }
         return string;
     }
@@ -167,7 +167,7 @@ public class IOObject extends DynamicObject {
 
     @ExportMessage
     boolean isMetaInstance(Object prototype, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        return IOObjectUtil.hasPrototype(this, prototype);
+        return IoObjectUtil.hasPrototype(this, prototype);
     }
 
     @ExportMessage
@@ -179,7 +179,7 @@ public class IOObject extends DynamicObject {
     void removeMember(String member,
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
-        TruffleString memberTS = fromJavaStringNode.execute(member, IOLanguage.STRING_ENCODING);
+        TruffleString memberTS = fromJavaStringNode.execute(member, IoLanguage.STRING_ENCODING);
         if (objectLibrary.containsKey(this, memberTS)) {
             objectLibrary.removeKey(this, memberTS);
         } else {
@@ -199,7 +199,7 @@ public class IOObject extends DynamicObject {
     boolean existsMember(String member,
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        return objectLibrary.containsKey(this, fromJavaStringNode.execute(member, IOLanguage.STRING_ENCODING));
+        return objectLibrary.containsKey(this, fromJavaStringNode.execute(member, IoLanguage.STRING_ENCODING));
     }
 
     @ExportMessage
@@ -245,8 +245,8 @@ public class IOObject extends DynamicObject {
     Object readMember(String name,
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode)
             throws UnknownIdentifierException {
-        TruffleString nameTS = fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING);
-        Object result = IOObjectUtil.getOrDefaultUncached(this, nameTS, null);
+        TruffleString nameTS = fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING);
+        Object result = IoObjectUtil.getOrDefaultUncached(this, nameTS, null);
         if (result == null) {
             throw UnknownIdentifierException.create(name);
         }
@@ -256,6 +256,6 @@ public class IOObject extends DynamicObject {
     @ExportMessage
     void writeMember(String name, Object value,
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) {
-        IOObjectUtil.putUncached(this, fromJavaStringNode.execute(name, IOLanguage.STRING_ENCODING), value);
+        IoObjectUtil.putUncached(this, fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING), value);
     }
 }

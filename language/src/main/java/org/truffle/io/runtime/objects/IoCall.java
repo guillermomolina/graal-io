@@ -40,12 +40,12 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.Symbols;
 
 import com.oracle.truffle.api.strings.TruffleString;
 
-public class IOCall extends IOObject { 
+public class IoCall extends IoObject { 
     private static final TruffleString SYMBOL_SENDER = Symbols.constant("sender");
     private static final TruffleString SYMBOL_MESSAGE = Symbols.constant("message");
     private static final TruffleString SYMBOL_TARGET = Symbols.constant("target");
@@ -66,9 +66,9 @@ public class IOCall extends IOObject {
     @DynamicField
     private Object coroutine;
 
-    public IOCall(final IOLocals sender, final Object target, final IOMessage message, final IOLocals slotContext,
-            final IOInvokable activated, final IOCoroutine coroutine) {
-        super(IOPrototype.CALL);
+    public IoCall(final IoLocals sender, final Object target, final IoMessage message, final IoLocals slotContext,
+            final IoInvokable activated, final IoCoroutine coroutine) {
+        super(IoPrototype.CALL);
         setSender(sender);
         setMessage(message);
         setTarget(target);
@@ -77,51 +77,51 @@ public class IOCall extends IOObject {
         setCoroutine(coroutine);
     }
 
-    public IOLocals getSender() {
-        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_SENDER);
+    public IoLocals getSender() {
+        return (IoLocals)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_SENDER);
     }
 
-    protected void setSender(IOLocals sender) {
-        IOObjectUtil.putUncached(this, SYMBOL_SENDER, sender);
+    protected void setSender(IoLocals sender) {
+        IoObjectUtil.putUncached(this, SYMBOL_SENDER, sender);
     }
 
-    public IOMessage getMessage() {
-        return (IOMessage)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_MESSAGE);
+    public IoMessage getMessage() {
+        return (IoMessage)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_MESSAGE);
     }
 
-    protected void setMessage(IOMessage message) {
-        IOObjectUtil.putUncached(this, SYMBOL_MESSAGE, message);
+    protected void setMessage(IoMessage message) {
+        IoObjectUtil.putUncached(this, SYMBOL_MESSAGE, message);
     }
 
     public Object getTarget() {
-        return IOObjectUtil.getOrDefaultUncached(this, SYMBOL_TARGET);
+        return IoObjectUtil.getOrDefaultUncached(this, SYMBOL_TARGET);
     }
 
     protected void setTarget(Object target) {
-        IOObjectUtil.putUncached(this, SYMBOL_TARGET, target);
+        IoObjectUtil.putUncached(this, SYMBOL_TARGET, target);
     }
 
-    public IOLocals getSlotContext() {
-        return (IOLocals)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_SLOT_CONTEXT);
+    public IoLocals getSlotContext() {
+        return (IoLocals)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_SLOT_CONTEXT);
     }
 
-    protected void setSlotContext(IOLocals slotcontext) {
-        IOObjectUtil.putUncached(this, SYMBOL_SLOT_CONTEXT, slotcontext);
+    protected void setSlotContext(IoLocals slotcontext) {
+        IoObjectUtil.putUncached(this, SYMBOL_SLOT_CONTEXT, slotcontext);
     }
 
-    public IOInvokable getActivated() {
-        return (IOInvokable)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_ACTIVATED);
+    public IoInvokable getActivated() {
+        return (IoInvokable)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_ACTIVATED);
     }
 
-    protected void setActivated(IOInvokable activated) {
-        IOObjectUtil.putUncached(this, SYMBOL_ACTIVATED, activated);
+    protected void setActivated(IoInvokable activated) {
+        IoObjectUtil.putUncached(this, SYMBOL_ACTIVATED, activated);
     }
 
-    public IOCoroutine getCoroutine() {
-        return (IOCoroutine)IOObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
+    public IoCoroutine getCoroutine() {
+        return (IoCoroutine)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
     }
 
-    protected void setCoroutine(IOCoroutine coroutine) {
-        IOObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
+    protected void setCoroutine(IoCoroutine coroutine) {
+        IoObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
     }
 }

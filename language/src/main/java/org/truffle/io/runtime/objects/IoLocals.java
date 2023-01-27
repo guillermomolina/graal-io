@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2022, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,50 +40,65 @@
  */
 package org.truffle.io.runtime.objects;
 
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.utilities.TriState;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 
-import org.truffle.io.runtime.Symbols;
+public final class IoLocals extends IoObject {
 
-@ExportLibrary(InteropLibrary.class)
-public final class IOFalse extends IOPrototype {
+    public static final int CALL_ARGUMENT_INDEX = 0;
+    public static final int TARGET_ARGUMENT_INDEX = 0;
+    public static final int FIRST_PARAMETER_ARGUMENT_INDEX = 1;
 
-    public static final IOFalse SINGLETON = new IOFalse();
-    private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
+    public static final int CALL_SLOT_INDEX = 0;
+    public static final int FIRST_USER_SLOT_INDEX = 1;
 
-    private IOFalse() {
-        super(IOPrototype.OBJECT, Symbols.FALSE, (l, v) -> l.isBoolean(v) && (Boolean)v == Boolean.FALSE);
+    private final MaterializedFrame frame;
+
+    public IoLocals(final MaterializedFrame frame) {
+        this(IoPrototype.OBJECT, frame);
     }
 
-    @Override
-    public String toString(int depth) {
-        return "false";
+    public IoLocals(IoObject prototype, final MaterializedFrame frame) {
+        super(prototype);
+        this.frame = frame;
     }
 
-    @ExportMessage
-    static final class IsIdenticalOrUndefined {
-        @Specialization
-        static TriState doIOFalse(IOFalse receiver, IOFalse other) {
-            return TriState.valueOf(IOFalse.SINGLETON == other);
+    public MaterializedFrame getFrame() {
+        return frame;
+    }
+
+    public IoCall getCall() {
+        Object call = frame.getArguments()[CALL_ARGUMENT_INDEX];
+        if (call instanceof IoCall) {
+            assert call instanceof IoCall;
+            return (IoCall) call;
         }
+        return null; // caller is not a block 
+    }
 
-        @Fallback
-        static TriState doOther(IOFalse receiver, Object other) {
-            return TriState.valueOf(IOFalse.SINGLETON == other);
+    public boolean hasLocal(final Object name) {
+        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+
+        for (int i = 0; i < frameDescriptor.getNumberOfSlots(); i++) {
+            if (name.equals(frameDescriptor.getSlotName(i))) {
+                return true;
+            }
         }
+        return false;
     }
 
-    @ExportMessage
-    static int identityHashCode(IOFalse receiver) {
-        return IDENTITY_HASH;
+    public Object getLocal(final Object name) {
+        return getLocalOrDefault(name, null);
     }
 
-    @ExportMessage
-    Object toDisplayString(boolean allowSideEffects) {
-        return Symbols.FALSE;
+    public Object getLocalOrDefault(final Object name, final Object defaultValue) {
+        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+
+        for (int i = 0; i < frameDescriptor.getNumberOfSlots(); i++) {
+            if (name.equals(frameDescriptor.getSlotName(i))) {
+                return frame.getValue(i);
+            }
+        }
+        return defaultValue;
     }
 }

@@ -53,16 +53,16 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IONil;
-import org.truffle.io.runtime.objects.IOObject;
-import org.truffle.io.runtime.objects.IOPrototype;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
+import org.truffle.io.runtime.objects.IoPrototype;
 
 /**
  * Built-in function to create a clone object. Objects in IO are simply made up of name/value pairs.
  */
 @NodeInfo(shortName = "clone")
-@ImportStatic(IOState.class)
+@ImportStatic(IoState.class)
 public abstract class ObjectCloneFunction extends FunctionBodyNode {
 
     @Specialization
@@ -76,24 +76,24 @@ public abstract class ObjectCloneFunction extends FunctionBodyNode {
     }
 
     @Specialization
-    public Object cloneNil(IONil value) {
+    public Object cloneNil(IoNil value) {
         return value;
     }
 
     @Specialization
-    public Object cloneIOPrototype(IOPrototype proto) {
-        if(proto == IOPrototype.DATE) {
-            return IOState.get(this).createDate();
+    public Object cloneIOPrototype(IoPrototype proto) {
+        if(proto == IoPrototype.DATE) {
+            return IoState.get(this).createDate();
         }
-        if(proto == IOPrototype.OBJECT) {
-            return IOState.get(this).cloneObject();
+        if(proto == IoPrototype.OBJECT) {
+            return IoState.get(this).cloneObject();
         }
         throw new NotImplementedException();
     }
 
     @Specialization(guards = "!values.isNull(obj)", limit = "3")
-    public Object cloneIOObject(IOObject obj, @CachedLibrary("obj") InteropLibrary values) {
-        return IOState.get(this).cloneObject(obj);
+    public Object cloneIOObject(IoObject obj, @CachedLibrary("obj") InteropLibrary values) {
+        return IoState.get(this).cloneObject(obj);
     }
 
     @Specialization(guards = "isString(value)")

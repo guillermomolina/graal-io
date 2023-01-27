@@ -52,24 +52,24 @@ import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOCoroutine;
-import org.truffle.io.runtime.objects.IOFunction;
-import org.truffle.io.runtime.objects.IOInvokable;
-import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IOMessage;
-import org.truffle.io.runtime.objects.IOMethod;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.runtime.objects.IoBlock;
+import org.truffle.io.runtime.objects.IoCall;
+import org.truffle.io.runtime.objects.IoCoroutine;
+import org.truffle.io.runtime.objects.IoFunction;
+import org.truffle.io.runtime.objects.IoInvokable;
+import org.truffle.io.runtime.objects.IoLocals;
+import org.truffle.io.runtime.objects.IoMessage;
+import org.truffle.io.runtime.objects.IoMethod;
+import org.truffle.io.runtime.objects.IoObject;
 
 @NodeChild("invokableNode")
 @NodeField(name = "receiver", type = Object.class)
 @NodeField(name = "name", type = TruffleString.class)
-@NodeField(name = "argumentNodes", type = IONode[].class)
-public abstract class InvokeExecutorNode extends IONode {
+@NodeField(name = "argumentNodes", type = IoNode[].class)
+public abstract class InvokeExecutorNode extends IoNode {
 
     static final int LIBRARY_LIMIT = 3;
 
@@ -77,7 +77,7 @@ public abstract class InvokeExecutorNode extends IONode {
 
     public abstract TruffleString getName();
 
-    public abstract IONode[] getArgumentNodes();
+    public abstract IoNode[] getArgumentNodes();
 
     @Specialization(guards = "!values.isNull(invokable)", limit="LIBRARY_LIMIT")
     protected final Object executeNull(VirtualFrame frame, Object invokable,
@@ -86,35 +86,35 @@ public abstract class InvokeExecutorNode extends IONode {
     }
 
     @Specialization
-    protected final Object executeFunction(VirtualFrame frame, IOFunction function) {
-        final int argumentsCount = getArgumentNodes().length + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+    protected final Object executeFunction(VirtualFrame frame, IoFunction function) {
+        final int argumentsCount = getArgumentNodes().length + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, getReceiver(), function, argumentsCount);
     }
 
     @Specialization
-    protected final Object executeBlock(VirtualFrame frame, IOBlock block) {
-        IOLocals sender = block.getSender();
-        IOMessage message = IOState.get(this).createMessage(getName(), getArgumentNodes());
-        IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
-        IOCall call = IOState.get(this).createCall(sender, sender, message, null, block, currentCoroutine);
-        int argumentsCount = block.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+    protected final Object executeBlock(VirtualFrame frame, IoBlock block) {
+        IoLocals sender = block.getSender();
+        IoMessage message = IoState.get(this).createMessage(getName(), getArgumentNodes());
+        IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
+        IoCall call = IoState.get(this).createCall(sender, sender, message, null, block, currentCoroutine);
+        int argumentsCount = block.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, call, block, argumentsCount);
     }
 
     @Specialization
-    protected final Object executeMethod(VirtualFrame frame, IOMethod method) {
+    protected final Object executeMethod(VirtualFrame frame, IoMethod method) {
         final Object receiver = getReceiver();
-        final IOObject prototype;
-        if (receiver instanceof IOObject) {
-            prototype = (IOObject) receiver;
+        final IoObject prototype;
+        if (receiver instanceof IoObject) {
+            prototype = (IoObject) receiver;
         } else {
-            prototype = IOState.get(this).getPrototype(receiver);
+            prototype = IoState.get(this).getPrototype(receiver);
         }
-        IOLocals sender = IOState.get(this).createLocals(prototype, frame.materialize());
-        IOMessage message = IOState.get(this).createMessage(getName(), getArgumentNodes());
-        IOCoroutine currentCoroutine = IOState.get(this).getCurrentCoroutine();
-        IOCall call = IOState.get(this).createCall(sender, receiver, message, null, method, currentCoroutine);
-        int argumentsCount = method.getNumArgs() + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        IoLocals sender = IoState.get(this).createLocals(prototype, frame.materialize());
+        IoMessage message = IoState.get(this).createMessage(getName(), getArgumentNodes());
+        IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
+        IoCall call = IoState.get(this).createCall(sender, receiver, message, null, method, currentCoroutine);
+        int argumentsCount = method.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, call, method, argumentsCount);
     }
 
@@ -124,13 +124,13 @@ public abstract class InvokeExecutorNode extends IONode {
     }
 
     @ExplodeLoop
-    protected final Object execute(VirtualFrame frame, final Object receiver, IOInvokable invokable,
+    protected final Object execute(VirtualFrame frame, final Object receiver, IoInvokable invokable,
             final int argumentsCount) {
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];
-        argumentValues[IOLocals.TARGET_ARGUMENT_INDEX] = receiver;
+        argumentValues[IoLocals.TARGET_ARGUMENT_INDEX] = receiver;
         for (int i = 0; i < getArgumentNodes().length; i++) {
-            argumentValues[i + IOLocals.FIRST_PARAMETER_ARGUMENT_INDEX] = getArgumentNodes()[i].executeGeneric(frame);
+            argumentValues[i + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX] = getArgumentNodes()[i].executeGeneric(frame);
         }
         Object result = DirectCallNode.create(invokable.getCallTarget()).call(argumentValues);
         return result;

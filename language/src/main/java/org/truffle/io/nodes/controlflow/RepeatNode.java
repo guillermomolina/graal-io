@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 
 import com.oracle.truffle.api.Truffle;
@@ -55,16 +55,16 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 @NodeInfo(shortName = "repeat", description = "The node implementing a repeat loop")
-public final class RepeatNode extends IONode {
+public final class RepeatNode extends IoNode {
 
     @Child
-    private IONode repetitionsNode;
+    private IoNode repetitionsNode;
     @Child
     private LoopNode loopNode;
     @Child
     private RepeatRepeatingNode repeatRepeatingNode;
 
-    public RepeatNode(IONode repetitionsNode, IONode bodyNode) {
+    public RepeatNode(IoNode repetitionsNode, IoNode bodyNode) {
         this.repetitionsNode = UnboxNodeGen.create(repetitionsNode);
         this.repeatRepeatingNode = new RepeatRepeatingNode(bodyNode);
         this.loopNode = Truffle.getRuntime().createLoopNode(repeatRepeatingNode);

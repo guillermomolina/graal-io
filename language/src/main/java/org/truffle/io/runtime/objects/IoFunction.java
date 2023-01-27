@@ -51,39 +51,29 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
 
 @ExportLibrary(InteropLibrary.class)
-public class IOMethod extends IOInvokable {
+public final class IoFunction extends IoInvokable {
 
-    private final TruffleString[] argNames;
+    private final TruffleString name;
 
-    public IOMethod(final RootCallTarget callTarget, final TruffleString[] argNames) {
-        super(IOPrototype.BLOCK, callTarget);
-        this.argNames = argNames;
+    public IoFunction(final RootCallTarget callTarget, final TruffleString name) {
+        super(IoPrototype.BLOCK, callTarget);
+        this.name = name;
     }
 
-    public int getNumArgs() {
-        return argNames.length;
-    }
-
-    public TruffleString[] getArgNames() {
-        return argNames;
+    public TruffleString getFunctionName() {
+        return name;
     }
 
     @Override
     public String toString(int depth) {
-        return "method(" + printSource(depth) + ")";
-    }
-
-    public String printSource(int depth) {
-        if (depth == 0) {
-            return getSourceLocation().getCharacters().toString();
-        } else {
-            return "...";
-        }
+        String string = name.toJavaStringUncached() + "()";
+        return string;
     }
 
     @ExportMessage
     @TruffleBoundary
-    static int identityHashCode(IOMethod receiver) {
+    static int identityHashCode(IoFunction receiver) {
         return System.identityHashCode(receiver);
     }
+
 }

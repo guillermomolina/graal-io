@@ -45,7 +45,7 @@ package org.truffle.io.functions.object;
 
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IOState;
+import org.truffle.io.runtime.IoState;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
@@ -57,7 +57,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "slotNames")
-@ImportStatic(IOState.class)
+@ImportStatic(IoState.class)
 public abstract class ObjectSlotNamesFunction extends FunctionBodyNode {
 
     @Specialization(guards = "objInterop.hasMembers(receiver)")
@@ -78,9 +78,9 @@ public abstract class ObjectSlotNamesFunction extends FunctionBodyNode {
                 }
             }
             //Object[] frameSlotNames = getFrameSlotNames(frame);
-            return IOState.get(this).createList(objectSlotNames);
+            return IoState.get(this).createList(objectSlotNames);
         } catch (UnsupportedMessageException e) {
         }
-        return IOState.get(this).createList(new Object[0]);
+        return IoState.get(this).createList(new Object[0]);
     }
 }

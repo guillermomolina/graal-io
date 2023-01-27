@@ -43,13 +43,13 @@
  */
 package org.truffle.io.nodes.literals;
 
-import org.truffle.io.IOLanguage;
-import org.truffle.io.nodes.IONode;
-import org.truffle.io.nodes.root.IORootNode;
-import org.truffle.io.runtime.IOState;
-import org.truffle.io.runtime.objects.IOBlock;
-import org.truffle.io.runtime.objects.IOLocals;
-import org.truffle.io.runtime.objects.IOObject;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.root.IoRootNode;
+import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.objects.IoBlock;
+import org.truffle.io.runtime.objects.IoLocals;
+import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
@@ -59,54 +59,54 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "block")
-public final class BlockLiteralNode extends IONode {
+public final class BlockLiteralNode extends IoNode {
 
     @Child
-    private IORootNode rootNode;
+    private IoRootNode rootNode;
     private final TruffleString[] argNames;
     @Child
-    private IONode homeNode;
+    private IoNode homeNode;
 
     @CompilationFinal
-    private IOBlock cachedBlock;
+    private IoBlock cachedBlock;
 
-    public BlockLiteralNode(final IORootNode rootNode, TruffleString[] argNames, final IONode homeNode) {
+    public BlockLiteralNode(final IoRootNode rootNode, TruffleString[] argNames, final IoNode homeNode) {
         this.rootNode = rootNode;
         this.argNames = argNames;
         this.homeNode = homeNode;
     }
 
     @Override
-    public IOBlock executeGeneric(VirtualFrame frame) {
+    public IoBlock executeGeneric(VirtualFrame frame) {
         Object targetObject = homeNode.executeGeneric(frame);
-        final IOObject target;
-        if (targetObject instanceof IOObject) {
-            target = (IOObject) targetObject;
+        final IoObject target;
+        if (targetObject instanceof IoObject) {
+            target = (IoObject) targetObject;
         } else {
-            target = IOState.get(this).getPrototype(targetObject);
+            target = IoState.get(this).getPrototype(targetObject);
         }
-        final IOLocals sender = IOState.get(this).createLocals(target, frame.materialize());
+        final IoLocals sender = IoState.get(this).createLocals(target, frame.materialize());
 
-        IOLanguage l = IOLanguage.get(this);
+        IoLanguage l = IoLanguage.get(this);
         CompilerAsserts.partialEvaluationConstant(l);
-        IOBlock block;
+        IoBlock block;
         if (l.isSingleContext()) {
             block = this.cachedBlock;
             if (block == null) {
                  CompilerDirectives.transferToInterpreterAndInvalidate();
-                this.cachedBlock = block = IOState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
+                this.cachedBlock = block = IoState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
             }
         } else {
             if (this.cachedBlock != null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 this.cachedBlock = null;
             }
-            block = IOState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
+            block = IoState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
         }
         return block;
     }
 
-    public IORootNode getValue() {
+    public IoRootNode getValue() {
         return rootNode;
     }
 }

@@ -42,7 +42,7 @@ package org.truffle.io.runtime.objects;
 
 import java.util.List;
 
-import org.truffle.io.runtime.IOObjectUtil;
+import org.truffle.io.runtime.IoObjectUtil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -51,31 +51,31 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
-public class IOList extends IOObject {
+public class IoList extends IoObject {
     private Object[] list;
 
-    public IOList(int size) {
-        super(IOPrototype.LIST);
+    public IoList(int size) {
+        super(IoPrototype.LIST);
         this.list = new Object[size];
     }
 
-    public IOList(Object[] list) {
-        super(IOPrototype.LIST);
+    public IoList(Object[] list) {
+        super(IoPrototype.LIST);
         this.list = list;
     }
 
-    public static IOList create(Object[] list) {
-        return new IOList(list);
+    public static IoList create(Object[] list) {
+        return new IoList(list);
     }
 
     @TruffleBoundary
-    public static IOList create(List<? extends Object> list) {
-        return new IOList(list.toArray(new Object[0]));
+    public static IoList create(List<? extends Object> list) {
+        return new IoList(list.toArray(new Object[0]));
     }
 
     @Override
     public String toString(int depth) {
-        String string = String.format("list(%s)", IOObjectUtil.toString(this, depth));
+        String string = String.format("list(%s)", IoObjectUtil.toString(this, depth));
         return string;
     }
 

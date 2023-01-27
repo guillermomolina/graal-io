@@ -70,7 +70,7 @@ import org.graalvm.polyglot.SourceSection;
 
 import jline.console.UserInterruptException;
 
-public final class IOMain extends AbstractLanguageLauncher {
+public final class IoMain extends AbstractLanguageLauncher {
 
     private static final String LF = System.getProperty("line.separator");
 
@@ -78,7 +78,7 @@ public final class IOMain extends AbstractLanguageLauncher {
             "Try `io -h' for more information.";
 
     public static void main(String[] args) {
-        new IOMain().launch(args);
+        new IoMain().launch(args);
     }
 
     private static final String LANGUAGE_ID = "io";
@@ -93,11 +93,11 @@ public final class IOMain extends AbstractLanguageLauncher {
     private boolean verboseFlag = false;
 
     protected static void setStartupTime() {
-        if (IOMain.startupNanoTime == -1) {
-            IOMain.startupNanoTime = System.nanoTime();
+        if (IoMain.startupNanoTime == -1) {
+            IoMain.startupNanoTime = System.nanoTime();
         }
-        if (IOMain.startupWallClockTime == -1) {
-            IOMain.startupWallClockTime = System.currentTimeMillis();
+        if (IoMain.startupWallClockTime == -1) {
+            IoMain.startupWallClockTime = System.currentTimeMillis();
         }
     }
 
@@ -133,7 +133,7 @@ public final class IOMain extends AbstractLanguageLauncher {
         if (reason == null) {
             reason = "No such file or directory";
         }
-        System.err.println(IOMain.class.getCanonicalName() + ": can't open file '" + e.getFile() + "': " + reason);
+        System.err.println(IoMain.class.getCanonicalName() + ": can't open file '" + e.getFile() + "': " + reason);
     }
 
     private static void printIoLikeStackTrace(PolyglotException e) {
@@ -221,7 +221,7 @@ public final class IOMain extends AbstractLanguageLauncher {
 
     @Override
     protected void launch(Builder contextBuilder) {
-        IOMain.setStartupTime();
+        IoMain.setStartupTime();
 
         // prevent the use of System.out/err - they are PrintStreams which suppresses exceptions
         contextBuilder.out(new FileOutputStream(FileDescriptor.out));

@@ -43,7 +43,7 @@
  */
 package org.truffle.io.nodes.controlflow;
 
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -55,7 +55,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * the {@link WhileNode#executeVoid loop node}.
  */
 @NodeInfo(shortName = "break", description = "The node implementing a break expression")
-public final class BreakNode extends IONode {
+public final class BreakNode extends IoNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {

@@ -41,10 +41,10 @@
 package org.truffle.io.nodes.slots;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.IONode;
+import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IOCall;
-import org.truffle.io.runtime.objects.IOLocals;
+import org.truffle.io.runtime.objects.IoCall;
+import org.truffle.io.runtime.objects.IoLocals;
 
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -57,7 +57,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeField(name = "contextLevel", type = int.class)
 @NodeField(name = "slot", type = int.class)
-public abstract class RemoteSlotNode extends IONode {
+public abstract class RemoteSlotNode extends IoNode {
 
     protected abstract int getContextLevel();
 
@@ -86,17 +86,17 @@ public abstract class RemoteSlotNode extends IONode {
 
     @ExplodeLoop
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        Object argument = frame.getArguments()[IOLocals.CALL_ARGUMENT_INDEX];
-        if (!(argument instanceof IOCall)) {
+        Object argument = frame.getArguments()[IoLocals.CALL_ARGUMENT_INDEX];
+        if (!(argument instanceof IoCall)) {
             // sender is not a block
             throw new NotImplementedException();
         }
-        IOCall call = (IOCall) argument;
-        IOLocals locals = call.getSender();
+        IoCall call = (IoCall) argument;
+        IoLocals locals = call.getSender();
 
         int i = getContextLevel() - 1;
         while (i > 0) {
-            call = (IOCall) locals.getCall();           
+            call = (IoCall) locals.getCall();           
             if (call == null) {
                 throw new NotImplementedException();
             }
