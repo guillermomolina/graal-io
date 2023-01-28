@@ -47,7 +47,6 @@ import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -63,17 +62,13 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "hasProto")
 public abstract class ObjectHasProtoFunction extends FunctionBodyNode {
 
-    @Specialization
-    public boolean hasProtoIOObject(Object value, IoObject prototype) {
-        return IoObjectUtil.hasPrototype(value, prototype);
-    }
-
-    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)", replaces = /*{"hasProtoLong", "hasProtoBoolean", "hasProtoObject",*/ "hasProtoIOObject"/* } */)
+    @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")
     @TruffleBoundary
     public boolean hasProtoMetaObject(Object value, Object metaObject,
                     @CachedLibrary("metaObject") InteropLibrary metaLib) {
         try {
-            return metaLib.isMetaInstance(metaObject, value);
+            boolean isMetaInstance = metaLib.isMetaInstance(metaObject, value);
+            return isMetaInstance;
         } catch (UnsupportedMessageException e) {
             throw shouldNotReachHere(e);
         }

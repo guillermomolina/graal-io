@@ -15,7 +15,7 @@
             "type": "java",
             "name": "Debug (Launch) CLI",
             "request": "launch",
-            "mainClass": "org.truffle.io.launcher.IOMain",
+            "mainClass": "org.truffle.io.launcher.IoMain",
             "projectName": "launcher",
             "args": ["-v"],
             "vmArgs": [
@@ -38,7 +38,7 @@
             "type": "java",
             "name": "Debug (Launch) Current File",
             "request": "launch",
-            "mainClass": "org.truffle.io.launcher.IOMain",
+            "mainClass": "org.truffle.io.launcher.IoMain",
             "projectName": "launcher",
             "args": [
                 "-v",
@@ -64,7 +64,7 @@
             "type": "java",
             "name": "Debug (Launch) Test.io",
             "request": "launch",
-            "mainClass": "org.truffle.io.launcher.IOMain",
+            "mainClass": "org.truffle.io.launcher.IoMain",
             "projectName": "launcher",
             "args": [
                 "-v",

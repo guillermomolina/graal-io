@@ -166,7 +166,7 @@ public class IoObject extends DynamicObject {
     }
 
     @ExportMessage
-    boolean isMetaInstance(Object prototype, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+    boolean isMetaInstance(Object prototype) {
         return IoObjectUtil.hasPrototype(this, prototype);
     }
 
