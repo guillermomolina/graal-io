@@ -50,13 +50,12 @@ import com.oracle.truffle.api.utilities.TriState;
 import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
-public final class IoFalse extends IoPrototype {
+public final class IoFalse extends IoObject {
 
     public static final IoFalse SINGLETON = new IoFalse();
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
     private IoFalse() {
-        super(IoPrototype.OBJECT, Symbols.FALSE);
     }
 
     @Override
