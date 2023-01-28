@@ -37,8 +37,8 @@
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
  * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * LIABILITY, WHETHER IN AN ACTIoN OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTIoN WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
 package org.truffle.io.nodes;
@@ -48,21 +48,45 @@ import com.oracle.truffle.api.dsl.TypeCast;
 import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
+import org.truffle.io.runtime.objects.IoFalse;
 import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
+import org.truffle.io.runtime.objects.IoTrue;
 
 @TypeSystem({boolean.class, long.class, double.class, IoObject.class})
 public abstract class IoTypes {
 
     @TypeCheck(IoNil.class)
-    public static boolean isIONull(Object value) {
+    public static boolean isIoNull(Object value) {
         return value == IoNil.SINGLETON;
     }
 
     @TypeCast(IoNil.class)
-    public static IoNil asIONull(Object value) {
-        assert isIONull(value);
+    public static IoNil asIoNull(Object value) {
+        assert isIoNull(value);
         return IoNil.SINGLETON;
+    }
+
+    @TypeCheck(IoTrue.class)
+    public static boolean isIoTrue(Object value) {
+        return value == IoTrue.SINGLETON;
+    }
+
+    @TypeCast(IoTrue.class)
+    public static IoTrue asIoTrue(Object value) {
+        assert isIoTrue(value);
+        return IoTrue.SINGLETON;
+    }
+
+    @TypeCheck(IoFalse.class)
+    public static boolean isIoFalse(Object value) {
+        return value == IoFalse.SINGLETON;
+    }
+
+    @TypeCast(IoFalse.class)
+    public static IoFalse asIoFalse(Object value) {
+        assert isIoFalse(value);
+        return IoFalse.SINGLETON;
     }
 
     @ImplicitCast
