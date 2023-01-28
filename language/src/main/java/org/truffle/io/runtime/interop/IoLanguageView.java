@@ -56,7 +56,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 import org.truffle.io.IoLanguage;
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.IoObjectUtil;
 
 /**
@@ -106,13 +105,13 @@ public final class IoLanguageView implements TruffleObject {
          * IOMethod is already associated with the IOLanguage and therefore the language view will
          * not be used.
          */
-        return IoTypes.getPrototype(delegate) != null;
+        return IoObjectUtil.getPrototype(delegate) != null;
     }
 
     @ExportMessage
     @ExplodeLoop
     Object getMetaObject(@CachedLibrary("this.delegate") InteropLibrary interop) throws UnsupportedMessageException {
-        Object prototype = IoTypes.getPrototype(delegate);
+        Object prototype = IoObjectUtil.getPrototype(delegate);
         if(prototype != null) {
             return prototype;
         }

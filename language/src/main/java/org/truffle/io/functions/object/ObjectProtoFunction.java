@@ -50,8 +50,8 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.objects.IoNil;
 
 @NodeInfo(shortName = "proto")
@@ -70,7 +70,7 @@ public abstract class ObjectProtoFunction extends FunctionBodyNode {
 
     @Specialization
     public Object proto(Object value) {
-        return IoTypes.getPrototype(value);
+        return IoObjectUtil.getPrototype(value);
     }
 
 

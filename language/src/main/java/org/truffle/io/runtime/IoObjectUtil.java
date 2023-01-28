@@ -10,14 +10,17 @@ import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.NotImplementedException;
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.objects.IoDate;
+import org.truffle.io.runtime.objects.IoFalse;
 import org.truffle.io.runtime.objects.IoList;
 import org.truffle.io.runtime.objects.IoLocals;
 import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
+import org.truffle.io.runtime.objects.IoPrototype;
+import org.truffle.io.runtime.objects.IoTrue;
 
 public final class IoObjectUtil {
     private static int TO_STRING_MAX_DEPTH = 1;
@@ -25,6 +28,35 @@ public final class IoObjectUtil {
     private static boolean TO_STRING_INCLUDE_ARRAY_LENGTH = false;
 
     private IoObjectUtil() {
+    }
+
+    public static IoObject getPrototype(Object obj) {
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
+        if (interop.isNull(obj)) {
+            return IoNil.SINGLETON;
+        } 
+        if (interop.isBoolean(obj)) {          
+            return (Boolean)obj == Boolean.TRUE ? IoTrue.SINGLETON : IoFalse.SINGLETON;
+        } 
+        if (obj instanceof IoObject) {
+            return ((IoObject) obj).getPrototype();
+        } 
+        if (obj instanceof String) {
+            return IoPrototype.SEQUENCE;
+        } 
+        if (obj instanceof TruffleString) {
+            return IoPrototype.SEQUENCE;
+        } 
+        if (interop.fitsInLong(obj)) {
+            return IoPrototype.NUMBER;
+        } 
+        if (interop.fitsInDouble(obj)) {
+            return IoPrototype.NUMBER;
+        } 
+        if(interop.hasMembers(obj)) {
+            return IoPrototype.OBJECT;
+        }
+        return null;
     }
 
     public static void putUncached(IoObject obj, Object key, Object value) {
@@ -72,7 +104,7 @@ public final class IoObjectUtil {
         if(obj instanceof IoObject) {
             return hasPrototype((IoObject) obj, prototype);
         }
-        IoObject objectsPrototype = IoTypes.getPrototype(obj);
+        IoObject objectsPrototype = IoObjectUtil.getPrototype(obj);
         if(objectsPrototype == prototype) {
             return true;
         }
@@ -225,7 +257,7 @@ public final class IoObjectUtil {
         if(obj instanceof IoObject) {
             return lookupSlotUncached((IoObject)obj, key);
         }
-        return lookupSlot(IoTypes.getPrototype(obj), key);
+        return lookupSlot(IoObjectUtil.getPrototype(obj), key);
     }
 
     public static IoObject lookupSlotUncached(IoObject obj, Object key) {      

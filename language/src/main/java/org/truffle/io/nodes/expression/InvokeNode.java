@@ -51,7 +51,6 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.UndefinedNameException;
@@ -98,7 +97,7 @@ public final class InvokeNode extends IoNode {
             }
         } else {
             value = valueNode.executeGeneric(frame);
-            prototype = IoTypes.getPrototype(value);
+            prototype = IoObjectUtil.getPrototype(value);
         }
         if (value == null) {
             executeNull(frame, receiver, value, prototype);
