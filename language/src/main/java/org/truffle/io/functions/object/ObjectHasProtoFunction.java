@@ -45,15 +45,15 @@ package org.truffle.io.functions.object;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IoObjectUtil;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.truffle.io.nodes.expression.FunctionBodyNode;
+import org.truffle.io.runtime.IoObjectUtil;
 
 /**
  * Built-in function that returns true if the given operand is of a given meta-object. Meta-objects

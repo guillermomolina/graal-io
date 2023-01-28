@@ -43,14 +43,14 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.runtime.Symbols;
-
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
+
+import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public final class IoNil extends IoPrototype {
@@ -59,7 +59,7 @@ public final class IoNil extends IoPrototype {
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
     private IoNil() {
-        super(IoPrototype.OBJECT, Symbols.NIL, (l, v) -> l.isNull(v));
+        super(IoPrototype.OBJECT, Symbols.NIL);
     }
 
     @Override

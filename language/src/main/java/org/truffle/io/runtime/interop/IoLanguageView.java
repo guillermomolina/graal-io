@@ -45,11 +45,6 @@ package org.truffle.io.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import org.truffle.io.IoLanguage;
-import org.truffle.io.NotImplementedException;
-import org.truffle.io.ShouldNotBeHereException;
-import org.truffle.io.runtime.objects.IoPrototype;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -59,6 +54,10 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+
+import org.truffle.io.IoLanguage;
+import org.truffle.io.nodes.IoTypes;
+import org.truffle.io.runtime.IoObjectUtil;
 
 /**
  * Language views are needed in order to allow tools to have a consistent perspective on primitive
@@ -96,6 +95,7 @@ public final class IoLanguageView implements TruffleObject {
     @ExportMessage
     @ExplodeLoop
     boolean hasMetaObject(@CachedLibrary("this.delegate") InteropLibrary interop) {
+
         /*
          * We use the isInstance method to find out whether one of the builtin io language types
          * apply. If yes, then we can provide a meta object in getMetaObject. The interop contract
@@ -106,24 +106,15 @@ public final class IoLanguageView implements TruffleObject {
          * IOMethod is already associated with the IOLanguage and therefore the language view will
          * not be used.
          */
-        for (IoPrototype type : IoPrototype.PRECEDENCE) {
-            if (type.isInstance(delegate, interop)) {
-                return true;
-            }
-        }
-        return false;
+        return IoTypes.getPrototype(delegate) != null;
     }
 
     @ExportMessage
     @ExplodeLoop
     Object getMetaObject(@CachedLibrary("this.delegate") InteropLibrary interop) throws UnsupportedMessageException {
-        /*
-         * We do the same as in hasMetaObject but actually return the type this time.
-         */
-        for (IoPrototype type : IoPrototype.PRECEDENCE) {
-            if (type.isInstance(delegate, interop)) {
-                return type;
-            }
+        Object prototype = IoTypes.getPrototype(delegate);
+        if(prototype != null) {
+            return prototype;
         }
         throw UnsupportedMessageException.create();
     }
@@ -131,30 +122,7 @@ public final class IoLanguageView implements TruffleObject {
     @ExportMessage
     @ExplodeLoop
     Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this.delegate") InteropLibrary interop) {
-        for (IoPrototype type : IoPrototype.PRECEDENCE) {
-            if (type.isInstance(this.delegate, interop)) {
-                try {
-                    if (interop.isBoolean(delegate)) {
-                        return Boolean.toString(interop.asBoolean(delegate));
-                    }
-                    if (interop.fitsInLong(delegate)) {
-                        return longToString(interop.asLong(delegate));
-                    }
-                    if (interop.fitsInDouble(delegate)) {
-                        return doubleToString(interop.asDouble(delegate));
-                    }
-                    if (type == IoPrototype.SEQUENCE) {
-                        return interop.asString(delegate);
-                    }
-                    throw new NotImplementedException();
-                    /* We use the type name as fallback for any other type */
-                    //return type.getName();
-                } catch (UnsupportedMessageException e) {
-                    throw new ShouldNotBeHereException(e);
-                }
-            }
-        }
-        return "Unsupported";
+        return IoObjectUtil.toString(delegate);
     }
 
     @TruffleBoundary

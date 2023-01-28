@@ -56,7 +56,7 @@ public final class IoTrue extends IoPrototype {
     private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
 
     private IoTrue() {
-        super(IoPrototype.OBJECT, Symbols.TRUE, (l, v) -> l.isBoolean(v) && (Boolean)v == Boolean.TRUE);
+        super(IoPrototype.OBJECT, Symbols.TRUE);
     }
 
     @Override

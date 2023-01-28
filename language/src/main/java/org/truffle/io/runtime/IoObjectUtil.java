@@ -4,6 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.objects.IoDate;
@@ -11,14 +18,6 @@ import org.truffle.io.runtime.objects.IoList;
 import org.truffle.io.runtime.objects.IoLocals;
 import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
-
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public final class IoObjectUtil {
     private static int TO_STRING_MAX_DEPTH = 1;
@@ -73,7 +72,11 @@ public final class IoObjectUtil {
         if(obj instanceof IoObject) {
             return hasPrototype((IoObject) obj, prototype);
         }
-        return IoTypes.getPrototype(obj) == prototype;
+        IoObject objectsPrototype = IoTypes.getPrototype(obj);
+        if(objectsPrototype == prototype) {
+            return true;
+        }
+        return hasPrototype(objectsPrototype, prototype);
     }
  
     public static boolean hasPrototype(IoObject obj, Object prototype) {
@@ -88,6 +91,13 @@ public final class IoObjectUtil {
             object = object.getPrototype();
         }
         return false;
+    }
+
+    public static String toString(Object object) {
+        if(object instanceof IoObject) {
+            return toString((IoObject)object);
+        }
+        return toStringInner(object, 0);
     }
 
     public static String toString(IoObject object) {
@@ -191,9 +201,9 @@ public final class IoObjectUtil {
         }
         try {
             String asString =  InteropLibrary.getUncached().asString(value);
-            if (value instanceof TruffleString) {
+            /*if (value instanceof TruffleString) {
                 return String.format("\"%s\"", asString);
-            }
+            }*/
             return asString;
         } catch (UnsupportedMessageException e) {}
         if (value instanceof IoObject) {

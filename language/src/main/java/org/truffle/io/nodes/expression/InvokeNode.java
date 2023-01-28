@@ -43,6 +43,13 @@
  */
 package org.truffle.io.nodes.expression;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.IoObjectUtil;
@@ -57,13 +64,6 @@ import org.truffle.io.runtime.objects.IoLocals;
 import org.truffle.io.runtime.objects.IoMessage;
 import org.truffle.io.runtime.objects.IoMethod;
 import org.truffle.io.runtime.objects.IoObject;
-
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "()")
 public final class InvokeNode extends IoNode {
@@ -91,7 +91,11 @@ public final class InvokeNode extends IoNode {
         final Object value;
         if (valueNode == null) {
             prototype = IoObjectUtil.lookupSlot(receiver, name);
-            value = IoObjectUtil.getOrDefaultUncached(prototype, name);
+            if (prototype != null) {
+                value = IoObjectUtil.getOrDefaultUncached(prototype, name);
+            } else {
+                value = null;
+            }
         } else {
             value = valueNode.executeGeneric(frame);
             prototype = IoTypes.getPrototype(value);
@@ -115,7 +119,8 @@ public final class InvokeNode extends IoNode {
         throw UndefinedNameException.undefinedField(this, name);
     }
 
-    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IoFunction function, IoObject prototype) {
+    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IoFunction function,
+            IoObject prototype) {
         final int argumentsCount = argumentNodes.length + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return execute(frame, receiver, function, argumentsCount);
     }
@@ -129,7 +134,8 @@ public final class InvokeNode extends IoNode {
         return execute(frame, call, block, argumentsCount);
     }
 
-    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IoMethod method, IoObject prototype) {
+    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IoMethod method,
+            IoObject prototype) {
         IoLocals sender = IoState.get(this).createLocals(receiver, frame.materialize());
         IoMessage message = IoState.get(this).createMessage(name, argumentNodes);
         IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
@@ -143,7 +149,8 @@ public final class InvokeNode extends IoNode {
     }
 
     @ExplodeLoop
-    protected final Object execute(VirtualFrame frame, final Object receiver, IoInvokable invokable, final int argumentsCount) {
+    protected final Object execute(VirtualFrame frame, final Object receiver, IoInvokable invokable,
+            final int argumentsCount) {
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];
         argumentValues[IoLocals.TARGET_ARGUMENT_INDEX] = receiver;

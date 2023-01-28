@@ -43,35 +43,35 @@
  */
 package org.truffle.io.functions.object;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.objects.IoNil;
-import org.truffle.io.runtime.objects.IoPrototype;
 
-/**
- * Built-in function that returns the type of a guest language value.
- */
 @NodeInfo(shortName = "proto")
 public abstract class ObjectProtoFunction extends FunctionBodyNode {
 
-    /*
-     * This returns the IO type for a particular operand value.
-     */
-    @Specialization(limit = "3")
-    @ExplodeLoop
-    public Object doDefault(Object operand,
-                    @CachedLibrary("operand") InteropLibrary interop) {
-        for (IoPrototype type : IoPrototype.PRECEDENCE) {
-            if (type.isInstance(operand, interop)) {
-                return type;
-            }
+    @Specialization(limit = "3", guards = "metaLib.hasMetaObject(value)")
+    @TruffleBoundary
+    public Object proto(Object value,
+            @CachedLibrary("value") InteropLibrary metaLib) {
+        try {
+            return metaLib.getMetaObject(value);
+        } catch (UnsupportedMessageException e) {
+            return IoNil.SINGLETON;
         }
-        return IoNil.SINGLETON;
     }
+
+    @Specialization
+    public Object proto(Object value) {
+        return IoTypes.getPrototype(value);
+    }
+
 
 }

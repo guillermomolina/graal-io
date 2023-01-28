@@ -43,10 +43,6 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.IoLanguage;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.Symbols;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -65,6 +61,10 @@ import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
+
+import org.truffle.io.IoLanguage;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public class IoObject extends DynamicObject {
@@ -166,8 +166,8 @@ public class IoObject extends DynamicObject {
     }
 
     @ExportMessage
-    boolean isMetaInstance(Object prototype) {
-        return IoObjectUtil.hasPrototype(this, prototype);
+    boolean isMetaInstance(Object instance) {
+        return IoObjectUtil.hasPrototype(instance, this);
     }
 
     @ExportMessage
