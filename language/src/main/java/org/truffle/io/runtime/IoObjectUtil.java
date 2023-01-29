@@ -33,13 +33,15 @@ public final class IoObjectUtil {
     public static IoObject getPrototype(Object obj) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
         if (interop.isNull(obj)) {
-            return IoNil.SINGLETON;
+            return IoNil.SINGLETON.getPrototype();
+            //return IoNil.SINGLETON;
         } 
-        if (interop.isBoolean(obj)) {          
-            return (Boolean)obj == Boolean.TRUE ? IoTrue.SINGLETON : IoFalse.SINGLETON;
-        } 
-        if (obj instanceof IoObject) {
-            return ((IoObject) obj).getPrototype();
+        if (interop.isBoolean(obj)) {   
+            if((Boolean)obj == Boolean.TRUE) {
+                return IoTrue.SINGLETON.getPrototype();
+            } 
+            return IoFalse.SINGLETON.getPrototype();
+            // return (Boolean)obj == Boolean.TRUE ? IoTrue.SINGLETON : IoFalse.SINGLETON;
         } 
         if (obj instanceof String) {
             return IoPrototype.SEQUENCE;

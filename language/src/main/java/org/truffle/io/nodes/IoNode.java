@@ -227,8 +227,12 @@ public abstract class IoNode extends ScopedNode implements InstrumentableNode {
      * subclasses overwrite the appropriate methods.
      */
 
-    public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
+     public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
         return IoTypesGen.expectLong(executeGeneric(frame));
+    }
+
+    public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
+        return IoTypesGen.expectDouble(executeGeneric(frame));
     }
 
     public boolean executeBoolean(VirtualFrame frame) throws UnexpectedResultException {
