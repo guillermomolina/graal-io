@@ -30,37 +30,6 @@ public final class IoObjectUtil {
     private IoObjectUtil() {
     }
 
-    public static IoObject getPrototype(Object obj) {
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
-        if (interop.isNull(obj)) {
-            return IoNil.SINGLETON.getPrototype();
-            //return IoNil.SINGLETON;
-        } 
-        if (interop.isBoolean(obj)) {   
-            if((Boolean)obj == Boolean.TRUE) {
-                return IoTrue.SINGLETON.getPrototype();
-            } 
-            return IoFalse.SINGLETON.getPrototype();
-            // return (Boolean)obj == Boolean.TRUE ? IoTrue.SINGLETON : IoFalse.SINGLETON;
-        } 
-        if (obj instanceof String) {
-            return IoPrototype.SEQUENCE;
-        } 
-        if (obj instanceof TruffleString) {
-            return IoPrototype.SEQUENCE;
-        } 
-        if (interop.fitsInLong(obj)) {
-            return IoPrototype.NUMBER;
-        } 
-        if (interop.fitsInDouble(obj)) {
-            return IoPrototype.NUMBER;
-        } 
-        if(interop.hasMembers(obj)) {
-            return IoPrototype.OBJECT;
-        }
-        return null;
-    }
-
     public static void putUncached(IoObject obj, Object key, Object value) {
         put(DynamicObjectLibrary.getUncached(), obj, key, value);
     }
@@ -82,7 +51,7 @@ public final class IoObjectUtil {
     }
 
     public static Object getOrDefault(Object obj, Object key, Object defaultValue) {
-        IoObject prototype = IoObjectUtil.lookupSlot(obj, key);
+        IoObject prototype = lookupSlot(obj, key);
         return getOrDefaultUncached(prototype, key, defaultValue);
     }
 
@@ -101,16 +70,57 @@ public final class IoObjectUtil {
     public static Object getOrDefault(DynamicObjectLibrary lib, IoObject obj, Object key, Object defaultValue) {
         return lib.getOrDefault(obj, key, defaultValue);
     }
- 
-    public static boolean hasPrototype(Object obj, Object prototype) {
+
+    protected static IoObject asIoObject(Object obj) {
         if(obj instanceof IoObject) {
-            return hasPrototype((IoObject) obj, prototype);
+            return (IoObject)obj;
         }
-        IoObject objectsPrototype = IoObjectUtil.getPrototype(obj);
-        if(objectsPrototype == prototype) {
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
+        if (interop.isNull(obj)) {
+            return IoNil.SINGLETON;
+        }
+        if (interop.isBoolean(obj)) {   
+            if((Boolean)obj == Boolean.TRUE) {
+                return IoTrue.SINGLETON;
+            } 
+            return IoFalse.SINGLETON;
+        } 
+        return null;
+    }
+
+    public static IoObject getPrototype(Object obj) {
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
+        if (obj instanceof String) {
+            return IoPrototype.SEQUENCE;
+        } 
+        if (obj instanceof TruffleString) {
+            return IoPrototype.SEQUENCE;
+        } 
+        if (interop.fitsInLong(obj)) {
+            return IoPrototype.NUMBER;
+        } 
+        if (interop.fitsInDouble(obj)) {
+            return IoPrototype.NUMBER;
+        } 
+        IoObject asIoObject = asIoObject(obj);
+        if(asIoObject != null) {
+            return asIoObject.getPrototype();
+        }
+        if(interop.hasMembers(obj)) {
+            return IoPrototype.OBJECT;
+        }
+        return null;
+    }
+ 
+    public static boolean hasPrototype(Object obj, Object prototype) {       
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
+        }
+        if(objectOrProto == prototype) {
             return true;
         }
-        return hasPrototype(objectsPrototype, prototype);
+        return hasPrototype(objectOrProto, prototype);
     }
  
     public static boolean hasPrototype(IoObject obj, Object prototype) {
@@ -256,10 +266,11 @@ public final class IoObjectUtil {
                 return (IoLocals)obj;
             }
         }
-        if(obj instanceof IoObject) {
-            return lookupSlotUncached((IoObject)obj, key);
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
         }
-        return lookupSlot(IoObjectUtil.getPrototype(obj), key);
+        return lookupSlotUncached(objectOrProto, key);
     }
 
     public static IoObject lookupSlotUncached(IoObject obj, Object key) {      

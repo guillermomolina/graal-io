@@ -53,16 +53,19 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "proto")
 public abstract class ObjectProtoFunction extends FunctionBodyNode {
 
+    // This does not work, it allways assume the cached value
     @Specialization(limit = "3", guards = "metaLib.hasMetaObject(value)")
     @TruffleBoundary
-    public Object proto(Object value,
+    public Object protoWithMeta(Object value,
             @CachedLibrary("value") InteropLibrary metaLib) {
         try {
-            return metaLib.getMetaObject(value);
+            Object prototype = metaLib.getMetaObject(value);
+            return prototype;
         } catch (UnsupportedMessageException e) {
             return IoNil.SINGLETON;
         }
@@ -70,8 +73,8 @@ public abstract class ObjectProtoFunction extends FunctionBodyNode {
 
     @Specialization
     public Object proto(Object value) {
-        return IoObjectUtil.getPrototype(value);
+        IoObject prototype = IoObjectUtil.getPrototype(value);
+        return prototype;
     }
-
 
 }
