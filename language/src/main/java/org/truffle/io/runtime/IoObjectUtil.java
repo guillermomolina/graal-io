@@ -30,12 +30,33 @@ public final class IoObjectUtil {
     private IoObjectUtil() {
     }
 
+    public static void put(Object obj, Object key, Object value) {
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
+        }
+        putUncached(objectOrProto, key, value);
+    }
+
     public static void putUncached(IoObject obj, Object key, Object value) {
         put(DynamicObjectLibrary.getUncached(), obj, key, value);
     }
 
     public static void put(DynamicObjectLibrary lib, IoObject obj, Object key, Object value) {
-        lib.put(obj, key, value);
+        if(obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals)obj;
+            locals.setLocal(key, value);
+        } else {
+            lib.put(obj, key, value);
+        }
+    }
+
+    public static boolean containsKey(Object obj, Object key) {
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
+        }
+        return containsKeyUncached(objectOrProto, key);
     }
 
     public static boolean containsKeyUncached(IoObject obj, Object key) {
@@ -43,6 +64,10 @@ public final class IoObjectUtil {
     }
 
     public static boolean containsKey(DynamicObjectLibrary lib, IoObject obj, Object key) {
+        if(obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals)obj;
+            return locals.hasLocal(key);
+        }
         return lib.containsKey(obj, key);
     }
 
@@ -265,11 +290,6 @@ public final class IoObjectUtil {
     }
 
     public static IoObject lookupSlot(Object obj, Object key) {
-        if(obj instanceof IoLocals) {
-            if (((IoLocals)obj).hasLocal(key)){
-                return (IoLocals)obj;
-            }
-        }
         IoObject objectOrProto = asIoObject(obj);
         if(objectOrProto == null) {
             objectOrProto = getPrototype(obj);
@@ -278,6 +298,11 @@ public final class IoObjectUtil {
     }
 
     public static IoObject lookupSlotUncached(IoObject obj, Object key) {      
+        if(obj instanceof IoLocals) {
+            if (((IoLocals)obj).hasLocal(key)){
+                return (IoLocals)obj;
+            }
+        }
         return lookupSlot(DynamicObjectLibrary.getUncached(), obj, key);
     }
 
@@ -286,7 +311,6 @@ public final class IoObjectUtil {
         IoObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
-            containsKey(lib, object, key);
             if (containsKey(lib, object, key)) {
                 return object;
             }

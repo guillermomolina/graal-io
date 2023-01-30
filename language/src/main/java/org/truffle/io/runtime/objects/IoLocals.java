@@ -40,9 +40,8 @@
  */
 package org.truffle.io.runtime.objects;
 
-import org.truffle.io.NotImplementedException;
-
 import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
 public final class IoLocals extends IoObject {
@@ -99,19 +98,30 @@ public final class IoLocals extends IoObject {
 
     public Object getLocalOrDefault(final Object name, final Object defaultValue) {
         Integer slotIndex = getLocalSlotIndex(name);
-        if(slotIndex != null) {
+        if (slotIndex != null) {
             return frame.getValue(slotIndex);
         }
         return defaultValue;
     }
 
     public Object setLocal(final Object name, final Object value) {
-        throw new NotImplementedException();
-        // Integer slotIndex = getLocalSlotIndex(name);
-        // if(slotIndex != null) {
-        //     WriteRemoteSlotNodeGen.create()
-        //     return frame.set(slotIndex);
-        // }
-        // return null;
+        Integer slotIndex = getLocalSlotIndex(name);
+        if (slotIndex != null) {
+            if (value instanceof Boolean) {
+                frame.getFrameDescriptor().setSlotKind(slotIndex, FrameSlotKind.Boolean);
+                frame.setBoolean(slotIndex, (Boolean) value);
+            } else if (value instanceof Long) {
+                frame.getFrameDescriptor().setSlotKind(slotIndex, FrameSlotKind.Long);
+                frame.setLong(slotIndex, (Long) value);
+            } else if (value instanceof Double) {
+                frame.getFrameDescriptor().setSlotKind(slotIndex, FrameSlotKind.Double);
+                frame.setDouble(slotIndex, (Double) value);
+            } else {
+                frame.getFrameDescriptor().setSlotKind(slotIndex, FrameSlotKind.Object);
+                frame.setObject(slotIndex, value);
+            }
+            return value;
+        }
+        return null;
     }
 }
