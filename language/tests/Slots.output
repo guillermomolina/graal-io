@@ -1,7 +1,7 @@
 5
 6
 nil
-list("call", "self", "y", "m2")
+list(self, y, m2, call)
 7
 nil
 nil

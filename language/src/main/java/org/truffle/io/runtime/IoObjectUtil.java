@@ -30,40 +30,19 @@ public final class IoObjectUtil {
     private IoObjectUtil() {
     }
 
-    public static void put(Object obj, Object key, Object value) {
+    public static boolean hasSlot(Object obj, Object key) {
         IoObject objectOrProto = asIoObject(obj);
         if(objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
-        putUncached(objectOrProto, key, value);
+        return hasSlotUncached(objectOrProto, key);
     }
 
-    public static void putUncached(IoObject obj, Object key, Object value) {
-        put(DynamicObjectLibrary.getUncached(), obj, key, value);
+    public static boolean hasSlotUncached(IoObject obj, Object key) {
+        return hasSlot(DynamicObjectLibrary.getUncached(), obj, key);
     }
 
-    public static void put(DynamicObjectLibrary lib, IoObject obj, Object key, Object value) {
-        if(obj instanceof IoLocals) {
-            IoLocals locals = (IoLocals)obj;
-            locals.setLocal(key, value);
-        } else {
-            lib.put(obj, key, value);
-        }
-    }
-
-    public static boolean containsKey(Object obj, Object key) {
-        IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
-            objectOrProto = getPrototype(obj);
-        }
-        return containsKeyUncached(objectOrProto, key);
-    }
-
-    public static boolean containsKeyUncached(IoObject obj, Object key) {
-        return containsKey(DynamicObjectLibrary.getUncached(), obj, key);
-    }
-
-    public static boolean containsKey(DynamicObjectLibrary lib, IoObject obj, Object key) {
+    public static boolean hasSlot(DynamicObjectLibrary lib, IoObject obj, Object key) {
         if(obj instanceof IoLocals) {
             IoLocals locals = (IoLocals)obj;
             return locals.hasLocal(key);
@@ -76,8 +55,11 @@ public final class IoObjectUtil {
     }
 
     public static Object getOrDefault(Object obj, Object key, Object defaultValue) {
-        IoObject prototype = lookupSlot(obj, key);
-        return getOrDefaultUncached(prototype, key, defaultValue);
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
+        }
+        return getOrDefaultUncached(objectOrProto, key, defaultValue);
     }
 
     public static Object getOrDefaultUncached(IoObject obj, Object key) {
@@ -311,7 +293,7 @@ public final class IoObjectUtil {
         IoObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
-            if (containsKey(lib, object, key)) {
+            if (hasSlot(lib, object, key)) {
                 return object;
             }
             visitedProtos.add(object);
@@ -352,6 +334,27 @@ public final class IoObjectUtil {
         }
         putUncached(objectOrProto, key, value);
         return value;
+    }
+
+    public static void put(Object obj, Object key, Object value) {
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
+        }
+        putUncached(objectOrProto, key, value);
+    }
+
+    public static void putUncached(IoObject obj, Object key, Object value) {
+        put(DynamicObjectLibrary.getUncached(), obj, key, value);
+    }
+
+    public static void put(DynamicObjectLibrary lib, IoObject obj, Object key, Object value) {
+        if(obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals)obj;
+            locals.setLocal(key, value);
+        } else {
+            lib.put(obj, key, value);
+        }
     }
 
 }

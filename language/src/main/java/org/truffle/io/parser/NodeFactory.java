@@ -86,7 +86,7 @@ import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.nodes.slots.ListLocalSlotNamesNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
-import org.truffle.io.nodes.slots.ReadMemberNodeGen;
+import org.truffle.io.nodes.slots.ReadMemberNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.WriteMemberNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
@@ -716,7 +716,7 @@ public class NodeFactory {
             return null;
         }
 
-        final IoNode result = ReadMemberNodeGen.create(receiverNode, nameNode);
+        final IoNode result = new ReadMemberNode(receiverNode, nameNode);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;

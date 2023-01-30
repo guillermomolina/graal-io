@@ -44,37 +44,67 @@
 package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.nodes.util.ToTruffleStringNodeGen;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoObject;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 
-@NodeInfo(shortName = "getSlot")
-public final class ReadMemberNode extends IoNode {
+@NodeInfo(shortName = ".")
+@NodeChild("receiverNode")
+@NodeChild("nameNode")
+public abstract class ReadMemberNode extends IoNode {
 
-    @Child
-    protected IoNode receiverNode;
-    @Child
-    protected IoNode nameNode;
-    protected final ToTruffleStringNode toTruffleStringNode;
-
-    public ReadMemberNode(final IoNode receiverNode, final IoNode nameNode) {
-        this.receiverNode = receiverNode;
-        this.nameNode = nameNode;
-        this.toTruffleStringNode = ToTruffleStringNodeGen.create();
-    }
-
-    @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        Object receiver = receiverNode.executeGeneric(frame);
-        Object name = nameNode.executeGeneric(frame);
-        Object value = IoObjectUtil.getOrDefault(receiver, name);
-        if (value == null) {
+    static final int LIBRARY_LIMIT = 3;
+ 
+    @Specialization(limit = "LIBRARY_LIMIT")
+    protected Object readIOObject(IoObject receiver, Object name,
+            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        TruffleString nameTS = toTruffleStringNode.execute(name);
+        Object value = IoObjectUtil.getOrDefault(objectLibrary, receiver, nameTS, null);
+        if(value == null) {
             throw UndefinedNameException.undefinedField(this, name);
         }
         return value;
     }
+
+    @Specialization(guards = "!isIOObject(receiver)", limit = "LIBRARY_LIMIT")
+    protected Object readObject(Object receiver, Object name,
+            @CachedLibrary("receiver") InteropLibrary objects,
+            @Cached ToMemberNode asMember) {
+        try {
+            return objects.readMember(receiver, asMember.execute(name));
+        } catch (UnsupportedMessageException | UnknownIdentifierException e) {
+            throw UndefinedNameException.undefinedField(this, name);
+        }
+    }
+
+    @Specialization
+    protected Object read(Object receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        TruffleString nameTS = toTruffleStringNode.execute(name);
+        Object value = IoObjectUtil.getOrDefault(receiver, nameTS, IoNil.SINGLETON);
+        if(value == null) {
+            throw UndefinedNameException.undefinedField(this, name);
+        }
+        return value;    
+    }
+
+    static boolean isIOObject(Object receiver) {
+        return receiver instanceof IoObject;
+    }
+
 }
