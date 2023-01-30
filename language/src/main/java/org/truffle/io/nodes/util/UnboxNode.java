@@ -43,9 +43,8 @@
  */
 package org.truffle.io.nodes.util;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
-
 import org.truffle.io.IoLanguage;
+import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.IoTypes;
 import org.truffle.io.runtime.objects.IoMethod;
@@ -121,7 +120,7 @@ public abstract class UnboxNode extends IoNode {
                 return value;
             }
         } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
+            throw new ShouldNotBeHereException(e);
         }
     }
 

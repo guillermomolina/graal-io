@@ -43,7 +43,9 @@
  */
 package org.truffle.io.runtime.interop;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
+import org.truffle.io.IoLanguage;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.runtime.IoObjectUtil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -54,9 +56,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-
-import org.truffle.io.IoLanguage;
-import org.truffle.io.runtime.IoObjectUtil;
 
 /**
  * Language views are needed in order to allow tools to have a consistent perspective on primitive
@@ -147,7 +146,7 @@ public final class IoLanguageView implements TruffleObject {
         try {
             return !interop.hasLanguage(value) || interop.getLanguage(value) != IoLanguage.class;
         } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
+            throw new ShouldNotBeHereException(e);
         }
     }
 
@@ -169,7 +168,7 @@ public final class IoLanguageView implements TruffleObject {
                 return create(value);
             }
         } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
+            throw new ShouldNotBeHereException(e);
         }
     }
 

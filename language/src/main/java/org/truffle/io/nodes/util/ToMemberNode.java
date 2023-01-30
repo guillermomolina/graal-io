@@ -43,7 +43,8 @@
  */
 package org.truffle.io.nodes.util;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
+import org.truffle.io.ShouldNotBeHereException;
+import org.truffle.io.nodes.IoTypes;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -56,8 +57,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
-
-import org.truffle.io.nodes.IoTypes;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
@@ -112,7 +111,7 @@ public abstract class ToMemberNode extends Node {
                 throw error(value);
             }
         } catch (UnsupportedMessageException e) {
-            throw shouldNotReachHere(e);
+            throw new ShouldNotBeHereException(e);
         }
     }
 

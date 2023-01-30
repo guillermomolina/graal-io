@@ -43,9 +43,8 @@
  */
 package org.truffle.io.runtime;
 
-import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
-
 import org.truffle.io.IoLanguage;
+import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.runtime.interop.IoLanguageView;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -119,7 +118,7 @@ public class IoLanguageException extends AbstractTruffleException {
                     try {
                         qualifiedName = UNCACHED_LIB.asString(UNCACHED_LIB.getMetaQualifiedName(valueLib.getMetaObject(value)));
                     } catch (UnsupportedMessageException e) {
-                        throw shouldNotReachHere(e);
+                        throw new ShouldNotBeHereException(e);
                     }
                     result.append(qualifiedName);
                     result.append(" ");
