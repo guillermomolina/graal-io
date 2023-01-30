@@ -43,19 +43,21 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.objects.IoLocals;
+
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
-
-import org.truffle.io.nodes.IoNode;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeChild(value = "valueNode", type = IoNode.class)
 public abstract class WriteRemoteSlotNode extends RemoteSlotNode {
 
     @Specialization(guards = "isLongOrIllegal(frame)")
-    protected long writeLong(VirtualFrame frame, long value) {
+    protected long writeLong(IoLocals sender, TruffleString name, long value) {
         final MaterializedFrame context = determineContext(frame);
         context.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Long);
         context.setLong(getSlot(), value);
@@ -63,7 +65,7 @@ public abstract class WriteRemoteSlotNode extends RemoteSlotNode {
     }
 
     @Specialization(guards = "isBooleanOrIllegal(frame)")
-    protected boolean writeBoolean(VirtualFrame frame, boolean value) {
+    protected boolean writeBoolean(IoLocals sender, TruffleString name, long value) {
         final MaterializedFrame context = determineContext(frame);
         context.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Boolean);
         context.setBoolean(getSlot(), value);
@@ -71,7 +73,7 @@ public abstract class WriteRemoteSlotNode extends RemoteSlotNode {
     }
 
     @Specialization(replaces = { "writeLong", "writeBoolean" })
-    protected Object write(VirtualFrame frame, Object value) {
+    protected Object write(IoLocals sender, TruffleString name, long value) {
         final MaterializedFrame context = determineContext(frame);
         context.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Object);
         context.setObject(getSlot(), value);

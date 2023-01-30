@@ -88,7 +88,7 @@ import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.ReadMemberNodeGen;
 import org.truffle.io.nodes.slots.WriteLocalSlotNodeGen;
-import org.truffle.io.nodes.slots.WriteMemberNodeGen;
+import org.truffle.io.nodes.slots.WriteMemberNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IoLocals;
@@ -479,29 +479,29 @@ public class NodeFactory {
             return null;
         }
 
-        final IoNode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode, initialize);
+        final IoNode result = new WriteMemberNode(receiverNode, nameNode, valueNode, initialize);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
         return result;
     }
 
-    public IoNode createWriteSlot(IoNode receiverNode, IoNode assignmentNameNode,
+    public IoNode createWriteSlot(IoNode receiverNode, IoNode nameNode,
             IoNode valueNode, int startPos, int length, boolean initialize) {
         IoNode result = null;
         if (receiverNode == null) {
-            result = createWriteLocalSlot(assignmentNameNode, valueNode, startPos, length, initialize);
+            result = createWriteLocalSlot(nameNode, valueNode, startPos, length, initialize);
             if (result == null) {
                 if (hasLocals()) {
-                    throw new NotImplementedException();
-                    //receiverNode = createReadCallSender();
+                    receiverNode = createReadCallSender(startPos, length);
+                    //result = createWriteRemoteSlot(receiverNode, nameNode, valueNode, startPos, length);
                 } else {
                     receiverNode = createReadTarget();
                 }
             }
         }
         if (result == null) {
-            result = createWriteProperty(receiverNode, assignmentNameNode, valueNode, startPos, length, initialize);
+            result = createWriteProperty(receiverNode, nameNode, valueNode, startPos, length, initialize);
         }
         assert result != null;
         return result;
@@ -522,6 +522,16 @@ public class NodeFactory {
         result.addExpressionTag();
         return result;
     }
+
+    /*public IoNode createWriteRemoteSlot(IoNode sender, IoNode nameNode, IoNode valueNode, int startPos, int length) {
+        if (nameNode == null || valueNode == null) {
+            return null;
+        }
+        final IoNode result = WriteRemoteSlotNodeGen.create(senderNode, nameNode, valueNode, nameNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+        return result;
+    }*/
 
     public IoNode createReadLocalSlot(StringLiteralNode nameNode) {
         assert nameNode != null;

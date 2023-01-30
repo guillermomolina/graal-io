@@ -4,14 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.runtime.objects.IoDate;
 import org.truffle.io.runtime.objects.IoFalse;
@@ -21,6 +13,14 @@ import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
 import org.truffle.io.runtime.objects.IoPrototype;
 import org.truffle.io.runtime.objects.IoTrue;
+
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public final class IoObjectUtil {
     private static int TO_STRING_MAX_DEPTH = 1;
@@ -290,6 +290,40 @@ public final class IoObjectUtil {
             object = object.getPrototype();
         }
         return null;
+    }
+
+    public static Object updateSlot(Object obj, Object key, Object value) {
+        if(obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals)obj;
+            if (locals.hasLocal(key)){
+                locals.setLocal(key, value);
+                return value;
+            }
+        }
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
+        }
+        DynamicObjectLibrary lib = DynamicObjectLibrary.getUncached();
+        IoObject slotOwner = lookupSlot(lib, objectOrProto, key);
+        if(slotOwner != null) {
+            put(lib, slotOwner, key, value);
+            return value;
+        }
+        return null;
+    }
+
+    public static Object setSlot(Object obj, Object key, Object value) {
+        if(obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals)obj;
+            return locals.setLocal(key, value);
+        }
+        IoObject objectOrProto = asIoObject(obj);
+        if(objectOrProto == null) {
+            objectOrProto = getPrototype(obj);
+        }
+        putUncached(objectOrProto, key, value);
+        return value;
     }
 
 }

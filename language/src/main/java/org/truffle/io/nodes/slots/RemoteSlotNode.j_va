@@ -42,51 +42,34 @@ package org.truffle.io.nodes.slots;
 
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.runtime.objects.IoCall;
-import org.truffle.io.runtime.objects.IoLocals;
 
-import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.profiles.ValueProfile;
-import com.oracle.truffle.api.strings.TruffleString;
 
-@NodeField(name = "contextLevel", type = int.class)
-@NodeField(name = "slot", type = int.class)
+@NodeChild("senderNode")
+@NodeChild("nameNode")
 public abstract class RemoteSlotNode extends IoNode {
 
-    protected abstract int getContextLevel();
-
-    protected abstract int getSlot();
-
-    private static final ValueProfile frameType = ValueProfile.createClassProfile();
+    //private static final ValueProfile frameType = ValueProfile.createClassProfile();
+    private Integer slot = null;
 
     @Override
     public boolean hasTag(Class<? extends Tag> tag) {
         return tag == ReadVariableTag.class || super.hasTag(tag);
     }
 
-    protected TruffleString getSlotName(final MaterializedFrame ctx) {
-        return (TruffleString) ctx.getFrameDescriptor().getSlotName(getSlot());
-    }
-
-    @Override
-    public Object getNodeObject() {
-        return NodeObjectDescriptor
-                .readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
-    }
-
-    public final boolean accessesOuterContext() {
-        return getContextLevel() > 0;
+    public Integer getSlot() {
+        return slot;
     }
 
     @ExplodeLoop
     protected final MaterializedFrame determineContext(final VirtualFrame frame) {
-        Object argument = frame.getArguments()[IoLocals.CALL_ARGUMENT_INDEX];
+        throw new NotImplementedException();
+        /*Object argument = frame.getArguments()[IoLocals.CALL_ARGUMENT_INDEX];
         if (!(argument instanceof IoCall)) {
             // sender is not a block
             throw new NotImplementedException();
@@ -106,7 +89,7 @@ public abstract class RemoteSlotNode extends IoNode {
 
         // Graal needs help here to see that this is always a MaterializedFrame
         // so, we record explicitly a class profile
-        return frameType.profile(locals.getFrame());
+        return frameType.profile(locals.getFrame());*/
 
     }
 

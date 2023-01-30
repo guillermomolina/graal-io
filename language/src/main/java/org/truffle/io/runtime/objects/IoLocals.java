@@ -40,6 +40,8 @@
  */
 package org.truffle.io.runtime.objects;
 
+import org.truffle.io.NotImplementedException;
+
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 
@@ -77,14 +79,18 @@ public final class IoLocals extends IoObject {
     }
 
     public boolean hasLocal(final Object name) {
+        return getLocalSlotIndex(name) != null;
+    }
+
+    public Integer getLocalSlotIndex(final Object name) {
         FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
 
         for (int i = 0; i < frameDescriptor.getNumberOfSlots(); i++) {
             if (name.equals(frameDescriptor.getSlotName(i))) {
-                return true;
+                return i;
             }
         }
-        return false;
+        return null;
     }
 
     public Object getLocal(final Object name) {
@@ -92,13 +98,20 @@ public final class IoLocals extends IoObject {
     }
 
     public Object getLocalOrDefault(final Object name, final Object defaultValue) {
-        FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
-
-        for (int i = 0; i < frameDescriptor.getNumberOfSlots(); i++) {
-            if (name.equals(frameDescriptor.getSlotName(i))) {
-                return frame.getValue(i);
-            }
+        Integer slotIndex = getLocalSlotIndex(name);
+        if(slotIndex != null) {
+            return frame.getValue(slotIndex);
         }
         return defaultValue;
+    }
+
+    public Object setLocal(final Object name, final Object value) {
+        throw new NotImplementedException();
+        // Integer slotIndex = getLocalSlotIndex(name);
+        // if(slotIndex != null) {
+        //     WriteRemoteSlotNodeGen.create()
+        //     return frame.set(slotIndex);
+        // }
+        // return null;
     }
 }

@@ -44,55 +44,47 @@
 package org.truffle.io.nodes.slots;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.util.ToMemberNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.nodes.util.ToTruffleStringNodeGen;
+import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.UndefinedNameException;
-import org.truffle.io.runtime.objects.IoObject;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
 @NodeInfo(shortName = "setSlot")
-@NodeChild("receiverNode")
-@NodeChild("nameNode")
-@NodeChild("valueNode")
-@NodeField(name="initialize", type=Boolean.class)
-public abstract class WriteMemberNode extends IoNode {
+public final class WriteMemberNode extends IoNode {
 
-    static final int LIBRARY_LIMIT = 3;
-    protected abstract boolean getInitialize();
+    @Child
+    protected IoNode receiverNode;
+    @Child
+    protected IoNode nameNode;
+    @Child
+    protected IoNode valueNode;
+    protected final ToTruffleStringNode toTruffleStringNode;
+    protected final boolean initialize;
 
-    @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object writeIOObject(IoObject receiver, Object name, Object value,
-                    @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
-                    @Cached ToTruffleStringNode toTruffleStringNode) {
-        objectLibrary.put(receiver, toTruffleStringNode.execute(name), value);
-        return value;
+    public WriteMemberNode(final IoNode receiverNode, final IoNode nameNode, final IoNode valueNode,
+            final boolean initialize) {
+        this.receiverNode = receiverNode;
+        this.nameNode = nameNode;
+        this.valueNode = valueNode;
+        this.initialize = initialize;
+        this.toTruffleStringNode = ToTruffleStringNodeGen.create();
     }
 
-    @Specialization(guards = "!isIOObject(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object writeObject(Object receiver, Object name, Object value,
-                    @CachedLibrary("receiver") InteropLibrary objectLibrary,
-                    @Cached ToMemberNode asMember) {
-        try {
-            objectLibrary.writeMember(receiver, asMember.execute(name), value);
-        } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
-            // write was not successful. In IO we only have basic support for errors.
-            throw UndefinedNameException.undefinedField(this, name);
+    @Override
+    public Object executeGeneric(VirtualFrame frame) {
+        Object receiver = receiverNode.executeGeneric(frame);
+        Object name = nameNode.executeGeneric(frame);
+        Object value = valueNode.executeGeneric(frame);
+        if (initialize) {
+            IoObjectUtil.setSlot(receiver, name, value);
+        } else {
+            if (IoObjectUtil.updateSlot(receiver, name, value) == null) {
+                throw UndefinedNameException.undefinedField(this, name);
+            }            
         }
         return value;
-    }
-
-    static boolean isIOObject(Object receiver) {
-        return receiver instanceof IoObject;
     }
 }
