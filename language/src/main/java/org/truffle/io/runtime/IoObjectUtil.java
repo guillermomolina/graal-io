@@ -64,10 +64,14 @@ public final class IoObjectUtil {
     }
 
     public static Object getOrDefault(DynamicObjectLibrary lib, IoObject obj, Object key) {
-        return lib.getOrDefault(obj, key, null);
+        return getOrDefault(obj, key, null);
     }
 
     public static Object getOrDefault(DynamicObjectLibrary lib, IoObject obj, Object key, Object defaultValue) {
+        if(obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals)obj;
+            return locals.getLocalOrDefault(key, defaultValue);
+        }
         return lib.getOrDefault(obj, key, defaultValue);
     }
 
