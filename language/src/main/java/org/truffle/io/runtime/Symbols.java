@@ -48,10 +48,13 @@ import org.truffle.io.nodes.root.EvalRootNode;
 import org.truffle.io.nodes.root.FunctionRootNode;
 
 import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.strings.TruffleString;
 
 public final class Symbols {
+
+    public static final TruffleString EMPTY_SYMBOL = constant("");
 
     public static final TruffleString NIL = constant("nil");
     public static final TruffleString TRUE = constant("true");
@@ -99,4 +102,14 @@ public final class Symbols {
             throw CompilerDirectives.shouldNotReachHere();
         }
     }
+        /**
+     * Uncached conversion of {@link String} to {@link TruffleString}. The intended use of this
+     * method is in slow-path where the argument is a variable as a shortcut for
+     * {@link TruffleString#fromJavaStringUncached(String, Encoding)}.
+     */
+    @TruffleBoundary
+    public static TruffleString toTruffleStringUncached(String s) {
+        return s == null ? null : TruffleString.fromJavaStringUncached(s, IoLanguage.STRING_ENCODING);
+    }
+
 }

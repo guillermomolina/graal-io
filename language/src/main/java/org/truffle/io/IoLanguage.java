@@ -47,9 +47,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.graalvm.options.OptionDescriptors;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.EvalRootNode;
 import org.truffle.io.parser.IoLanguageNodeVisitor;
+import org.truffle.io.runtime.IoOptions;
 import org.truffle.io.runtime.IoState;
 import org.truffle.io.runtime.interop.IoLanguageView;
 
@@ -174,6 +176,11 @@ public final class IoLanguage extends TruffleLanguage<IoState> {
     @TruffleBoundary
     public static TruffleLogger getLogger(String name) {
         return TruffleLogger.getLogger(ID, name);
+    }
+
+    @Override
+    protected OptionDescriptors getOptionDescriptors() {
+        return IoOptions.createDescriptors();
     }
 
 }

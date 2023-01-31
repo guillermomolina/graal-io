@@ -44,10 +44,18 @@
 package org.truffle.io.runtime;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
 
 import org.graalvm.polyglot.Context;
 import org.truffle.io.IoLanguage;
@@ -130,6 +138,7 @@ public final class IoState {
     private final PrintWriter output;
     private final AllocationReporter allocationReporter;
     private final List<IoInvokable> shutdownHooks = new ArrayList<>();
+    @CompilationFinal(dimensions = 1) private Object[] optionValues;
 
     private static final Source BUILTIN_SOURCE = Source.newBuilder(IoLanguage.ID, "", "IO builtin").build();
 
@@ -153,6 +162,7 @@ public final class IoState {
         for (NodeFactory<? extends FunctionBodyNode> builtin : externalBuiltins) {
             installBuiltin(builtin);
         }
+        
     }
 
     /**
@@ -298,6 +308,38 @@ public final class IoState {
         String functionName = targetName + "_" + name;
         IoFunction function = createFunction(rootNode.getCallTarget(), Symbols.fromJavaString(functionName));
         IoObjectUtil.putUncached(target, Symbols.fromJavaString(name), function);
+    }
+
+    private void evalBootstrapCode(Context context, ConsoleHandler consoleHandler) {
+        env.getOptions().get(IoOptions.IoLibPath);
+        Path rootPath = null;
+        for (String path : optionValues.ioLibPath) {
+            Path candidate = FileSystems.getDefault().getPath(path, "bootstrap");
+            if (Files.exists(candidate)) {
+                rootPath = candidate;
+                break;
+            }
+        }
+
+        if (rootPath != null) {
+            try {
+                Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attrs) throws IOException {
+                        String sourceName = sourceFile.getFileName().toString();
+                        if (sourceName.endsWith(SOURCE_SUFFIX)) {
+                            String sourceCode = readAllLines(sourceFile.toAbsolutePath().toString());
+                            Source src = Source.newBuilder(getLanguageId(), sourceCode, "<bootstrap>")
+                                    .internal(true).build();
+                            context.eval(src);
+                        }
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+        }
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {

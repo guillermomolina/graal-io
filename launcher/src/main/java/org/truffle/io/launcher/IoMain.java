@@ -235,6 +235,8 @@ public final class IoMain extends AbstractLanguageLauncher {
             contextBuilder.option("log.io.level", "FINE");
         }
 
+        contextBuilder.option("io.ioLibPath", "./lib");
+
         int rc = 1;
         try (Context context = contextBuilder.build()) {
             consoleHandler.setContext(context);
@@ -243,7 +245,7 @@ public final class IoMain extends AbstractLanguageLauncher {
                 try {
                     evalNonInteractive(context, consoleHandler);
                     rc = 0;
-                /*} catch (PolyglotException e) {
+                    /*} catch (PolyglotException e) {
                     if (!e.isExit()) {
                         printIoLikeStackTrace(e);
                     } else {
