@@ -49,28 +49,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
-import com.oracle.truffle.api.TruffleLanguage.Env;
-import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.instrumentation.AllocationReporter;
-import com.oracle.truffle.api.interop.ArityException;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.graalvm.polyglot.Context;
 import org.truffle.io.IoLanguage;
 import org.truffle.io.ShouldNotBeHereException;
@@ -85,6 +63,7 @@ import org.truffle.io.functions.number.NumberFloorFunctionFactory;
 import org.truffle.io.functions.object.ObjectCloneFunctionFactory;
 import org.truffle.io.functions.object.ObjectDoFileFunctionFactory;
 import org.truffle.io.functions.object.ObjectDoStringFunctionFactory;
+import org.truffle.io.functions.object.ObjectGetSlotFunctionFactory;
 import org.truffle.io.functions.object.ObjectHasProtoFunctionFactory;
 import org.truffle.io.functions.object.ObjectIsActivatableFunctionFactory;
 import org.truffle.io.functions.object.ObjectIsNilFunctionFactory;
@@ -119,6 +98,28 @@ import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
 import org.truffle.io.runtime.objects.IoPrototype;
 import org.truffle.io.runtime.objects.IoTrue;
+
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
+import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.interop.ArityException;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public final class IoState {
 
@@ -230,6 +231,7 @@ public final class IoState {
         installBuiltin(ObjectCloneFunctionFactory.getInstance());
         installBuiltin(ObjectDoFileFunctionFactory.getInstance());
         installBuiltin(ObjectDoStringFunctionFactory.getInstance());
+        installBuiltin(ObjectGetSlotFunctionFactory.getInstance());
         installBuiltin(ObjectHasProtoFunctionFactory.getInstance());
         installBuiltin(ObjectIsActivatableFunctionFactory.getInstance());
         installBuiltin(ObjectIsNilFunctionFactory.getInstance());

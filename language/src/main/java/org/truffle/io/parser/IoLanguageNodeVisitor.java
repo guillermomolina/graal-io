@@ -333,9 +333,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
             result = factory.createListLocalSlotNames(start, length);
-            if(result != null) {
-                return result;
-            }
+        }
+        if(result != null) {
+            return result;
         }
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
@@ -362,7 +362,16 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         } else {
             nameNode = factory.createStringLiteral(ctx.name, true);
         }
-        final IoNode result = factory.createGetSlot(receiverNode, nameNode, start, length);
+        IoNode result = null;
+        if (receiverNode == null) {
+            result = factory.createGetSlot(receiverNode, nameNode, start, length);
+        }
+        if(result != null) {
+            return result;
+        }
+        List<IoNode> argumentNodes = new ArrayList<>();
+        argumentNodes.add(nameNode);
+        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
         assert result != null;
         return result;
     }

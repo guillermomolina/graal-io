@@ -5,8 +5,8 @@ list(self, y, m2, call)
 7
 nil
 nil
-list("call", "self", "z")
+list(self, z)
 10
-10
+nil
 nil
 list()

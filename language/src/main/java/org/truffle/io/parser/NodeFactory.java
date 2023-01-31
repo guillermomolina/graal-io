@@ -766,6 +766,19 @@ public class NodeFactory {
         return createReadProperty(targetNode, nameNode, 0, 0);
     }
 
+    public IoNode createGetSlot(IoNode nameNode, int startPos, int length) {
+        if (hasLocals()) {
+            IoNode resultNode = createReadLocalSlot(nameNode, startPos, length);
+            if (resultNode == null) {
+                resultNode = new NilLiteralNode();
+                resultNode.setSourceSection(startPos, length);
+                resultNode.addExpressionTag();
+            }
+            return resultNode;
+        }
+        return null;
+    }
+
     public IoNode createInvokeSlot(IoNode receiverNode, Token identifierToken, List<IoNode> argumentNodes,
             int startPos, int length) {
         IoNode targetNode = receiverNode;
