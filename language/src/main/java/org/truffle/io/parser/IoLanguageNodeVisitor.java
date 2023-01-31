@@ -48,12 +48,11 @@ import org.truffle.io.parser.IoLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IoLanguageParser.WhileMessageContext;
 
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.source.Source;
 
 public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
-    private static final TruffleLogger LOGGER = IoLanguage.getLogger(IoLanguageNodeVisitor.class);
+    //private static final TruffleLogger LOGGER = IoLanguage.getLogger(IoLanguageNodeVisitor.class);
 
     private NodeFactory factory;
     private Source source;
@@ -120,7 +119,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
     @Override
     public IoNode visitIolanguage(IolanguageContext ctx) {
-        LOGGER.fine("Started visitIolanguage()");
+        //LOGGER.fine("Started visitIolanguage()");
         factory.enterNewScope(ctx.start.getStartIndex());
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
@@ -132,7 +131,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         final IoNode result = factory.createFunction(bodyNode, startPos, length);
         assert result != null;
-        LOGGER.fine("Ended visitIolanguage()");
+        //LOGGER.fine("Ended visitIolanguage()");
         return result;
     }
 

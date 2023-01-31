@@ -73,11 +73,10 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
-
-@TruffleLanguage.Registration(id = IoLanguage.ID, name = "IO", defaultMimeType = IoLanguage.MIME_TYPE, characterMimeTypes = IoLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = FileDetector.class, //
-                website = "https://iolanguage.org/")
-@ProvidedTags({StandardTags.CallTag.class, StandardTags.ExpressionTag.class, StandardTags.RootTag.class, StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
-                StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class})
+@TruffleLanguage.Registration(id = IoLanguage.ID, name = "IO", defaultMimeType = IoLanguage.MIME_TYPE, characterMimeTypes = IoLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = FileDetector.class, website = "https://iolanguage.org/")
+@ProvidedTags({ StandardTags.CallTag.class, StandardTags.ExpressionTag.class, StandardTags.RootTag.class,
+        StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
+        StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class })
 public final class IoLanguage extends TruffleLanguage<IoState> {
     public static volatile int counter;
 
@@ -87,7 +86,6 @@ public final class IoLanguage extends TruffleLanguage<IoState> {
     public static final TruffleString.Encoding STRING_ENCODING = TruffleString.Encoding.UTF_16;
 
     private final Assumption singleContext = Truffle.getRuntime().createAssumption("Single IO context.");
-
 
     public IoLanguage() {
         counter++;
@@ -157,10 +155,16 @@ public final class IoLanguage extends TruffleLanguage<IoState> {
         return REFERENCE.get(node);
     }
 
-    private static final List<NodeFactory<? extends FunctionBodyNode>> EXTERNAL_BUILTINS = Collections.synchronizedList(new ArrayList<>());
+    private static final List<NodeFactory<? extends FunctionBodyNode>> EXTERNAL_BUILTINS = Collections
+            .synchronizedList(new ArrayList<>());
 
     public static void installBuiltin(NodeFactory<? extends FunctionBodyNode> builtin) {
         EXTERNAL_BUILTINS.add(builtin);
+    }
+
+    @Override
+    protected void initializeContext(IoState context) {
+        context.initialize();
     }
 
     @Override
@@ -180,7 +184,8 @@ public final class IoLanguage extends TruffleLanguage<IoState> {
 
     @Override
     protected OptionDescriptors getOptionDescriptors() {
-        return IoOptions.createDescriptors();
+        OptionDescriptors optionDescriptors = IoOptions.createDescriptors();
+        return optionDescriptors;
     }
 
 }

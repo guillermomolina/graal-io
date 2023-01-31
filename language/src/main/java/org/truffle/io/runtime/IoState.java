@@ -47,15 +47,16 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.ConsoleHandler;
 
 import org.graalvm.polyglot.Context;
 import org.truffle.io.IoLanguage;
@@ -90,6 +91,7 @@ import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.expression.FunctionBodyNode;
 import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
+import org.truffle.io.runtime.IoOptions.IoContextOptions;
 import org.truffle.io.runtime.objects.IoBlock;
 import org.truffle.io.runtime.objects.IoCall;
 import org.truffle.io.runtime.objects.IoCoroutine;
@@ -114,6 +116,7 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.MaterializedFrame;
@@ -123,6 +126,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
+import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
@@ -130,6 +134,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
 public final class IoState {
+    private static final TruffleLogger LOGGER = IoLanguage.getLogger(IoState.class);
 
     private final IoLanguage language;
     @CompilationFinal
@@ -138,9 +143,11 @@ public final class IoState {
     private final PrintWriter output;
     private final AllocationReporter allocationReporter;
     private final List<IoInvokable> shutdownHooks = new ArrayList<>();
-    @CompilationFinal(dimensions = 1) private Object[] optionValues;
+    public final IoContextOptions options;
 
     private static final Source BUILTIN_SOURCE = Source.newBuilder(IoLanguage.ID, "", "IO builtin").build();
+    private static final String SOURCE_SUFFIX = ".io";
+    private static final String LF = System.getProperty("line.separator");
 
     private final IoObject lobby;
     private final IoObject protos;
@@ -157,12 +164,12 @@ public final class IoState {
         this.protos = cloneObject();
         this.lobby = cloneObject(protos);
         this.currentCoroutine = createCoroutine();
+        this.options = new IoContextOptions(env);
         setupLobby();
         installBuiltins();
         for (NodeFactory<? extends FunctionBodyNode> builtin : externalBuiltins) {
             installBuiltin(builtin);
         }
-        
     }
 
     /**
@@ -310,10 +317,9 @@ public final class IoState {
         IoObjectUtil.putUncached(target, Symbols.fromJavaString(name), function);
     }
 
-    private void evalBootstrapCode(Context context, ConsoleHandler consoleHandler) {
-        env.getOptions().get(IoOptions.IoLibPath);
+    public void initialize() {
         Path rootPath = null;
-        for (String path : optionValues.ioLibPath) {
+        for (String path : options.ioLibPath) {
             Path candidate = FileSystems.getDefault().getPath(path, "bootstrap");
             if (Files.exists(candidate)) {
                 rootPath = candidate;
@@ -326,12 +332,15 @@ public final class IoState {
                 Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
                     @Override
                     public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attrs) throws IOException {
-                        String sourceName = sourceFile.getFileName().toString();
+                        String sourceName = sourceFile.toAbsolutePath().toString();
                         if (sourceName.endsWith(SOURCE_SUFFIX)) {
-                            String sourceCode = readAllLines(sourceFile.toAbsolutePath().toString());
-                            Source src = Source.newBuilder(getLanguageId(), sourceCode, "<bootstrap>")
+                            LOGGER.fine("Bootstrap load file: " + sourceName);
+                            String sourceCode = readAllLines(sourceName);
+                            Source src = Source.newBuilder(IoLanguage.ID, sourceCode, "<bootstrap>")
                                     .internal(true).build();
-                            context.eval(src);
+                            CallTarget callTarget = parse(src);
+                            DirectCallNode callNode = DirectCallNode.create(callTarget);
+                            callNode.call(getLobby());
                         }
                         return FileVisitResult.CONTINUE;
                     }
@@ -340,6 +349,14 @@ public final class IoState {
                 throw new RuntimeException(ex);
             }
         }
+    }
+
+    private static String readAllLines(String fileName) throws IOException {
+        StringBuilder outFile = new StringBuilder();
+        for (String line : Files.readAllLines(Paths.get(fileName), Charset.defaultCharset())) {
+            outFile.append(line).append(LF);
+        }
+        return outFile.toString();
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {

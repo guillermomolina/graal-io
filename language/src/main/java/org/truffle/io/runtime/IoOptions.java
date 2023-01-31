@@ -54,7 +54,7 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 
 @Option.Group(IoLanguage.ID)
 public class IoOptions {
-    public static final String IO_LIB_PATH = "lib-path";
+    public static final String IO_LIB_PATH = "io-lib-path";
     public static final String IO_LIB_PATH_HELP = "Path ':'-separated list of directories prefixed to the default lib search path.";
 
     @Option(name = IO_LIB_PATH, category = OptionCategory.USER, stability = OptionStability.STABLE, help = IO_LIB_PATH_HELP)//
@@ -64,7 +64,7 @@ public class IoOptions {
     }
 
     public static OptionDescriptors createDescriptors() {
-        return new IoOptionDescriptors();
+        return new IoOptionsOptionDescriptors();
     }
 
     public static final class IoContextOptions {
