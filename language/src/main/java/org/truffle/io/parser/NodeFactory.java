@@ -51,6 +51,7 @@ import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.arithmetic.AddNodeGen;
+import org.truffle.io.nodes.arithmetic.ConcatNodeGen;
 import org.truffle.io.nodes.arithmetic.DivNodeGen;
 import org.truffle.io.nodes.arithmetic.MulNodeGen;
 import org.truffle.io.nodes.arithmetic.SubNodeGen;
@@ -460,6 +461,9 @@ public class NodeFactory {
                 break;
             case "||":
                 result = new LogicalOrNode(leftUnboxed, rightUnboxed);
+                break;
+            case "..":
+                result = ConcatNodeGen.create(leftUnboxed, rightUnboxed);
                 break;
             default:
                 throw new RuntimeException("unexpected operation: " + opToken.getText());

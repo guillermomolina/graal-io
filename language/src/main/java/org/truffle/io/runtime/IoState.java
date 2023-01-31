@@ -49,13 +49,11 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.graalvm.polyglot.Context;
@@ -329,25 +327,27 @@ public final class IoState {
 
         if (rootPath != null) {
             try {
-                Files.walkFileTree(rootPath, new SimpleFileVisitor<Path>() {
-                    @Override
-                    public FileVisitResult visitFile(Path sourceFile, BasicFileAttributes attrs) throws IOException {
-                        String sourceName = sourceFile.toAbsolutePath().toString();
-                        if (sourceName.endsWith(SOURCE_SUFFIX)) {
-                            LOGGER.fine("Bootstrap load file: " + sourceName);
-                            String sourceCode = readAllLines(sourceName);
-                            Source src = Source.newBuilder(IoLanguage.ID, sourceCode, "<bootstrap>")
-                                    .internal(true).build();
-                            CallTarget callTarget = parse(src);
-                            DirectCallNode callNode = DirectCallNode.create(callTarget);
-                            callNode.call(getLobby());
-                        }
-                        return FileVisitResult.CONTINUE;
-                    }
-                });
+                Files.list(rootPath).filter(s -> s.toString().endsWith(SOURCE_SUFFIX))
+                        .sorted(Comparator.comparing(s -> s.toString()))
+                        .forEach(file -> loadBootstrapFile(file));
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
+        }
+    }
+
+    protected void loadBootstrapFile(final Path sourceFile) {
+        String sourceName = sourceFile.toAbsolutePath().toString();
+        LOGGER.fine("Bootstrap load file: " + sourceName);
+        try {
+            String sourceCode = readAllLines(sourceName);
+            Source src = Source.newBuilder(IoLanguage.ID, sourceCode, "<bootstrap>")
+                    .internal(true).build();
+            CallTarget callTarget = parse(src);
+            DirectCallNode callNode = DirectCallNode.create(callTarget);
+            callNode.call(getLobby());
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 

@@ -235,7 +235,7 @@ public final class IoMain extends AbstractLanguageLauncher {
             contextBuilder.option("log.io.level", "FINE");
         }
 
-        contextBuilder.option("io.io-lib-path", "./lib");
+        contextBuilder.option("io.io-lib-path", "./lib2");
 
         int rc = 1;
         try (Context context = contextBuilder.build()) {
