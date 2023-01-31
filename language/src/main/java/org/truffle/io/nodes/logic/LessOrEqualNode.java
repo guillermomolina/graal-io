@@ -45,12 +45,17 @@ package org.truffle.io.nodes.logic;
 
 import java.math.BigInteger;
 
+import org.truffle.io.ShouldNotBeHereException;
 import org.truffle.io.nodes.expression.BinaryNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.IoLanguageException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 @NodeInfo(shortName = "<=")
@@ -95,8 +100,35 @@ public abstract class LessOrEqualNode extends BinaryNode {
     return left <= right;
   }
 
-  @Fallback
-  protected Object typeError(Object left, Object right) {
-    throw IoLanguageException.typeError(this, left, right);
+
+  @Specialization(limit = "4")
+  public final Object doGeneric(Object left, Object right,
+                  @CachedLibrary("left") InteropLibrary leftInterop,
+                  @Cached ToTruffleStringNode toTruffleStringNodeRight) {
+      try {
+          Object rightAsNumber = StringToNumber(toTruffleStringNodeRight.execute(right).toJavaStringUncached());
+          if (leftInterop.fitsInLong(left) && rightAsNumber instanceof Long) {
+              return doLong(leftInterop.asLong(left), (Long)rightAsNumber);  
+          } else if (leftInterop.fitsInDouble(left) && rightAsNumber instanceof Double) {
+              return doDouble(leftInterop.asDouble(left), (Double)rightAsNumber);
+          } else {
+              throw IoLanguageException.typeError(this, left, right);
+          }
+      } catch (UnsupportedMessageException e) {
+          throw new ShouldNotBeHereException(e);
+      }
   }
+
+  public static final Object StringToNumber(String string) {
+    try {
+      return Long.parseLong(string);
+    } catch(NumberFormatException e1) {
+      try {
+        return Double.parseDouble(string);
+      } catch(NumberFormatException e2) {
+        return null;
+      }
+    }
+  }
+
 }

@@ -36,7 +36,7 @@ obj5 := Object clone
 i := 1
 obj5 prop0 := 1
 while (i < 10,
-  write(obj5, "prop" + i, read(obj5, "prop" + (i - 1)) * 2)
+  write(obj5, "prop" .. i, read(obj5, "prop" .. (i - 1)) * 2)
   i := i + 1
 )
 obj5 prop2 println

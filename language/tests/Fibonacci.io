@@ -14,6 +14,6 @@ fib := method(num,
 
 i := 1
 while (i <= 10,
-  (i + ": " + fib(i)) println
+  (i .. ": " .. fib(i)) println
   i := i + 1
 )
