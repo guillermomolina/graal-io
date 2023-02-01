@@ -43,14 +43,14 @@
  */
 package org.truffle.io.nodes.expression;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.exceptions.IoLanguageException;
+
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.runtime.IoLanguageException;
 
 @NodeChild(value = "arguments", type = IoNode[].class)
 @GenerateNodeFactory

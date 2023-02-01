@@ -44,7 +44,7 @@
 package org.truffle.io.functions.list;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IoLanguageException;
+import org.truffle.io.runtime.exceptions.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;

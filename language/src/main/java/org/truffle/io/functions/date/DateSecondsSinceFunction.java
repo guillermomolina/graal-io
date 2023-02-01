@@ -43,7 +43,7 @@ package org.truffle.io.functions.date;
 import java.util.Date;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IoLanguageException;
+import org.truffle.io.runtime.exceptions.IoLanguageException;
 import org.truffle.io.runtime.objects.IoDate;
 
 import com.oracle.truffle.api.dsl.Fallback;

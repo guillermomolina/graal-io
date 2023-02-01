@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,28 +41,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.controlflow;
+package org.truffle.io.runtime.exceptions;
 
-import org.truffle.io.nodes.expression.MethodBodyNode;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.nodes.Node;
 
-import com.oracle.truffle.api.nodes.ControlFlowException;
+public final class UndefinedNameException extends IoLanguageException {
 
-/**
- * Exception thrown by the {@link ReturnNode return expression} and caught by the
- * {@link MethodBodyNode function body}. The exception transports the return value in its
- * {@link #result} field.
- */
-public final class ReturnException extends ControlFlowException {
+    private static final long serialVersionUID = 1L;
 
-    private static final long serialVersionUID = 4073191346281369231L;
-
-    private final Object result;
-
-    public ReturnException(Object result) {
-        this.result = result;
+    @TruffleBoundary
+    public static UndefinedNameException undefinedField(Node location, Object name) {
+        throw new UndefinedNameException("Object does not respond to '" + name + "'", location);
     }
 
-    public Object getResult() {
-        return result;
+    private UndefinedNameException(String message, Node node) {
+        super(message, node);
     }
 }

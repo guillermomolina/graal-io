@@ -47,7 +47,7 @@ import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.nodes.util.ToTruffleStringNodeGen;
 import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.exceptions.UndefinedNameException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;

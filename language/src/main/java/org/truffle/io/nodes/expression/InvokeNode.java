@@ -43,17 +43,10 @@
  */
 package org.truffle.io.nodes.expression;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.IoState;
-import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.exceptions.UndefinedNameException;
 import org.truffle.io.runtime.objects.IoBlock;
 import org.truffle.io.runtime.objects.IoCall;
 import org.truffle.io.runtime.objects.IoCoroutine;
@@ -64,6 +57,13 @@ import org.truffle.io.runtime.objects.IoMessage;
 import org.truffle.io.runtime.objects.IoMethod;
 import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
+
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "()")
 public final class InvokeNode extends IoNode {

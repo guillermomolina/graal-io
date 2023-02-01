@@ -41,7 +41,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.nodes.controlflow;
+package org.truffle.io.runtime.exceptions;
+
+import org.truffle.io.nodes.controlflow.ContinueNode;
+import org.truffle.io.nodes.controlflow.WhileNode;
 
 import com.oracle.truffle.api.nodes.ControlFlowException;
 

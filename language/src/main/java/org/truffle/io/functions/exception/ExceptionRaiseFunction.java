@@ -41,8 +41,8 @@
 package org.truffle.io.functions.exception;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IoLanguageException;
 import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.exceptions.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;

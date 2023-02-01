@@ -44,8 +44,8 @@
 package org.truffle.io.functions.system;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IoLanguageException;
 import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.exceptions.IoLanguageException;
 import org.truffle.io.runtime.objects.IoInvokable;
 import org.truffle.io.runtime.objects.IoNil;
 

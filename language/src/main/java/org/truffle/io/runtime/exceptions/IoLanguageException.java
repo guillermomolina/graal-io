@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime;
+package org.truffle.io.runtime.exceptions;
 
 import org.truffle.io.IoLanguage;
 import org.truffle.io.ShouldNotBeHereException;

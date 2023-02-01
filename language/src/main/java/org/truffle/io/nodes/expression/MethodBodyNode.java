@@ -44,9 +44,9 @@
 package org.truffle.io.nodes.expression;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.controlflow.ReturnException;
 import org.truffle.io.nodes.controlflow.ReturnNode;
 import org.truffle.io.nodes.root.IoRootNode;
+import org.truffle.io.runtime.exceptions.ReturnException;
 import org.truffle.io.runtime.objects.IoNil;
 
 import com.oracle.truffle.api.frame.VirtualFrame;

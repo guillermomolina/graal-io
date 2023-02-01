@@ -43,7 +43,7 @@ package org.truffle.io.functions.system;
 import java.util.concurrent.TimeUnit;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.IoLanguageException;
+import org.truffle.io.runtime.exceptions.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;

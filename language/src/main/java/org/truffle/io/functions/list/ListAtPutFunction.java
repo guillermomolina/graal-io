@@ -41,9 +41,9 @@
 package org.truffle.io.functions.list;
 
 import org.truffle.io.nodes.expression.FunctionBodyNode;
-import org.truffle.io.runtime.OutOfBoundsException;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.UndefinedNameException;
+import org.truffle.io.runtime.exceptions.OutOfBoundsException;
+import org.truffle.io.runtime.exceptions.UndefinedNameException;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;

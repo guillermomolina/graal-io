@@ -45,7 +45,7 @@ package org.truffle.io.nodes.controlflow;
 
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
-import org.truffle.io.runtime.IoLanguageException;
+import org.truffle.io.runtime.exceptions.IoLanguageException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;

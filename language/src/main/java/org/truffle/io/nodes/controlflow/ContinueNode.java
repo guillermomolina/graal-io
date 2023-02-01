@@ -44,6 +44,7 @@
 package org.truffle.io.nodes.controlflow;
 
 import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.exceptions.ContinueException;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;

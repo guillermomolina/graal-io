@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2015, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,21 +41,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime;
+package org.truffle.io.runtime.exceptions;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.nodes.Node;
+import org.truffle.io.nodes.controlflow.BreakNode;
+import org.truffle.io.nodes.controlflow.WhileNode;
 
-public final class UndefinedNameException extends IoLanguageException {
+import com.oracle.truffle.api.nodes.ControlFlowException;
 
-    private static final long serialVersionUID = 1L;
+/**
+ * Exception thrown by the {@link BreakNode break expression} and caught by the {@link WhileNode
+ * loop expression}. Since the exception is stateless, i.e., has no instance fields, we can use a
+ * {@link #SINGLETON} to avoid memory allocation during interpretation.
+ */
+public final class BreakException extends ControlFlowException {
 
-    @TruffleBoundary
-    public static UndefinedNameException undefinedField(Node location, Object name) {
-        throw new UndefinedNameException("Object does not respond to '" + name + "'", location);
-    }
+    public static final BreakException SINGLETON = new BreakException();
 
-    private UndefinedNameException(String message, Node node) {
-        super(message, node);
+    private static final long serialVersionUID = -91013036379258890L;
+
+    /* Prevent instantiation from outside. */
+    private BreakException() {
     }
 }
