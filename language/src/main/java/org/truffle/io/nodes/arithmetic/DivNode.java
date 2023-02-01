@@ -46,6 +46,7 @@ package org.truffle.io.nodes.arithmetic;
 import org.truffle.io.nodes.expression.BinaryNode;
 import org.truffle.io.runtime.IoLanguageException;
 
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -71,8 +72,21 @@ public abstract class DivNode extends BinaryNode {
     }
   
     @Specialization
-    public static final long doLong(final long left, final double right) {
-      return (long) (left / right);
+    @TruffleBoundary
+    public static final double doDouble(final long left, final double right) {
+      return left / right;
+    }
+      
+    @Specialization
+    @TruffleBoundary
+    public static final double doDouble(final double left, final long right) {
+      return left / right;
+    }
+
+    @Specialization
+    @TruffleBoundary
+    public static final double doDouble(final double left, final double right) {
+      return left / right;
     }
     
     @Fallback

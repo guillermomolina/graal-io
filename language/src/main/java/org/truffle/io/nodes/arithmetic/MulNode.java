@@ -77,8 +77,9 @@ public abstract class MulNode extends BinaryNode {
     }
   
     @Specialization
-    public static final double doLong(final long left, final double right) {
-      return doDouble(left, right);
+    @TruffleBoundary
+    public static final double doDouble(final long left, final double right) {
+      return left * right;
     }
       
     @Specialization
@@ -88,6 +89,7 @@ public abstract class MulNode extends BinaryNode {
     }
 
     @Specialization
+    @TruffleBoundary
     public static final double doDouble(final double left, final double right) {
       return left * right;
     }

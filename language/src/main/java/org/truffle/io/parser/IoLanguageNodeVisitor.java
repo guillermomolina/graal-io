@@ -3,9 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -49,6 +46,9 @@ import org.truffle.io.parser.IoLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IoLanguageParser.ThisLocalContextMessageContext;
 import org.truffle.io.parser.IoLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IoLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.source.Source;
 
 public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
@@ -170,15 +170,11 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.op == null) {
             throw new ShouldNotBeHereException();
         }
-        try {
-            IoNode leftNode = visitOperation(ctx.operation(0));
-            IoNode rightNode = visitOperation(ctx.operation(1));
-            final IoNode result = factory.createBinary(ctx.op, leftNode, rightNode);
-            assert result != null;
-            return result;
-        } catch (RuntimeException exception) {
-            throw new NotImplementedException();
-        }
+        IoNode leftNode = visitOperation(ctx.operation(0));
+        IoNode rightNode = visitOperation(ctx.operation(1));
+        final IoNode result = factory.createBinary(ctx.op, leftNode, rightNode);
+        assert result != null;
+        return result;
     }
 
     @Override
@@ -626,7 +622,10 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.decimal() != null) {
             return visitDecimal(ctx.decimal());
         }
-        throw new NotImplementedException();
+        if (ctx.FLOAT() != null) {
+            return factory.createNumericLiteral(ctx.FLOAT().getSymbol());
+        }
+        throw new ShouldNotBeHereException();
     }
 
     @Override
