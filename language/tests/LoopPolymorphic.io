@@ -7,8 +7,6 @@ loop := method(n,
   ) 
 )
 
-add("a", "b")
-
 i := 0
 while (i < 20,
   loop(1000)
