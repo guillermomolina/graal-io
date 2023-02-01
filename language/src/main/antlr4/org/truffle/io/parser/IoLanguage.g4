@@ -96,7 +96,7 @@ messageNext
     | messageInvoke
     ;
 
-messageInvoke: identifier arguments?;
+messageInvoke: QUESTION? identifier arguments?;
 arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 
 repeatMessage: REPEAT OPEN EOL* expression? EOL* CLOSE;
@@ -322,10 +322,11 @@ IDENTIFIER: (LETTER | '_') (LETTER | '_' | DIGIT)*;
 
 OPERATOR:  (':' | '.' | '\'' | '~' | '!' | '@' | '$' | 
     '%' | '^' | '&' | '*' | '-' | '+' | '/' | '=' | '{' | '}' | 
-    '[' | ']' | '|' | '\\' | '<' | '>' | '?')+
+    '[' | ']' | '|' | '\\' | '<' | '>' )+
     ;
 
 COMMA: ',';
+QUESTION: '?';
 OPEN: '(' | '[' | '{';
 CLOSE:')' | ']' | '}';
 STRING: SHORT_STRING | LONG_STRING;

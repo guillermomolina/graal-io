@@ -46,6 +46,12 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
@@ -93,12 +99,6 @@ import org.truffle.io.nodes.slots.WriteMemberNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IoLocals;
-
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -425,7 +425,8 @@ public class NodeFactory {
         final IoNode rightUnboxed = UnboxNodeGen.create(rightNode);
 
         final IoNode result;
-        switch (opToken.getText()) {
+        String op = opToken.getText();
+        switch (op) {
             case "+":
                 result = AddNodeGen.create(leftUnboxed, rightUnboxed);
                 break;
@@ -466,7 +467,7 @@ public class NodeFactory {
                 result = ConcatNodeGen.create(leftUnboxed, rightUnboxed);
                 break;
             default:
-                throw new RuntimeException("unexpected operation: " + opToken.getText());
+                throw new RuntimeException("unexpected operation: " + op);
         }
 
         int startPos = leftNode.getSourceCharIndex();
@@ -784,7 +785,7 @@ public class NodeFactory {
     }
 
     public IoNode createInvokeSlot(IoNode receiverNode, Token identifierToken, List<IoNode> argumentNodes,
-            int startPos, int length) {
+    boolean failIfAbsent, int startPos, int length) {
         IoNode targetNode = receiverNode;
         IoNode valueNode = null;
         if (targetNode == null) {
@@ -801,13 +802,13 @@ public class NodeFactory {
         TruffleString identifier = asTruffleString(identifierToken, false);
         assert targetNode != null;
         IoNode result = new InvokeNode(targetNode, valueNode, identifier,
-                argumentNodes.toArray(new IoNode[argumentNodes.size()]));
+                argumentNodes.toArray(new IoNode[argumentNodes.size()]), failIfAbsent);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
+    public IoNode createDo(IoNode receiverNode, IoNode functionNode, boolean failIfAbsent, int startPos, int length) {
         IoNode targetNode = receiverNode;
         if (targetNode == null) {
             if (hasLocals()) {
@@ -818,7 +819,7 @@ public class NodeFactory {
         }
         TruffleString identifier = Symbols.fromJavaString("do");
         assert targetNode != null;
-        IoNode result = new InvokeNode(targetNode, functionNode, identifier, new IoNode[0]);
+        IoNode result = new InvokeNode(targetNode, functionNode, identifier, new IoNode[0], failIfAbsent);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;

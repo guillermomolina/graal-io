@@ -3,6 +3,9 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -46,9 +49,6 @@ import org.truffle.io.parser.IoLanguageParser.SubexpressionContext;
 import org.truffle.io.parser.IoLanguageParser.ThisLocalContextMessageContext;
 import org.truffle.io.parser.IoLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IoLanguageParser.WhileMessageContext;
-
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.source.Source;
 
 public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
@@ -171,13 +171,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             throw new ShouldNotBeHereException();
         }
         try {
-            IoNode result = null;
             IoNode leftNode = visitOperation(ctx.operation(0));
             IoNode rightNode = visitOperation(ctx.operation(1));
-            switch (ctx.op.getText()) {
-                default:
-                    result = factory.createBinary(ctx.op, leftNode, rightNode);
-            }
+            final IoNode result = factory.createBinary(ctx.op, leftNode, rightNode);
             assert result != null;
             return result;
         } catch (RuntimeException exception) {
@@ -188,7 +184,8 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     @Override
     public IoNode visitAssignment(final AssignmentContext ctx) {
         boolean initialize = false;
-        switch (ctx.assign.getText()) {
+        String op = ctx.assign.getText();
+        switch (op) {
             case "::=":
                 initialize = true;
                 break;
@@ -199,7 +196,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
                 initialize = false;
                 break;
             default:
-                throw new NotImplementedException();
+                throw new RuntimeException("unexpected operation: " + op);
         }
         IoNode receiverNode = null;
         if (ctx.message() != null) {
@@ -321,7 +318,8 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = createArgumentsList(ctx.arguments());
-        result = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, start, length);
+        boolean failIfAbsent = ctx.QUESTION() == null;
+        result = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, failIfAbsent, start, length);
         assert result != null;
         return result;
     }
@@ -339,7 +337,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = new ArrayList<>();
-        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, true, start, length);
         assert result != null;
         return result;
     }
@@ -370,7 +368,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         List<IoNode> argumentNodes = new ArrayList<>();
         argumentNodes.add(nameNode);
-        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, true, start, length);
         assert result != null;
         return result;
     }
@@ -438,7 +436,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         FunctionLiteralNode functionNode = factory.createFunction(bodyNode, bodyStart, length);
         int start = ctx.start.getStartIndex();
         length = ctx.stop.getStopIndex() - start + 1;
-        IoNode result = factory.createDo(receiverNode, functionNode, start, length);
+        IoNode result = factory.createDo(receiverNode, functionNode, true, start, length);
         assert result != null;
         return result;
     }

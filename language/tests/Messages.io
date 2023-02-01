@@ -9,3 +9,14 @@ o3 m := method(o2)
 
 o3 m m m println
 
+m1 := method("out")
+m := method(
+    m1 := method("in")
+    m1 println
+    ?m1 println
+    ?m2 println
+    a := ?m2
+    a println
+)
+m
+

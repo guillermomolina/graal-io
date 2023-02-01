@@ -62,6 +62,7 @@ import org.truffle.io.runtime.objects.IoInvokable;
 import org.truffle.io.runtime.objects.IoLocals;
 import org.truffle.io.runtime.objects.IoMessage;
 import org.truffle.io.runtime.objects.IoMethod;
+import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "()")
@@ -74,13 +75,15 @@ public final class InvokeNode extends IoNode {
     private final TruffleString name;
     @Children
     private final IoNode[] argumentNodes;
+    private final boolean failIfAbsent;
 
     public InvokeNode(final IoNode receiverNode, final IoNode valueNode, final TruffleString name,
-            final IoNode[] argumentNodes) {
+            final IoNode[] argumentNodes, boolean failIfAbsent) {
         this.receiverNode = receiverNode;
         this.valueNode = valueNode;
         this.name = name;
         this.argumentNodes = argumentNodes;
+        this.failIfAbsent = failIfAbsent;
     }
 
     @Override
@@ -100,7 +103,10 @@ public final class InvokeNode extends IoNode {
             prototype = IoObjectUtil.getPrototype(value);
         }
         if (value == null) {
-            executeNull(frame, receiver, value, prototype);
+            if(failIfAbsent) {
+                throw UndefinedNameException.undefinedField(this, name);
+            }
+            return IoNil.SINGLETON;
         }
         if (value instanceof IoFunction) {
             return executeFunction(frame, receiver, (IoFunction) value, prototype);
@@ -112,10 +118,6 @@ public final class InvokeNode extends IoNode {
             return executeMethod(frame, receiver, (IoMethod) value, prototype);
         }
         return executeOther(frame, receiver, value, prototype);
-    }
-
-    protected final Object executeNull(VirtualFrame frame, final Object receiver, Object unknown, IoObject prototype) {
-        throw UndefinedNameException.undefinedField(this, name);
     }
 
     protected final Object executeFunction(VirtualFrame frame, final Object receiver, IoFunction function,
