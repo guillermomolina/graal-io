@@ -46,7 +46,6 @@ package org.truffle.io.nodes.arithmetic;
 import org.truffle.io.nodes.expression.BinaryNode;
 import org.truffle.io.runtime.exceptions.IoLanguageException;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -59,38 +58,40 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "/")
 public abstract class DivNode extends BinaryNode {
 
-    @Specialization(rewriteOn = ArithmeticException.class)
-    protected long div(long left, long right) throws ArithmeticException {
-        long result = left / right;
-        /*
-         * The division overflows if left is Long.MIN_VALUE and right is -1.
-         */
-        if ((left & right & result) < 0) {
-            throw new ArithmeticException("long overflow");
-        }
-        return result;
-    }
-  
-    @Specialization
-    @TruffleBoundary
-    public static final double doDouble(final long left, final double right) {
-      return left / right;
-    }
-      
-    @Specialization
-    @TruffleBoundary
-    public static final double doDouble(final double left, final long right) {
-      return left / right;
-    }
+  // otherwise, explicitly check for cornercase
+  protected static boolean isCornercase(long a, long b) {
+    return a != 0 && !(b == -1 && a == Long.MIN_VALUE);
+  }
 
-    @Specialization
-    @TruffleBoundary
-    public static final double doDouble(final double left, final double right) {
-      return left / right;
+  // when b is positive, the result will fit long (if without remainder)
+  @Specialization(rewriteOn = ArithmeticException.class, guards = "b > 0")
+  protected long doLong1(long a, long b) {
+    if (a % b == 0) {
+      return a / b;
     }
-    
-    @Fallback
-    protected Object typeError(Object left, Object right) {
-        throw IoLanguageException.typeError(this, left, right);
-    }
+    throw new ArithmeticException();
+  }
+
+  // otherwise, ensure a > 0 (this also excludes two cornercases):
+  // when a == 0, result would be NegativeZero
+  // when a == Long.MIN_VALUE && b == -1, result does not fit into long
+  @Specialization(rewriteOn = ArithmeticException.class, guards = "a > 0")
+  protected long doLong2(long a, long b) {
+    return doLong1(a, b);
+  }
+
+  @Specialization(rewriteOn = ArithmeticException.class, guards = "isCornercase(a, b)")
+  protected long doLong3(long a, long b) {
+    return doLong1(a, b);
+  }
+
+  @Specialization(replaces = { "doLong1", "doLong2", "doLong3" })
+  protected double doDouble(double a, double b) {
+    return a / b;
+  }
+
+  @Fallback
+  protected Object typeError(Object left, Object right) {
+    throw IoLanguageException.typeError(this, left, right);
+  }
 }

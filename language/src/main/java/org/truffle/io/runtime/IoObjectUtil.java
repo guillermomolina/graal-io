@@ -40,6 +40,8 @@
  */
 package org.truffle.io.runtime;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -303,6 +305,20 @@ public final class IoObjectUtil {
         } catch (UnsupportedMessageException e) {}
         if (value instanceof IoObject) {
             return ((IoObject)value).toString(depth);
+        }
+        if (value instanceof Double) {
+            Double valueAsDouble = (Double)value;
+            DecimalFormat decimalFormat = new DecimalFormat();
+
+            DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
+            decimalFormatSymbols.setInfinity("inf");
+            decimalFormatSymbols.setNaN("nan");
+            decimalFormat.setDecimalFormatSymbols(decimalFormatSymbols);          
+            //decimalFormat.setGroupingUsed(false);
+            //decimalFormat.setDecimalSeparatorAlwaysShown(false);
+            //decimalFormat.setMaximumIntegerDigits(10);
+            String output = decimalFormat.format(valueAsDouble);
+            return output;
         }
         return value.toString();
     }
