@@ -40,8 +40,6 @@
  */
 package org.truffle.io.runtime;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -74,7 +72,7 @@ public final class IoObjectUtil {
 
     public static boolean hasSlot(Object obj, Object key) {
         IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
+        if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
         return hasSlotUncached(objectOrProto, key);
@@ -85,8 +83,8 @@ public final class IoObjectUtil {
     }
 
     public static boolean hasSlot(DynamicObjectLibrary lib, IoObject obj, Object key) {
-        if(obj instanceof IoLocals) {
-            IoLocals locals = (IoLocals)obj;
+        if (obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals) obj;
             return locals.hasLocal(key);
         }
         return lib.containsKey(obj, key);
@@ -98,7 +96,7 @@ public final class IoObjectUtil {
 
     public static Object getOrDefault(Object obj, Object key, Object defaultValue) {
         IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
+        if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
         return getOrDefaultUncached(objectOrProto, key, defaultValue);
@@ -117,27 +115,27 @@ public final class IoObjectUtil {
     }
 
     public static Object getOrDefault(DynamicObjectLibrary lib, IoObject obj, Object key, Object defaultValue) {
-        if(obj instanceof IoLocals) {
-            IoLocals locals = (IoLocals)obj;
+        if (obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals) obj;
             return locals.getLocalOrDefault(key, defaultValue);
         }
         return lib.getOrDefault(obj, key, defaultValue);
     }
 
     protected static IoObject asIoObject(Object obj) {
-        if(obj instanceof IoObject) {
-            return (IoObject)obj;
+        if (obj instanceof IoObject) {
+            return (IoObject) obj;
         }
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
         if (interop.isNull(obj)) {
             return IoNil.SINGLETON;
         }
-        if (interop.isBoolean(obj)) {   
-            if((Boolean)obj == Boolean.TRUE) {
+        if (interop.isBoolean(obj)) {
+            if ((Boolean) obj == Boolean.TRUE) {
                 return IoTrue.SINGLETON;
-            } 
+            }
             return IoFalse.SINGLETON;
-        } 
+        }
         return null;
     }
 
@@ -145,37 +143,37 @@ public final class IoObjectUtil {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
         if (obj instanceof String) {
             return IoPrototype.SEQUENCE;
-        } 
+        }
         if (obj instanceof TruffleString) {
             return IoPrototype.SEQUENCE;
-        } 
+        }
         if (interop.fitsInLong(obj)) {
             return IoPrototype.NUMBER;
-        } 
+        }
         if (interop.fitsInDouble(obj)) {
             return IoPrototype.NUMBER;
-        } 
+        }
         IoObject asIoObject = asIoObject(obj);
-        if(asIoObject != null) {
+        if (asIoObject != null) {
             return asIoObject.getPrototype();
         }
-        if(interop.hasMembers(obj)) {
+        if (interop.hasMembers(obj)) {
             return IoPrototype.OBJECT;
         }
         return null;
     }
- 
-    public static boolean hasPrototype(Object obj, Object prototype) {       
+
+    public static boolean hasPrototype(Object obj, Object prototype) {
         IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
+        if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
-        if(objectOrProto == prototype) {
+        if (objectOrProto == prototype) {
             return true;
         }
         return hasPrototype(objectOrProto, prototype);
     }
- 
+
     public static boolean hasPrototype(IoObject obj, Object prototype) {
         List<IoObject> visitedProtos = new ArrayList<IoObject>();
         IoObject object = obj;
@@ -191,8 +189,8 @@ public final class IoObjectUtil {
     }
 
     public static String toString(Object object) {
-        if(object instanceof IoObject) {
-            return toString((IoObject)object);
+        if (object instanceof IoObject) {
+            return toString((IoObject) object);
         }
         return toStringInner(object, 0);
     }
@@ -297,28 +295,49 @@ public final class IoObjectUtil {
             return "nil";
         }
         try {
-            String asString =  InteropLibrary.getUncached().asString(value);
+            String asString = InteropLibrary.getUncached().asString(value);
             /*if (value instanceof TruffleString) {
                 return String.format("\"%s\"", asString);
             }*/
             return asString;
-        } catch (UnsupportedMessageException e) {}
+        } catch (UnsupportedMessageException e) {
+        }
         if (value instanceof IoObject) {
-            return ((IoObject)value).toString(depth);
+            return ((IoObject) value).toString(depth);
         }
         if (value instanceof Double) {
-            Double valueAsDouble = (Double)value;
-            DecimalFormat decimalFormat = new DecimalFormat();
+            Double doubleValue = (Double) value;
+            if (Double.valueOf(doubleValue.intValue()).compareTo(doubleValue) == 0) {
+                return String.format("%d", doubleValue.intValue());
+            } 
+            if (doubleValue.doubleValue() > Integer.MAX_VALUE || doubleValue.doubleValue() < Integer.MIN_VALUE) {
+                return String.format("%e", doubleValue.doubleValue());
+            } else {
+                String stringValue = String.format("%.16f", doubleValue.doubleValue());
 
-            DecimalFormatSymbols decimalFormatSymbols = new DecimalFormatSymbols();
-            decimalFormatSymbols.setInfinity("inf");
-            decimalFormatSymbols.setNaN("nan");
-            decimalFormat.setDecimalFormatSymbols(decimalFormatSymbols);          
-            //decimalFormat.setGroupingUsed(false);
-            //decimalFormat.setDecimalSeparatorAlwaysShown(false);
-            //decimalFormat.setMaximumIntegerDigits(10);
-            String output = decimalFormat.format(valueAsDouble);
-            return output;
+                int l = stringValue.length() - 1;
+                while (l > 0) {
+                    if (stringValue.charAt(l) == '0') {
+                        l--;
+                        continue;
+                    }
+                    if (stringValue.charAt(l) == '.') {
+                        l--;
+                        break;
+                    }
+                    break;
+                }
+                String output = stringValue.substring(0, l + 1);
+                return output;
+
+            }
+        }
+        if (value instanceof Long) {
+            Long longValue = (Long) value;
+            if (Long.valueOf(longValue.intValue()).compareTo(longValue) == 0) {
+                return String.format("%d", longValue.intValue());
+            }
+            return String.format("%e", longValue.doubleValue());
         }
         return value.toString();
     }
@@ -329,22 +348,22 @@ public final class IoObjectUtil {
 
     public static IoObject lookupSlot(Object obj, Object key) {
         IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
+        if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
         return lookupSlotUncached(objectOrProto, key);
     }
 
-    public static IoObject lookupSlotUncached(IoObject obj, Object key) {      
-        if(obj instanceof IoLocals) {
-            if (((IoLocals)obj).hasLocal(key)){
-                return (IoLocals)obj;
+    public static IoObject lookupSlotUncached(IoObject obj, Object key) {
+        if (obj instanceof IoLocals) {
+            if (((IoLocals) obj).hasLocal(key)) {
+                return (IoLocals) obj;
             }
         }
         return lookupSlot(DynamicObjectLibrary.getUncached(), obj, key);
     }
 
-    public static IoObject lookupSlot(DynamicObjectLibrary lib, IoObject obj, Object key) {      
+    public static IoObject lookupSlot(DynamicObjectLibrary lib, IoObject obj, Object key) {
         List<IoObject> visitedProtos = new ArrayList<IoObject>();
         IoObject object = obj;
         while (!visitedProtos.contains(object)) {
@@ -359,20 +378,20 @@ public final class IoObjectUtil {
     }
 
     public static Object updateSlot(Object obj, Object key, Object value) {
-        if(obj instanceof IoLocals) {
-            IoLocals locals = (IoLocals)obj;
-            if (locals.hasLocal(key)){
+        if (obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals) obj;
+            if (locals.hasLocal(key)) {
                 locals.setLocal(key, value);
                 return value;
             }
         }
         IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
+        if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
         DynamicObjectLibrary lib = DynamicObjectLibrary.getUncached();
         IoObject slotOwner = lookupSlot(lib, objectOrProto, key);
-        if(slotOwner != null) {
+        if (slotOwner != null) {
             put(lib, slotOwner, key, value);
             return value;
         }
@@ -380,12 +399,12 @@ public final class IoObjectUtil {
     }
 
     public static Object setSlot(Object obj, Object key, Object value) {
-        if(obj instanceof IoLocals) {
-            IoLocals locals = (IoLocals)obj;
+        if (obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals) obj;
             return locals.setLocal(key, value);
         }
         IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
+        if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
         putUncached(objectOrProto, key, value);
@@ -394,7 +413,7 @@ public final class IoObjectUtil {
 
     public static void put(Object obj, Object key, Object value) {
         IoObject objectOrProto = asIoObject(obj);
-        if(objectOrProto == null) {
+        if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
         putUncached(objectOrProto, key, value);
@@ -405,8 +424,8 @@ public final class IoObjectUtil {
     }
 
     public static void put(DynamicObjectLibrary lib, IoObject obj, Object key, Object value) {
-        if(obj instanceof IoLocals) {
-            IoLocals locals = (IoLocals)obj;
+        if (obj instanceof IoLocals) {
+            IoLocals locals = (IoLocals) obj;
             locals.setLocal(key, value);
         } else {
             lib.put(obj, key, value);
