@@ -46,12 +46,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
@@ -67,6 +61,7 @@ import org.truffle.io.nodes.controlflow.DebuggerNode;
 import org.truffle.io.nodes.controlflow.IfNode;
 import org.truffle.io.nodes.controlflow.RepeatNode;
 import org.truffle.io.nodes.controlflow.ReturnNode;
+import org.truffle.io.nodes.controlflow.TryCatchUndefinedNameNode;
 import org.truffle.io.nodes.controlflow.TryNode;
 import org.truffle.io.nodes.controlflow.WhileNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
@@ -99,6 +94,12 @@ import org.truffle.io.nodes.slots.WriteMemberNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IoLocals;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -236,7 +237,7 @@ public class NodeFactory {
         assert currentScope.argumentCount >= 1;
         List<IoNode> initializationNodes = new ArrayList<IoNode>(currentScope.argumentCount);
         int callSlotIndex = currentScope.findLocal(CALL_SYMBOL);
-        if(callSlotIndex == -1) {
+        if (callSlotIndex == -1) {
             // does not use call, intialize self with arg 0
             initializationNodes.add(createInitializationNode(0, 0));
         } else {
@@ -512,13 +513,14 @@ public class NodeFactory {
         return result;
     }
 
-    public IoNode createWriteLocalSlot(IoNode nameNode, IoNode valueNode, int startPos, int length, boolean initialize) {
+    public IoNode createWriteLocalSlot(IoNode nameNode, IoNode valueNode, int startPos, int length,
+            boolean initialize) {
         if (nameNode == null || valueNode == null || !hasLocals()) {
             return null;
         }
         assert nameNode instanceof StringLiteralNode;
         TruffleString name = ((StringLiteralNode) nameNode).executeGeneric(null);
-        final int slotIndex = initialize? currentScope.findOrAddLocal(name) : currentScope.findLocal(name);
+        final int slotIndex = initialize ? currentScope.findOrAddLocal(name) : currentScope.findLocal(name);
         if (slotIndex < 0) {
             return null;
         }
@@ -739,7 +741,7 @@ public class NodeFactory {
 
     public IoNode createThisLocalContext(IoNode receiverNode, int startPos, int length) {
         final IoNode targetNode;
-        if(receiverNode == null) {
+        if (receiverNode == null) {
             if (hasLocals()) {
                 targetNode = createReadCall();
             } else {
@@ -785,30 +787,57 @@ public class NodeFactory {
     }
 
     public IoNode createInvokeSlot(IoNode receiverNode, Token identifierToken, List<IoNode> argumentNodes,
-    boolean failIfAbsent, int startPos, int length) {
-        IoNode targetNode = receiverNode;
+            int startPos, int length) {
         IoNode valueNode = null;
-        if (targetNode == null) {
+        final IoNode targetNode;
+        if (receiverNode == null) {
             if (hasLocals()) {
-                targetNode = createReadCallSender(startPos, length);
                 valueNode = createReadLocalSlot(identifierToken);
                 if (valueNode == null) {
                     targetNode = createReadSelf();
+                } else {
+                    targetNode = createReadCallSender(startPos, length);
                 }
             } else {
                 targetNode = createReadTarget();
             }
+        } else {
+            targetNode = receiverNode;
         }
+
         TruffleString identifier = asTruffleString(identifierToken, false);
         assert targetNode != null;
         IoNode result = new InvokeNode(targetNode, valueNode, identifier,
-                argumentNodes.toArray(new IoNode[argumentNodes.size()]), failIfAbsent);
+                argumentNodes.toArray(new IoNode[argumentNodes.size()]));
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IoNode createDo(IoNode receiverNode, IoNode functionNode, boolean failIfAbsent, int startPos, int length) {
+    public IoNode createInvokeConditionalSlot(IoNode receiverNode, Token identifierToken, List<IoNode> argumentNodes,
+            int startPos, int length) {
+        final IoNode targetNode;
+        if (receiverNode == null) {
+            if (hasLocals()) {
+                targetNode = createReadSelf();
+            } else {
+                targetNode = createReadTarget();
+            }
+        } else {
+            targetNode = receiverNode;
+        }
+        TruffleString identifier = asTruffleString(identifierToken, false);
+        final IoNode invokeNode = new InvokeNode(targetNode, null, identifier,
+                argumentNodes.toArray(new IoNode[argumentNodes.size()]));
+        invokeNode.setSourceSection(startPos, length);
+        invokeNode.addExpressionTag();
+        final IoNode result = new TryCatchUndefinedNameNode(invokeNode);
+        result.addExpressionTag();
+        result.setSourceSection(startPos, length);
+        return result;
+    }
+
+    public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
         IoNode targetNode = receiverNode;
         if (targetNode == null) {
             if (hasLocals()) {
@@ -819,7 +848,7 @@ public class NodeFactory {
         }
         TruffleString identifier = Symbols.fromJavaString("do");
         assert targetNode != null;
-        IoNode result = new InvokeNode(targetNode, functionNode, identifier, new IoNode[0], failIfAbsent);
+        IoNode result = new InvokeNode(targetNode, functionNode, identifier, new IoNode[0]);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;

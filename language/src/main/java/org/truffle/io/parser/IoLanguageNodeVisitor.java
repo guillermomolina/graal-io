@@ -218,7 +218,6 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.literalMessage() != null) {
             return visitLiteralMessage(ctx.literalMessage());
         }
-
         IoNode receiver = null;
         if (ctx.literal() != null) {
             receiver = visitLiteral(ctx.literal());
@@ -314,8 +313,10 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = createArgumentsList(ctx.arguments());
-        boolean failIfAbsent = ctx.QUESTION() == null;
-        result = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, failIfAbsent, start, length);
+        // if(ctx.QUESTION() == null) {
+        //     throw new NotImplementedException();
+        // }
+        result = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, start, length);
         assert result != null;
         return result;
     }
@@ -333,7 +334,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = new ArrayList<>();
-        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, true, start, length);
+        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
         assert result != null;
         return result;
     }
@@ -364,7 +365,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         List<IoNode> argumentNodes = new ArrayList<>();
         argumentNodes.add(nameNode);
-        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, true, start, length);
+        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
         assert result != null;
         return result;
     }
@@ -432,7 +433,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         FunctionLiteralNode functionNode = factory.createFunction(bodyNode, bodyStart, length);
         int start = ctx.start.getStartIndex();
         length = ctx.stop.getStopIndex() - start + 1;
-        IoNode result = factory.createDo(receiverNode, functionNode, true, start, length);
+        IoNode result = factory.createDo(receiverNode, functionNode, start, length);
         assert result != null;
         return result;
     }

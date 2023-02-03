@@ -80,6 +80,7 @@ message
     | literal messageNext?
     | message messageNext
     | messageNext
+    // | QUESTION message
     ;
 
 subexpression
@@ -96,7 +97,7 @@ messageNext
     | messageInvoke
     ;
 
-messageInvoke: QUESTION? identifier arguments?;
+messageInvoke: identifier arguments?;
 arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 
 repeatMessage: REPEAT OPEN EOL* expression? EOL* CLOSE;

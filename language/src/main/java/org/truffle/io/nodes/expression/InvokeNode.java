@@ -55,7 +55,6 @@ import org.truffle.io.runtime.objects.IoInvokable;
 import org.truffle.io.runtime.objects.IoLocals;
 import org.truffle.io.runtime.objects.IoMessage;
 import org.truffle.io.runtime.objects.IoMethod;
-import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
 
 import com.oracle.truffle.api.CompilerAsserts;
@@ -75,15 +74,13 @@ public final class InvokeNode extends IoNode {
     private final TruffleString name;
     @Children
     private final IoNode[] argumentNodes;
-    private final boolean failIfAbsent;
 
     public InvokeNode(final IoNode receiverNode, final IoNode valueNode, final TruffleString name,
-            final IoNode[] argumentNodes, boolean failIfAbsent) {
+            final IoNode[] argumentNodes) {
         this.receiverNode = receiverNode;
         this.valueNode = valueNode;
         this.name = name;
         this.argumentNodes = argumentNodes;
-        this.failIfAbsent = failIfAbsent;
     }
 
     @Override
@@ -103,10 +100,7 @@ public final class InvokeNode extends IoNode {
             prototype = IoObjectUtil.getPrototype(value);
         }
         if (value == null) {
-            if(failIfAbsent) {
-                throw UndefinedNameException.undefinedField(this, name);
-            }
-            return IoNil.SINGLETON;
+            throw UndefinedNameException.undefinedField(this, name);
         }
         if (value instanceof IoFunction) {
             return executeFunction(frame, receiver, (IoFunction) value, prototype);

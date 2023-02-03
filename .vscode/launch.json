@@ -6,7 +6,7 @@
             "name": "Debug ANTLR4 grammar Current File",
             "request": "launch",
             "input": "${file}",
-            "grammar": "language/src/main/antlr4/org/truffle/io/parser/IOLanguage.g4",
+            "grammar": "language/src/main/antlr4/org/truffle/io/parser/IoLanguage.g4",
             "startRule": "iolanguage",
             "printParseTree": true,
             "visualParseTree": true
