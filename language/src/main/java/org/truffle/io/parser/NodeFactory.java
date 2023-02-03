@@ -500,7 +500,6 @@ public class NodeFactory {
             if (result == null) {
                 if (hasLocals()) {
                     receiverNode = createReadCallSender(startPos, length);
-                    //result = createWriteRemoteSlot(receiverNode, nameNode, valueNode, startPos, length);
                 } else {
                     receiverNode = createReadTarget();
                 }
@@ -801,9 +800,9 @@ public class NodeFactory {
             if (hasLocals()) {
                 valueNode = createReadLocalSlot(identifierToken);
                 if (valueNode == null) {
-                    targetNode = createReadSelf();
-                } else {
                     targetNode = createReadCallSender(startPos, length);
+                } else {
+                    targetNode = createReadSelf();
                 }
             } else {
                 targetNode = createReadTarget();
