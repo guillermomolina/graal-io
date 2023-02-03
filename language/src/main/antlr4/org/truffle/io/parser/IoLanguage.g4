@@ -46,12 +46,16 @@ iolanguage
     ;
 
 expression
-    : operation (terminator+ operation terminator*)* EOL*
+    : operationOrAssignment (terminator+ operationOrAssignment terminator*)* EOL*
+    ;
+
+operationOrAssignment
+    : operation
+    | assignment
     ;
 
 operation
-    : operation op=('@' | '@@' | '\'' | '.' | '?' | ':') operation
-    | operation op='**' operation
+    : operation op='**' operation
     | operation op=('++' | '--') operation
     | operation op=('*' | '/' | '%') operation
     | operation op=('+' | '-') operation
@@ -65,26 +69,41 @@ operation
     | operation op=(OR | '||') operation
     | operation op='..' operation
     | operation op=OPERATOR operation
-    | assignment
-    | message
+    | subExpression
     ;
 
 assignment
-    : message? name=identifier assign=('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '<-' | '<->' | '->') operation
-    | message? name=identifier assign=('=' | ':=' | '::=') operation
+    : subExpression? name=identifier assign=('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '<-' | '<->' | '->') operation
+    | subExpression? name=identifier assign=('=' | ':=' | '::=') operation
+    ;
+
+subExpression
+    : parenExpression (modifiedMessageNext | messageNext)?
+    | modifiedMessage
+    | message
     ;
 
 message
-    : subexpression
-    | literalMessage
-    | literal messageNext?
-    | message messageNext
+    : inlinedMessage
+    | literal (modifiedMessageNext | messageNext)?
+    | message (modifiedMessageNext | messageNext)
     | messageNext
-    // | QUESTION message
     ;
 
-subexpression
+modifiedMessage
+    : messageModifier message (modifiedMessageNext | messageNext)?
+    ;
+
+messageModifier
+    : '@' | '@@' | '?'
+    ;
+
+parenExpression
     : OPEN EOL* expression? CLOSE
+    ;
+
+modifiedMessageNext
+    : messageModifier messageNext
     ;
 
 messageNext
@@ -117,7 +136,7 @@ setSlotMessage:
     CLOSE
     ;
 
-literalMessage
+inlinedMessage
     : returnMessage
     | breakMessage
     | continueMessage
