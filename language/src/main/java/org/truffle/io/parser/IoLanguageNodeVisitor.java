@@ -3,9 +3,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.source.Source;
-
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -53,6 +50,9 @@ import org.truffle.io.parser.IoLanguageParser.SubExpressionContext;
 import org.truffle.io.parser.IoLanguageParser.ThisLocalContextMessageContext;
 import org.truffle.io.parser.IoLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IoLanguageParser.WhileMessageContext;
+
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.source.Source;
 
 public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
@@ -224,17 +224,6 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
     @Override
     public IoNode visitSubExpression(final SubExpressionContext ctx) {
-        if (ctx.parenExpression() != null) {
-            IoNode receiver = visitParenExpression(ctx.parenExpression());
-            assert receiver != null;
-            if (ctx.messageNext() != null) {
-                receiver = visitMessageNext(ctx.messageNext(), receiver);
-            } else if (ctx.modifiedMessageNext() != null) {
-                receiver = visitModifiedMessageNext(ctx.modifiedMessageNext(), receiver);
-            }
-            assert receiver != null;
-            return receiver;
-        }
         if (ctx.message() != null) {
             return visitMessage(ctx.message());
         }
@@ -254,6 +243,11 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             receiver = visitLiteral(ctx.literal());
         } else if (ctx.message() != null) {
             receiver = visitMessage(ctx.message());
+        } else if (ctx.parenExpression() != null) {
+            receiver = visitParenExpression(ctx.parenExpression());
+        }
+        if (ctx.messageNext() != null) {
+            receiver = visitMessageNext(ctx.messageNext(), receiver);
         }
         assert receiver != null;
         return receiver;
@@ -261,10 +255,6 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
     @Override
     public IoNode visitModifiedMessage(final ModifiedMessageContext ctx) {
-        String modifier = ctx.messageModifier().getText();
-        if(!modifier.equals("?")) {
-            throw new NotImplementedException();
-        }
         throw new NotImplementedException();
     }
 
