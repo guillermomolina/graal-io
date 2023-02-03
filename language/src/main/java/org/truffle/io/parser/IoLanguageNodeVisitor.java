@@ -133,10 +133,10 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         } else {
             bodyNode = visitEmptyExpression(startPos, length);
         }
-        final IoNode result = factory.createFunction(bodyNode, startPos, length);
-        assert result != null;
+        final IoNode resultNode = factory.createFunction(bodyNode, startPos, length);
+        assert resultNode != null;
         //LOGGER.fine("Ended visitIolanguage()");
-        return result;
+        return resultNode;
     }
 
     @Override
@@ -149,18 +149,18 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
                 body.add(operationNOrAssignmentode);
             }
         }
-        final IoNode result = factory.createExpression(body, ctx.start.getStartIndex(),
+        final IoNode resultNode = factory.createExpression(body, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
-        assert result != null;
-        return result;
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitEmptyExpression(int startPos, int length) {
         List<IoNode> body = new ArrayList<>();
         body.add(new NilLiteralNode());
-        final IoNode result = factory.createExpression(body, startPos, length);
-        assert result != null;
-        return result;
+        final IoNode resultNode = factory.createExpression(body, startPos, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -184,9 +184,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         IoNode leftNode = visitOperation(ctx.operation(0));
         IoNode rightNode = visitOperation(ctx.operation(1));
-        final IoNode result = factory.createBinary(ctx.op, leftNode, rightNode);
-        assert result != null;
-        return result;
+        final IoNode resultNode = factory.createBinary(ctx.op, leftNode, rightNode);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -217,9 +217,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         assert valueNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IoNode result = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length, initialize);
-        assert result != null;
-        return result;
+        IoNode resultNode = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length, initialize);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -238,24 +238,35 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.inlinedMessage() != null) {
             return visitInlinedMessage(ctx.inlinedMessage());
         }
-        IoNode receiver = null;
+        IoNode receiverNode = null;
         if (ctx.literal() != null) {
-            receiver = visitLiteral(ctx.literal());
+            receiverNode = visitLiteral(ctx.literal());
         } else if (ctx.message() != null) {
-            receiver = visitMessage(ctx.message());
+            receiverNode = visitMessage(ctx.message());
         } else if (ctx.parenExpression() != null) {
-            receiver = visitParenExpression(ctx.parenExpression());
+            receiverNode = visitParenExpression(ctx.parenExpression());
         }
         if (ctx.messageNext() != null) {
-            receiver = visitMessageNext(ctx.messageNext(), receiver);
+            receiverNode = visitMessageNext(ctx.messageNext(), receiverNode);
         }
-        assert receiver != null;
-        return receiver;
+        assert receiverNode != null;
+        return receiverNode;
     }
 
     @Override
     public IoNode visitModifiedMessage(final ModifiedMessageContext ctx) {
-        throw new NotImplementedException();
+        IoNode receiverNode = null;
+        if (ctx.message() != null) {
+            receiverNode = visitMessage(ctx.message());
+        }
+        receiverNode = visitModifiedMessageNext(ctx.modifiedMessageNext(), receiverNode);
+        if (ctx.messageNext() != null) {
+            receiverNode = visitMessageNext(ctx.messageNext(), receiverNode);
+        }       
+        assert receiverNode != null;
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
+        return factory.createTryCatchUndefinedName(receiverNode, startPos, length);
     }
 
     @Override
@@ -269,9 +280,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             expression = visitEmptyExpression(startPos, length);
         }
         assert expression != null;
-        final IoNode result = factory.createParenExpression(expression, startPos, length);
-        assert result != null;
-        return result;
+        final IoNode resultNode = factory.createParenExpression(expression, startPos, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -342,46 +353,47 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     }
 
     public IoNode visitModifiedMessageNext(final ModifiedMessageNextContext ctx, IoNode receiverNode) {
-        throw new NotImplementedException();
+        IoNode targetNode = receiverNode == null? factory.createReadSelfOrTarget() : receiverNode;
+        return visitMessageNext(ctx.messageNext(), targetNode);
     }
 
     public IoNode visitMessageInvoke(final MessageInvokeContext ctx, IoNode receiverNode) {
-        IoNode result = null;
+        IoNode resultNode = null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = createArgumentsList(ctx.arguments());
         // if(ctx.QUESTION() == null) {
         //     throw new NotImplementedException();
         // }
-        result = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, start, length);
-        assert result != null;
-        return result;
+        resultNode = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, start, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitSlotNamesMessage(final SlotNamesMessageContext ctx, IoNode receiverNode) {
-        IoNode result = null;
+        IoNode resultNode = null;
         if (receiverNode == null) {
             int start = ctx.start.getStartIndex();
             int length = ctx.stop.getStopIndex() - start + 1;
-            result = factory.createListLocalSlotNames(start, length);
+            resultNode = factory.createListLocalSlotNames(start, length);
         }
-        if (result != null) {
-            return result;
+        if (resultNode != null) {
+            return resultNode;
         }
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = new ArrayList<>();
-        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
-        assert result != null;
-        return result;
+        resultNode = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitThisLocalContextMessage(final ThisLocalContextMessageContext ctx, IoNode receiverNode) {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        final IoNode result = factory.createThisLocalContext(receiverNode, start, length);
-        assert result != null;
-        return result;
+        final IoNode resultNode = factory.createThisLocalContext(receiverNode, start, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitGetSlotMessage(final GetSlotMessageContext ctx, IoNode receiverNode) {
@@ -393,18 +405,18 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         } else {
             nameNode = factory.createStringLiteral(ctx.name, true);
         }
-        IoNode result = null;
+        IoNode resultNode = null;
         if (receiverNode == null) {
-            result = factory.createGetSlot(receiverNode, nameNode, start, length);
+            resultNode = factory.createGetSlot(receiverNode, nameNode, start, length);
         }
-        if (result != null) {
-            return result;
+        if (resultNode != null) {
+            return resultNode;
         }
         List<IoNode> argumentNodes = new ArrayList<>();
         argumentNodes.add(nameNode);
-        result = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
-        assert result != null;
-        return result;
+        resultNode = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitSetSlotMessage(final SetSlotMessageContext ctx, IoNode receiverNode) {
@@ -420,9 +432,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         assert valueNode != null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IoNode result = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length, initialize);
-        assert result != null;
-        return result;
+        IoNode resultNode = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length, initialize);
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitRepeatMessage(final RepeatMessageContext ctx, IoNode r) {
@@ -441,9 +453,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
-        IoNode result = factory.createRepeat(receiverNode, bodyNode, start, length);
-        assert result != null;
-        return result;
+        IoNode resultNode = factory.createRepeat(receiverNode, bodyNode, start, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitTargetExpression(final ExpressionContext ctx, int startPos, int length) {
@@ -457,9 +469,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             }
         }
         body.add(factory.createReadTarget());
-        final IoNode result = factory.createExpression(body, startPos, length);
-        assert result != null;
-        return result;
+        final IoNode resultNode = factory.createExpression(body, startPos, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     public IoNode visitDoMessage(final DoMessageContext ctx, IoNode receiverNode) {
@@ -470,9 +482,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         FunctionLiteralNode functionNode = factory.createFunction(bodyNode, bodyStart, length);
         int start = ctx.start.getStartIndex();
         length = ctx.stop.getStopIndex() - start + 1;
-        IoNode result = factory.createDo(receiverNode, functionNode, start, length);
-        assert result != null;
-        return result;
+        IoNode resultNode = factory.createDo(receiverNode, functionNode, start, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -521,9 +533,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
                 elsePartNode = visitElseMessageVariants(ctx.elseMessageVariants());
             }
         }
-        IoNode result = factory.createIfThenElse(ctx.start, conditionNode, thenPartNode, elsePartNode);
-        assert result != null;
-        return result;
+        IoNode resultNode = factory.createIfThenElse(ctx.start, conditionNode, thenPartNode, elsePartNode);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -547,9 +559,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
                 elsePartNode = visitElseMessageVariants(ctx.elseMessageVariants());
             }
         }
-        IoNode result = factory.createIfThenElse(ctx.start, conditionNode, thenPartNode, elsePartNode);
-        assert result != null;
-        return result;
+        IoNode resultNode = factory.createIfThenElse(ctx.start, conditionNode, thenPartNode, elsePartNode);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -557,8 +569,8 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         factory.startLoop();
         IoNode conditionNode = visitExpression(ctx.condition);
         IoNode bodyNode = visitExpression(ctx.body);
-        IoNode result = factory.createWhile(ctx.WHILE().getSymbol(), conditionNode, bodyNode);
-        return factory.createLoopExpression(result, ctx.start.getStartIndex(),
+        IoNode resultNode = factory.createWhile(ctx.WHILE().getSymbol(), conditionNode, bodyNode);
+        return factory.createLoopExpression(resultNode, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
     }
 
@@ -576,10 +588,10 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         IoNode bodyNode = visitExpression(ctx.body);
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
-        IoNode result = factory.createForSlot(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
+        IoNode resultNode = factory.createForSlot(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
                 startPos, length);
-        assert result != null;
-        return factory.createLoopExpression(result, startPos, length);
+        assert resultNode != null;
+        return factory.createLoopExpression(resultNode, startPos, length);
     }
 
     @Override
@@ -624,16 +636,16 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         } else {
             bodyNode = visitEmptyExpression(blockStartPos, length);
         }
-        final IoNode result;
+        final IoNode resultNode;
         if (ctx.BLOCK() != null) {
-            result = factory.createBlock(bodyNode, startPos, length);
+            resultNode = factory.createBlock(bodyNode, startPos, length);
         } else if (ctx.METHOD() != null) {
-            result = factory.createMethod(bodyNode, startPos, length);
+            resultNode = factory.createMethod(bodyNode, startPos, length);
         } else {
             throw new ShouldNotBeHereException();
         }
-        assert result != null;
-        return result;
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override

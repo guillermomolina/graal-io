@@ -625,6 +625,13 @@ public class NodeFactory {
 
     }
 
+    public IoNode createReadSelfOrTarget() {
+        if (hasLocals()) {
+            return createReadSelf();
+        }
+        return createReadTarget();
+    }
+
     public IoNode createReadCall() {
         assert hasLocals() == true;
         currentScope.findOrAddLocal(CALL_SYMBOL);
@@ -814,38 +821,15 @@ public class NodeFactory {
         return result;
     }
 
-    public IoNode createInvokeConditionalSlot(IoNode receiverNode, Token identifierToken, List<IoNode> argumentNodes,
-            int startPos, int length) {
-        final IoNode targetNode;
-        if (receiverNode == null) {
-            if (hasLocals()) {
-                targetNode = createReadSelf();
-            } else {
-                targetNode = createReadTarget();
-            }
-        } else {
-            targetNode = receiverNode;
-        }
-        TruffleString identifier = asTruffleString(identifierToken, false);
-        final IoNode invokeNode = new InvokeNode(targetNode, null, identifier,
-                argumentNodes.toArray(new IoNode[argumentNodes.size()]));
-        invokeNode.setSourceSection(startPos, length);
-        invokeNode.addExpressionTag();
-        final IoNode result = new TryCatchUndefinedNameNode(invokeNode);
+    public IoNode createTryCatchUndefinedName(IoNode receiverNode, int startPos, int length) {
+        final IoNode result = new TryCatchUndefinedNameNode(receiverNode);
         result.addExpressionTag();
         result.setSourceSection(startPos, length);
         return result;
     }
 
     public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
-        IoNode targetNode = receiverNode;
-        if (targetNode == null) {
-            if (hasLocals()) {
-                targetNode = createReadSelf();
-            } else {
-                targetNode = createReadTarget();
-            }
-        }
+        IoNode targetNode = receiverNode == null ? createReadSelfOrTarget() : receiverNode;
         TruffleString identifier = Symbols.fromJavaString("do");
         assert targetNode != null;
         IoNode result = new InvokeNode(targetNode, functionNode, identifier, new IoNode[0]);
