@@ -54,10 +54,12 @@ import com.oracle.truffle.api.strings.TruffleString;
 public class IoMethod extends IoInvokable {
 
     private final TruffleString[] argNames;
+    private final boolean callSlotIsUsed;
 
-    public IoMethod(final RootCallTarget callTarget, final TruffleString[] argNames) {
+    public IoMethod(final RootCallTarget callTarget, final TruffleString[] argNames, final boolean callSlotIsUsed) {
         super(IoPrototype.BLOCK, callTarget);
         this.argNames = argNames;
+        this.callSlotIsUsed = callSlotIsUsed;
     }
 
     public int getNumArgs() {
@@ -66,6 +68,10 @@ public class IoMethod extends IoInvokable {
 
     public TruffleString[] getArgNames() {
         return argNames;
+    }
+
+    public boolean getCallSlotIsUsed() {
+        return callSlotIsUsed;
     }
 
     @Override

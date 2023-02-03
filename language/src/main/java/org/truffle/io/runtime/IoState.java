@@ -472,16 +472,18 @@ public final class IoState {
         return date;
     }
 
-    public IoBlock createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final IoLocals locals) {
+    public IoBlock createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final boolean callSlotIsUsed,
+            final IoLocals locals) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IoBlock block = new IoBlock(callTarget, argNames, locals);
+        IoBlock block = new IoBlock(callTarget, argNames, callSlotIsUsed, locals);
         allocationReporter.onReturnValue(block, 0, AllocationReporter.SIZE_UNKNOWN);
         return block;
     }
 
-    public IoMethod createMethod(RootCallTarget callTarget, final TruffleString[] argNames) {
+    public IoMethod createMethod(RootCallTarget callTarget, final TruffleString[] argNames,
+            final boolean callSlotIsUsed) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IoMethod method = new IoMethod(callTarget, argNames);
+        IoMethod method = new IoMethod(callTarget, argNames, callSlotIsUsed);
         allocationReporter.onReturnValue(method, 0, AllocationReporter.SIZE_UNKNOWN);
         return method;
     }

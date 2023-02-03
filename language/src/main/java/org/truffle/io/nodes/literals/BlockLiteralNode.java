@@ -68,11 +68,13 @@ public final class BlockLiteralNode extends IoNode {
 
     @CompilationFinal
     private IoBlock cachedBlock;
+    private final boolean callSlotIsUsed;
 
-    public BlockLiteralNode(final IoRootNode rootNode, TruffleString[] argNames, final IoNode homeNode) {
+    public BlockLiteralNode(final IoRootNode rootNode, TruffleString[] argNames, final IoNode homeNode, final boolean callSlotIsUsed) {
         this.rootNode = rootNode;
         this.argNames = argNames;
         this.homeNode = homeNode;
+        this.callSlotIsUsed = callSlotIsUsed;
     }
 
     @Override
@@ -87,14 +89,14 @@ public final class BlockLiteralNode extends IoNode {
             block = this.cachedBlock;
             if (block == null) {
                  CompilerDirectives.transferToInterpreterAndInvalidate();
-                this.cachedBlock = block = IoState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
+                this.cachedBlock = block = IoState.get(this).createBlock(rootNode.getCallTarget(), argNames, callSlotIsUsed, sender);
             }
         } else {
             if (this.cachedBlock != null) {
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 this.cachedBlock = null;
             }
-            block = IoState.get(this).createBlock(rootNode.getCallTarget(), argNames, sender);
+            block = IoState.get(this).createBlock(rootNode.getCallTarget(), argNames, callSlotIsUsed, sender);
         }
         return block;
     }

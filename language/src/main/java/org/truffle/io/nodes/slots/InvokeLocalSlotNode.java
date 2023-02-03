@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,37 +41,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.truffle.io.runtime.objects;
+package org.truffle.io.nodes.slots;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
-@ExportLibrary(InteropLibrary.class)
-public final class IoBlock extends IoMethod {
 
-    protected final IoLocals sender;
+@NodeChild(value = "nameNode", type = IoNode.class)
+@NodeField(name = "slot", type = int.class)
+public abstract class InvokeLocalSlotNode extends InvokeNode {
 
-    public IoBlock(final RootCallTarget callTarget, final TruffleString[] argNames, final boolean callSlotIsUsed, final IoLocals sender) {
-        super(callTarget, argNames, callSlotIsUsed);
-        this.sender = sender;
+    protected abstract int getSlot();
+
+    @Specialization(guards = "frame.isLong(getSlot())")
+    protected long readLong(VirtualFrame frame) {
+        return frame.getLong(getSlot());
     }
-   
-    public IoLocals getSender() {
-        return sender;
+
+    @Specialization(guards = "frame.isDouble(getSlot())")
+    protected double readDouble(VirtualFrame frame) {
+        return frame.getDouble(getSlot());
     }
- 
+
+    @Specialization(guards = "frame.isBoolean(getSlot())")
+    protected boolean readBoolean(VirtualFrame frame) {
+        return frame.getBoolean(getSlot());
+    }
+
+    @Specialization(replaces = {"readLong", "readDouble", "readBoolean"})
+    protected Object readObject(VirtualFrame frame) {
+        if (!frame.isObject(getSlot())) {
+
+            CompilerDirectives.transferToInterpreter();
+            Object result = frame.getValue(getSlot());
+            frame.setObject(getSlot(), result);
+            return result;
+        }
+
+        return frame.getObject(getSlot());
+    }
+
     @Override
-    public String toString(int depth) {
-        return "block(" + printSource(depth) + ")";
+    public boolean hasTag(Class<? extends Tag> tag) {
+        return tag == ReadVariableTag.class || super.hasTag(tag);
     }
 
-    @ExportMessage
-    @TruffleBoundary
-    static int identityHashCode(IoBlock receiver) {
-        return System.identityHashCode(receiver);
+    @Override
+    public Object getNodeObject() {
+        return NodeObjectDescriptor.readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
     }
+
 }

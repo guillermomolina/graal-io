@@ -358,14 +358,11 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     }
 
     public IoNode visitMessageInvoke(final MessageInvokeContext ctx, IoNode receiverNode) {
-        IoNode resultNode = null;
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = createArgumentsList(ctx.arguments());
-        // if(ctx.QUESTION() == null) {
-        //     throw new NotImplementedException();
-        // }
-        resultNode = factory.createInvokeSlot(receiverNode, ctx.identifier().start, argumentNodes, start, length);
+        final IoNode nameNode = visitIdentifier(ctx.identifier());
+        final IoNode resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, start, length);
         assert resultNode != null;
         return resultNode;
     }
@@ -383,7 +380,8 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int start = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - start + 1;
         List<IoNode> argumentNodes = new ArrayList<>();
-        resultNode = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        final IoNode nameNode = factory.createStringLiteral(ctx.start, true);
+        resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, start, length);
         assert resultNode != null;
         return resultNode;
     }
@@ -414,7 +412,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         List<IoNode> argumentNodes = new ArrayList<>();
         argumentNodes.add(nameNode);
-        resultNode = factory.createInvokeSlot(receiverNode, ctx.start, argumentNodes, start, length);
+        resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, start, length);
         assert resultNode != null;
         return resultNode;
     }

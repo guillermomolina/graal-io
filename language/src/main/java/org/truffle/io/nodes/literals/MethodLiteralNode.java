@@ -65,10 +65,12 @@ public final class MethodLiteralNode extends IoNode {
 
     @CompilationFinal
     private IoMethod cachedMethod;
+    private final boolean callSlotIsUsed;
 
-    public MethodLiteralNode(final IoRootNode value, TruffleString[] argNames) {
+    public MethodLiteralNode(final IoRootNode value, TruffleString[] argNames, final boolean callSlotIsUsed) {
         this.value = value;
         this.argNames = argNames;
+        this.callSlotIsUsed = callSlotIsUsed;
     }
 
     @Override
@@ -83,7 +85,7 @@ public final class MethodLiteralNode extends IoNode {
                 /* We are about to change a @CompilationFinal field. */
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 /* First execution of the node: lookup the method in the method registry. */
-                this.cachedMethod = method = IoState.get(this).createMethod(value.getCallTarget(), argNames);
+                this.cachedMethod = method = IoState.get(this).createMethod(value.getCallTarget(), argNames, callSlotIsUsed);
             }
         } else {
             /*
@@ -95,7 +97,7 @@ public final class MethodLiteralNode extends IoNode {
             }
             // in the multi-context case we are not allowed to store
             // IOMethod objects in the AST. Instead we always perform the lookup in the hash map.
-            method = IoState.get(this).createMethod(value.getCallTarget(), argNames);
+            method = IoState.get(this).createMethod(value.getCallTarget(), argNames, callSlotIsUsed);
         }
         return method;
     }
