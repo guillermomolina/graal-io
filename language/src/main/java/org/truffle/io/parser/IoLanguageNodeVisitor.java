@@ -255,19 +255,16 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         } else if (ctx.message() != null) {
             receiver = visitMessage(ctx.message());
         }
-        if (ctx.messageNext() != null) {
-            return visitMessageNext(ctx.messageNext(), receiver);
-        }
-        if (ctx.modifiedMessageNext() != null) {
-            assert receiver != null;
-            return visitModifiedMessageNext(ctx.modifiedMessageNext(), receiver);
-        }
         assert receiver != null;
         return receiver;
     }
 
     @Override
     public IoNode visitModifiedMessage(final ModifiedMessageContext ctx) {
+        String modifier = ctx.messageModifier().getText();
+        if(!modifier.equals("?")) {
+            throw new NotImplementedException();
+        }
         throw new NotImplementedException();
     }
 

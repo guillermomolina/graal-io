@@ -78,20 +78,22 @@ assignment
     ;
 
 subExpression
-    : parenExpression (modifiedMessageNext | messageNext)?
-    | modifiedMessage
+    : parenExpression (messageNext | modifiedMessageNext)?
     | message
+    | modifiedMessage
     ;
 
 message
     : inlinedMessage
-    | literal (modifiedMessageNext | messageNext)?
-    | message (modifiedMessageNext | messageNext)
+    | literal messageNext?
+    | message messageNext
     | messageNext
     ;
 
 modifiedMessage
-    : messageModifier message (modifiedMessageNext | messageNext)?
+    : messageModifier message
+    | message modifiedMessageNext messageNext?
+    | modifiedMessageNext messageNext?
     ;
 
 messageModifier
