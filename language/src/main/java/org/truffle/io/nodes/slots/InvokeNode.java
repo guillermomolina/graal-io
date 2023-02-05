@@ -92,6 +92,21 @@ public abstract class InvokeNode extends IoNode {
         assert name != null;
         return name;
     }
+    
+    @Specialization
+    public long readLong(VirtualFrame frame, long value) {
+        return value;
+    }
+
+    @Specialization
+    public double readDouble(VirtualFrame frame, double value) {
+        return value;
+    }
+
+    @Specialization
+    public boolean readBoolean(VirtualFrame frame, boolean value) {
+        return value;
+    }
 
     @Specialization
     protected final Object invokeFunction(VirtualFrame frame, IoFunction function) {
