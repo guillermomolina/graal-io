@@ -92,6 +92,7 @@ import org.truffle.io.nodes.logic.LogicalOrNode;
 import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.nodes.slots.InvokeDoNodeGen;
 import org.truffle.io.nodes.slots.InvokeLocalSlotNodeGen;
+import org.truffle.io.nodes.slots.InvokeMemberNodeGen;
 import org.truffle.io.nodes.slots.ListLocalSlotNamesNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
@@ -873,7 +874,9 @@ public class NodeFactory {
             int length) {
         if (receiverNode == null) {
             return null;
-        }@FAllbackokeMemberNodeGen.create(receiverNode, name,
+        }
+
+        final IoNode result = InvokeMemberNodeGen.create(receiverNode, name,
                 argumentNodes.toArray(new IoNode[argumentNodes.size()]));
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
