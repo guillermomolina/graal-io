@@ -71,7 +71,6 @@ import org.truffle.io.nodes.controlflow.TryCatchUndefinedNameNode;
 import org.truffle.io.nodes.controlflow.TryNode;
 import org.truffle.io.nodes.controlflow.WhileNode;
 import org.truffle.io.nodes.expression.ExpressionNode;
-import org.truffle.io.nodes.expression.InvokeNode;
 import org.truffle.io.nodes.expression.MethodBodyNode;
 import org.truffle.io.nodes.expression.ParenExpressionNode;
 import org.truffle.io.nodes.expression.ThisLocalContextNodeGen;
@@ -91,6 +90,7 @@ import org.truffle.io.nodes.logic.LogicalAndNode;
 import org.truffle.io.nodes.logic.LogicalNotNodeGen;
 import org.truffle.io.nodes.logic.LogicalOrNode;
 import org.truffle.io.nodes.root.IoRootNode;
+import org.truffle.io.nodes.slots.InvokeDoNodeGen;
 import org.truffle.io.nodes.slots.InvokeLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.InvokeMemberNodeGen;
 import org.truffle.io.nodes.slots.ListLocalSlotNamesNode;
@@ -802,9 +802,14 @@ public class NodeFactory {
 
     public IoNode createInvokeSlot(IoNode receiverNode, IoNode nameNode, List<IoNode> argumentNodes,
             int startPos, int length) {
+        if (nameNode == null) {
+            return null;
+        }
+        assert nameNode instanceof StringLiteralNode;
+        TruffleString name = ((StringLiteralNode) nameNode).executeGeneric(null);
         IoNode result = null;
         if (receiverNode == null) {
-            result = createInvokeLocalSlot(nameNode, argumentNodes, startPos, length);
+            result = createInvokeLocalSlot(name, argumentNodes, startPos, length);
             if (result == null) {
                 receiverNode = createReadSelfOrTarget();
                 /*if (hasLocals()) {
@@ -815,7 +820,7 @@ public class NodeFactory {
             }
         }
         if (result == null) {
-            result = createInvokeProperty(receiverNode, nameNode, argumentNodes, startPos, length);
+            result = createInvokeProperty(receiverNode, name, argumentNodes, startPos, length);
         }
         assert result != null;
         return result;
@@ -849,30 +854,29 @@ public class NodeFactory {
         return result;
     }*/
 
-    public IoNode createInvokeLocalSlot(IoNode nameNode, List<IoNode> argumentNodes, int startPos, int length) {
-        if (nameNode == null || !hasLocals()) {
+    public IoNode createInvokeLocalSlot(TruffleString name, List<IoNode> argumentNodes, int startPos, int length) {
+        if (!hasLocals()) {
             return null;
         }
-        assert nameNode instanceof StringLiteralNode;
-        TruffleString name = ((StringLiteralNode) nameNode).executeGeneric(null);
         final int slotIndex = currentScope.findLocal(name);
         if (slotIndex < 0) {
             return null;
         }
-        final IoNode result = InvokeLocalSlotNodeGen.create(createReadSelf(), nameNode,
+        final IoNode result = InvokeLocalSlotNodeGen.create(createReadSelf(), name,
                 argumentNodes.toArray(new IoNode[argumentNodes.size()]), slotIndex);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
 
-    public IoNode createInvokeProperty(IoNode receiverNode, IoNode nameNode, List<IoNode> argumentNodes, int startPos,
+    public IoNode createInvokeProperty(IoNode receiverNode, TruffleString name, List<IoNode> argumentNodes,
+            int startPos,
             int length) {
-        if (receiverNode == null || nameNode == null) {
+        if (receiverNode == null) {
             return null;
         }
 
-        final IoNode result = InvokeMemberNodeGen.create(receiverNode, nameNode,
+        final IoNode result = InvokeMemberNodeGen.create(receiverNode, name,
                 argumentNodes.toArray(new IoNode[argumentNodes.size()]));
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
@@ -889,9 +893,9 @@ public class NodeFactory {
 
     public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
         IoNode targetNode = receiverNode == null ? createReadSelfOrTarget() : receiverNode;
-        TruffleString identifier = Symbols.fromJavaString("do");
+        TruffleString name = Symbols.fromJavaString("do");
         assert targetNode != null;
-        IoNode result = new InvokeNode(targetNode, functionNode, identifier, new IoNode[0]);
+        IoNode result = InvokeDoNodeGen.create(targetNode, functionNode, name, new IoNode[0]);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;

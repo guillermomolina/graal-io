@@ -44,7 +44,6 @@
 package org.truffle.io.nodes.slots;
 
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -53,7 +52,6 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.objects.IoObject;
 
@@ -63,23 +61,22 @@ public abstract class InvokeLocalSlotNode extends InvokeNode {
     protected abstract int getSlot();
 
     @Specialization(guards = "frame.isLong(getSlot())")
-    protected long readLong(VirtualFrame frame, Object receiver, Object name) {
+    protected long readLong(VirtualFrame frame, Object receiver) {
         return frame.getLong(getSlot());
     }
 
     @Specialization(guards = "frame.isDouble(getSlot())")
-    protected double readDouble(VirtualFrame frame, Object receiver, Object name) {
+    protected double readDouble(VirtualFrame frame, Object receiver) {
         return frame.getDouble(getSlot());
     }
 
     @Specialization(guards = "frame.isBoolean(getSlot())")
-    protected boolean readBoolean(VirtualFrame frame, Object receiver, Object name) {
+    protected boolean readBoolean(VirtualFrame frame, Object receiver) {
         return frame.getBoolean(getSlot());
     }
 
     @Specialization(replaces = { "readLong", "readDouble", "readBoolean" })
-    protected Object readObject(VirtualFrame frame, Object receiver, Object name,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
+    protected Object readObject(VirtualFrame frame, Object receiver) {
         final Object value;
         if (frame.isObject(getSlot())) {
             value = frame.getObject(getSlot());
@@ -88,9 +85,8 @@ public abstract class InvokeLocalSlotNode extends InvokeNode {
             value = frame.getValue(getSlot());
             frame.setObject(getSlot(), value);
         }
-        TruffleString nameTS = toTruffleStringNode.execute(name);
         final IoObject prototype = IoObjectUtil.getPrototype(value);
-        return invokeOrGet(frame, value, receiver, prototype, nameTS);
+        return invokeOrGet(frame, value, receiver, prototype);
     }
 
     @Override

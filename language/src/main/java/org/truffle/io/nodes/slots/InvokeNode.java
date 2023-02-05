@@ -67,25 +67,27 @@ import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "()")
 @NodeChild(value = "receiverNode", type = IoNode.class)
-@NodeChild(value = "nameNode", type = IoNode.class)
+@NodeField(name = "name", type = TruffleString.class)
 @NodeField(name = "argumentNodes", type = IoNode[].class)
 public abstract class InvokeNode extends IoNode {
+
+    public abstract TruffleString getName();
 
     public abstract IoNode[] getArgumentNodes();
 
     protected final Object invokeOrGet(VirtualFrame frame, final Object value, final Object receiver,
-            IoObject prototype, TruffleString name) {
+            IoObject prototype) {
         if (value == null) {
-            throw UndefinedNameException.undefinedField(this, name);
+            throw UndefinedNameException.undefinedField(this, getName());
         }
         if (value instanceof IoFunction) {
             return invokeFunction(frame, (IoFunction) value, receiver);
         }
         if (value instanceof IoBlock) {
-            return invokeBlock(frame, (IoBlock) value, receiver, prototype, name);
+            return invokeBlock(frame, (IoBlock) value, receiver, prototype);
         }
         if (value instanceof IoMethod) {
-            return invokeMethod(frame, (IoMethod) value, receiver, prototype, name);
+            return invokeMethod(frame, (IoMethod) value, receiver, prototype);
         }
         return value;
     }
@@ -95,12 +97,11 @@ public abstract class InvokeNode extends IoNode {
         return doInvoke(frame, function, receiver, argumentsCount);
     }
 
-    protected final Object invokeBlock(VirtualFrame frame, IoBlock block, final Object receiver, IoObject prototype,
-            TruffleString name) {
+    protected final Object invokeBlock(VirtualFrame frame, IoBlock block, final Object receiver, IoObject prototype) {
         final Object target;
         if (block.getCallSlotIsUsed()) {
             IoLocals sender = block.getSender();
-            IoMessage message = IoState.get(this).createMessage(name, getArgumentNodes());
+            IoMessage message = IoState.get(this).createMessage(getName(), getArgumentNodes());
             IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
             IoCall call = IoState.get(this).createCall(sender, sender, message, prototype, block, currentCoroutine);
             target = call;
@@ -112,11 +113,11 @@ public abstract class InvokeNode extends IoNode {
     }
 
     protected final Object invokeMethod(VirtualFrame frame, IoMethod method, final Object receiver,
-            IoObject prototype, TruffleString name) {
+            IoObject prototype) {
         final Object target;
         if (method.getCallSlotIsUsed()) {
             IoLocals sender = IoState.get(this).createLocals(receiver, frame.materialize());
-            IoMessage message = IoState.get(this).createMessage(name, getArgumentNodes());
+            IoMessage message = IoState.get(this).createMessage(getName(), getArgumentNodes());
             IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
             IoCall call = IoState.get(this).createCall(sender, receiver, message, prototype, method, currentCoroutine);
             target = call;

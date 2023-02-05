@@ -43,41 +43,22 @@
  */
 package org.truffle.io.nodes.slots;
 
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.objects.IoObject;
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.objects.IoFunction;
 
 @NodeInfo(shortName = "()")
-public abstract class InvokeMemberNode extends InvokeNode {
-    static final int LIBRARY_LIMIT = 3;
-
+@NodeChild(value = "invokableNode", type = IoNode.class)
+public abstract class InvokeDoNode extends InvokeNode {
     @Specialization
-    protected Object invoke(VirtualFrame frame, Object receiver) {
-        final IoObject prototype = IoObjectUtil.lookupSlot(receiver, getName());
-        Object value = null;
-        if (prototype != null) {
-            value = IoObjectUtil.getOrDefaultUncached(prototype, getName());
-        }
-        return invokeOrGet(frame, value, receiver, prototype);
+    protected Object invoke(VirtualFrame frame, Object receiver, IoFunction invokable,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        return invokeFunction(frame, invokable, receiver);
     }
-
-    /*@Specialization(guards = {"!isIoObject(receiver)", "objects.hasMembers(receiver)"}, limit = "LIBRARY_LIMIT")
-    protected Object readObject(Object receiver, Object name,
-                    @CachedLibrary("receiver") InteropLibrary objects,
-                    @Cached ToMemberNode asMember) {
-        try {
-            Object result = objects.readMember(receiver, asMember.execute(name));
-            return result;
-        } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            throw UndefinedNameException.undefinedField(this, name);
-        }
-    }
-    
-    static boolean isIoObject(Object receiver) {
-        return receiver instanceof IoObject;
-    }*/
-
 }
