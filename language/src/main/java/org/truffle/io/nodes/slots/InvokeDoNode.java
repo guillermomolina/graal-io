@@ -59,6 +59,6 @@ public abstract class InvokeDoNode extends InvokeNode {
     @Specialization
     protected Object invoke(VirtualFrame frame, Object receiver, IoFunction invokable,
             @Cached ToTruffleStringNode toTruffleStringNode) {
-        return invokeFunction(frame, invokable, receiver);
+        return invokeFunction(frame, invokable, receiver, null);
     }
 }

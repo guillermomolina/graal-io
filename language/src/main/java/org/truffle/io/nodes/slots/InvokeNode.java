@@ -54,7 +54,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.runtime.IoState;
-import org.truffle.io.runtime.exceptions.UndefinedNameException;
 import org.truffle.io.runtime.objects.IoBlock;
 import org.truffle.io.runtime.objects.IoCall;
 import org.truffle.io.runtime.objects.IoCoroutine;
@@ -77,11 +76,8 @@ public abstract class InvokeNode extends IoNode {
 
     protected final Object invokeOrGet(VirtualFrame frame, final Object value, final Object receiver,
             IoObject prototype) {
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, getName());
-        }
         if (value instanceof IoFunction) {
-            return invokeFunction(frame, (IoFunction) value, receiver);
+            return invokeFunction(frame, (IoFunction) value, receiver, prototype);
         }
         if (value instanceof IoBlock) {
             return invokeBlock(frame, (IoBlock) value, receiver, prototype);
@@ -92,7 +88,7 @@ public abstract class InvokeNode extends IoNode {
         return value;
     }
 
-    protected final Object invokeFunction(VirtualFrame frame, IoFunction function, final Object receiver) {
+    protected final Object invokeFunction(VirtualFrame frame, IoFunction function, final Object receiver, final IoObject prototype) {
         final int argumentsCount = getArgumentNodes().length + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return doInvoke(frame, function, receiver, argumentsCount);
     }

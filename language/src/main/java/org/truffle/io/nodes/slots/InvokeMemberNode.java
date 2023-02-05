@@ -48,6 +48,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.exceptions.UndefinedNameException;
 import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "()")
@@ -60,6 +61,9 @@ public abstract class InvokeMemberNode extends InvokeNode {
         Object value = null;
         if (prototype != null) {
             value = IoObjectUtil.getOrDefaultUncached(prototype, getName());
+        }
+        if (value == null) {
+            throw UndefinedNameException.undefinedField(this, getName());
         }
         return invokeOrGet(frame, value, receiver, prototype);
     }
