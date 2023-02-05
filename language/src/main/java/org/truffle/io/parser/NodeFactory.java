@@ -85,7 +85,7 @@ import org.truffle.io.nodes.logic.LogicalNotNodeGen;
 import org.truffle.io.nodes.logic.LogicalOrNode;
 import org.truffle.io.nodes.root.IoRootNode;
 import org.truffle.io.nodes.slots.DoReadNodeGen;
-import org.truffle.io.nodes.slots.Invoke2NodeGen;
+import org.truffle.io.nodes.slots.InvokeNodeGen;
 import org.truffle.io.nodes.slots.ListLocalSlotNamesNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
@@ -792,7 +792,7 @@ public class NodeFactory {
         }
         ReadNode valueNode = createReadSlot(receiverNode, nameNode, startPos, length);
         assert valueNode != null;
-        final IoNode result = Invoke2NodeGen.create(valueNode, argumentNodes.toArray(new IoNode[argumentNodes.size()]));
+        final IoNode result = InvokeNodeGen.create(valueNode, argumentNodes.toArray(new IoNode[argumentNodes.size()]));
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
@@ -805,7 +805,7 @@ public class NodeFactory {
         valueNode.setSourceSection(startPos, length);
         valueNode.addExpressionTag();
         assert valueNode != null;
-        final IoNode result = Invoke2NodeGen.create(valueNode, new IoNode[0]);
+        final IoNode result = InvokeNodeGen.create(valueNode, new IoNode[0]);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
