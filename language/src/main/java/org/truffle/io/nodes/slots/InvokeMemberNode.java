@@ -43,25 +43,17 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.exceptions.UndefinedNameException;
-import org.truffle.io.runtime.objects.IoBlock;
-import org.truffle.io.runtime.objects.IoFunction;
-import org.truffle.io.runtime.objects.IoMethod;
-import org.truffle.io.runtime.objects.IoObject;
-
 import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.objects.IoObject;
+
 @NodeInfo(shortName = "()")
-@NodeChild(value = "receiverNode", type = IoNode.class)
-@NodeChild(value = "nameNode", type = IoNode.class)
 public abstract class InvokeMemberNode extends InvokeNode {
     static final int LIBRARY_LIMIT = 3;
 
@@ -69,22 +61,12 @@ public abstract class InvokeMemberNode extends InvokeNode {
     protected Object invoke(VirtualFrame frame, Object receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        Object value = IoObjectUtil.getOrDefault(receiver, nameTS, null);
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, nameTS);
+        final IoObject prototype = IoObjectUtil.lookupSlot(receiver, name);
+        Object value = null;
+        if (prototype != null) {
+            value = IoObjectUtil.getOrDefaultUncached(prototype, name);
         }
-        if (value instanceof IoFunction) {
-            return executeFunction(frame, receiver, (IoFunction) value);
-        }
-        if (value instanceof IoBlock) {
-            final IoObject prototype = IoObjectUtil.getPrototype(value);
-            return executeBlock(frame, receiver, (IoBlock) value, prototype, nameTS);
-        }
-        if (value instanceof IoMethod) {
-            final IoObject prototype = IoObjectUtil.getPrototype(value);
-            return executeMethod(frame, receiver, (IoMethod) value, prototype, nameTS);
-        }
-        return value;
+        return invokeOrGet(frame, value, receiver, prototype, nameTS);
     }
 
     /*@Specialization(guards = {"!isIoObject(receiver)", "objects.hasMembers(receiver)"}, limit = "LIBRARY_LIMIT")

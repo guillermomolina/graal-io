@@ -43,8 +43,18 @@
  */
 package org.truffle.io.nodes.slots;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.runtime.IoState;
+import org.truffle.io.runtime.exceptions.UndefinedNameException;
 import org.truffle.io.runtime.objects.IoBlock;
 import org.truffle.io.runtime.objects.IoCall;
 import org.truffle.io.runtime.objects.IoCoroutine;
@@ -55,26 +65,37 @@ import org.truffle.io.runtime.objects.IoMessage;
 import org.truffle.io.runtime.objects.IoMethod;
 import org.truffle.io.runtime.objects.IoObject;
 
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
-
 @NodeInfo(shortName = "()")
+@NodeChild(value = "receiverNode", type = IoNode.class)
+@NodeChild(value = "nameNode", type = IoNode.class)
 @NodeField(name = "argumentNodes", type = IoNode[].class)
 public abstract class InvokeNode extends IoNode {
 
     public abstract IoNode[] getArgumentNodes();
 
-    protected final Object executeFunction(VirtualFrame frame, final Object receiver, IoFunction function) {
-        final int argumentsCount = getArgumentNodes().length + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
-        return execute(frame, receiver, function, argumentsCount);
+    protected final Object invokeOrGet(VirtualFrame frame, final Object value, final Object receiver,
+            IoObject prototype, TruffleString name) {
+        if (value == null) {
+            throw UndefinedNameException.undefinedField(this, name);
+        }
+        if (value instanceof IoFunction) {
+            return invokeFunction(frame, (IoFunction) value, receiver);
+        }
+        if (value instanceof IoBlock) {
+            return invokeBlock(frame, (IoBlock) value, receiver, prototype, name);
+        }
+        if (value instanceof IoMethod) {
+            return invokeMethod(frame, (IoMethod) value, receiver, prototype, name);
+        }
+        return value;
     }
 
-    protected final Object executeBlock(VirtualFrame frame, final Object receiver, IoBlock block, IoObject prototype,
+    protected final Object invokeFunction(VirtualFrame frame, IoFunction function, final Object receiver) {
+        final int argumentsCount = getArgumentNodes().length + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        return doInvoke(frame, function, receiver, argumentsCount);
+    }
+
+    protected final Object invokeBlock(VirtualFrame frame, IoBlock block, final Object receiver, IoObject prototype,
             TruffleString name) {
         final Object target;
         if (block.getCallSlotIsUsed()) {
@@ -87,10 +108,10 @@ public abstract class InvokeNode extends IoNode {
             target = receiver;
         }
         int argumentsCount = block.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
-        return execute(frame, target, block, argumentsCount);
+        return doInvoke(frame, block, target, argumentsCount);
     }
 
-    protected final Object executeMethod(VirtualFrame frame, final Object receiver, IoMethod method,
+    protected final Object invokeMethod(VirtualFrame frame, IoMethod method, final Object receiver,
             IoObject prototype, TruffleString name) {
         final Object target;
         if (method.getCallSlotIsUsed()) {
@@ -103,11 +124,11 @@ public abstract class InvokeNode extends IoNode {
             target = receiver;
         }
         int argumentsCount = method.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
-        return execute(frame, target, method, argumentsCount);
+        return doInvoke(frame, method, target, argumentsCount);
     }
 
     @ExplodeLoop
-    protected final Object execute(VirtualFrame frame, final Object receiver, IoInvokable invokable,
+    protected final Object doInvoke(VirtualFrame frame, IoInvokable invokable, final Object receiver,
             final int argumentsCount) {
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];

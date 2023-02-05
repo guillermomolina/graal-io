@@ -46,6 +46,12 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.antlr.v4.runtime.Token;
 import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
@@ -96,12 +102,6 @@ import org.truffle.io.nodes.slots.WriteMemberNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IoLocals;
-
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -859,8 +859,8 @@ public class NodeFactory {
         if (slotIndex < 0) {
             return null;
         }
-        final IoNode result = InvokeLocalSlotNodeGen.create(nameNode, argumentNodes.toArray(new IoNode[argumentNodes.size()]),
-                slotIndex);
+        final IoNode result = InvokeLocalSlotNodeGen.create(createReadSelf(), nameNode,
+                argumentNodes.toArray(new IoNode[argumentNodes.size()]), slotIndex);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;

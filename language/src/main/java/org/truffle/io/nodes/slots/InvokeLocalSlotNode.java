@@ -43,11 +43,8 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.interop.NodeObjectDescriptor;
-
 import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -55,39 +52,45 @@ import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.objects.IoObject;
 
-@NodeChild(value = "nameNode", type = IoNode.class)
 @NodeField(name = "slot", type = int.class)
 public abstract class InvokeLocalSlotNode extends InvokeNode {
 
     protected abstract int getSlot();
 
     @Specialization(guards = "frame.isLong(getSlot())")
-    protected long readLong(VirtualFrame frame) {
+    protected long readLong(VirtualFrame frame, Object receiver, Object name) {
         return frame.getLong(getSlot());
     }
 
     @Specialization(guards = "frame.isDouble(getSlot())")
-    protected double readDouble(VirtualFrame frame) {
+    protected double readDouble(VirtualFrame frame, Object receiver, Object name) {
         return frame.getDouble(getSlot());
     }
 
     @Specialization(guards = "frame.isBoolean(getSlot())")
-    protected boolean readBoolean(VirtualFrame frame) {
+    protected boolean readBoolean(VirtualFrame frame, Object receiver, Object name) {
         return frame.getBoolean(getSlot());
     }
 
-    @Specialization(replaces = {"readLong", "readDouble", "readBoolean"})
-    protected Object readObject(VirtualFrame frame) {
-        if (!frame.isObject(getSlot())) {
-
+    @Specialization(replaces = { "readLong", "readDouble", "readBoolean" })
+    protected Object readObject(VirtualFrame frame, Object receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        final Object value;
+        if (frame.isObject(getSlot())) {
+            value = frame.getObject(getSlot());
+        } else {
             CompilerDirectives.transferToInterpreter();
-            Object result = frame.getValue(getSlot());
-            frame.setObject(getSlot(), result);
-            return result;
+            value = frame.getValue(getSlot());
+            frame.setObject(getSlot(), value);
         }
-
-        return frame.getObject(getSlot());
+        TruffleString nameTS = toTruffleStringNode.execute(name);
+        final IoObject prototype = IoObjectUtil.getPrototype(value);
+        return invokeOrGet(frame, value, receiver, prototype, nameTS);
     }
 
     @Override
@@ -97,7 +100,8 @@ public abstract class InvokeLocalSlotNode extends InvokeNode {
 
     @Override
     public Object getNodeObject() {
-        return NodeObjectDescriptor.readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
+        return NodeObjectDescriptor
+                .readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
     }
 
 }
