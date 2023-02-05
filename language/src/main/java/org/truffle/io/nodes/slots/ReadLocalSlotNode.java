@@ -51,65 +51,55 @@ import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.interop.NodeObjectDescriptor;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.objects.IoFalse;
+import org.truffle.io.runtime.objects.IoPrototype;
+import org.truffle.io.runtime.objects.IoTrue;
 
-/**
- * Node to read a local variable from a function's {@link VirtualFrame frame}. The Truffle frame API
- * allows to store primitive values of all Java primitive types, and Object values. This means that
- * all IO types that are objects are handled by the {@link #readObject} method.
- * <p>
- * We use the primitive type only when the same primitive type is uses for all writes. If the local
- * variable is type-polymorphic, then the value is always stored as an Object, i.e., primitive
- * values are boxed. Even a mixture of {@code long} and {@code boolean} writes leads to both being
- * stored boxed.
- */
 @NodeField(name = "slot", type = int.class)
-public abstract class ReadLocalSlotNode extends IoNode {
-
-    /**
-     * Returns the descriptor of the accessed local variable. The implementation of this method is
-     * created by the Truffle DSL based on the {@link NodeField} annotation on the class.
-     */
+public abstract class ReadLocalSlotNode extends ReadNode {
     protected abstract int getSlot();
+
+    protected void setName(VirtualFrame frame) {
+        setName((TruffleString)frame.getFrameDescriptor().getSlotName(getSlot()));
+    }
 
     @Specialization(guards = "frame.isLong(getSlot())")
     protected long readLong(VirtualFrame frame) {
-        /*
-         * When the FrameSlotKind is Long, we know that only primitive long values have ever been
-         * written to the local variable. So we do not need to check that the frame really contains
-         * a primitive long value.
-         */
+        setPrototype(IoPrototype.NUMBER);
+        setName(frame);
         return frame.getLong(getSlot());
     }
 
     @Specialization(guards = "frame.isDouble(getSlot())")
     protected double readDouble(VirtualFrame frame) {
+        setPrototype(IoPrototype.NUMBER);
+        setName(frame);
         return frame.getDouble(getSlot());
     }
 
     @Specialization(guards = "frame.isBoolean(getSlot())")
     protected boolean readBoolean(VirtualFrame frame) {
-        return frame.getBoolean(getSlot());
+        boolean value = frame.getBoolean(getSlot());
+        setPrototype(value? IoTrue.SINGLETON: IoFalse.SINGLETON);
+        setName(frame);
+        return value;
     }
 
-    @Specialization(replaces = {"readLong", "readDouble", "readBoolean"})
+    @Specialization(replaces = { "readLong", "readDouble", "readBoolean" })
     protected Object readObject(VirtualFrame frame) {
-        if (!frame.isObject(getSlot())) {
-            /*
-             * The FrameSlotKind has been set to Object, so from now on all writes to the local
-             * variable will be Object writes. However, now we are in a frame that still has an old
-             * non-Object value. This is a slow-path operation: we read the non-Object value, and
-             * write it immediately as an Object value so that we do not hit this path again
-             * multiple times for the same variable of the same frame.
-             */
+        final Object value;
+        if (frame.isObject(getSlot())) {
+            value = frame.getObject(getSlot());
+        } else {
             CompilerDirectives.transferToInterpreter();
-            Object result = frame.getValue(getSlot());
-            frame.setObject(getSlot(), result);
-            return result;
+            value = frame.getValue(getSlot());
+            frame.setObject(getSlot(), value);
         }
-
-        return frame.getObject(getSlot());
+        setPrototype(IoObjectUtil.getPrototype(value));
+        setName(frame);
+        return value;
     }
 
     @Override
@@ -119,7 +109,8 @@ public abstract class ReadLocalSlotNode extends IoNode {
 
     @Override
     public Object getNodeObject() {
-        return NodeObjectDescriptor.readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
+        return NodeObjectDescriptor
+                .readMember((TruffleString) getRootNode().getFrameDescriptor().getSlotName(getSlot()));
     }
 
 }

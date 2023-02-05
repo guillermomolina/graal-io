@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2013, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,34 +43,37 @@
  */
 package org.truffle.io.nodes.slots;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.exceptions.UndefinedNameException;
+import org.truffle.io.runtime.objects.IoObject;
 
-@NodeInfo(shortName = "getSlot")
-@NodeChild(value = "receiverNode", type = IoNode.class)
-@NodeChild(value = "nameNode", type = IoNode.class)
-public abstract class ReadMemberNode extends ReadNode {
-    @Specialization
-    public Object read(VirtualFrame frame, Object receiver, Object nameObj,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
-        setReceiver(receiver);
-        setName(toTruffleStringNode.execute(nameObj));
-        setPrototype(IoObjectUtil.lookupSlot(receiver, getName()));
-        Object value = null;
-        if (getPrototype() != null) {
-            value = IoObjectUtil.getOrDefaultUncached(getPrototype(), getName());
-        }
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, getName());
-        }
-        return value;
+public abstract class ReadNode extends IoNode {
+    private Object receiver = null;
+    private IoObject prototype = null;
+    private TruffleString name = null;
+
+    public Object getReceiver() {
+        return receiver;
+    }
+
+    public IoObject getPrototype() {
+        return prototype;
+    }
+
+    public TruffleString getName() {
+        return name;
+    }
+
+    protected void setReceiver(final Object receiver) {
+        this.receiver = receiver;
+    }
+
+    protected void setPrototype(final IoObject prototype) {
+        this.prototype = prototype;
+    }
+
+    protected void setName(final TruffleString name) {
+        this.name = name;
     }
 }

@@ -43,33 +43,37 @@
  */
 package org.truffle.io.nodes.slots;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
-
 import org.truffle.io.nodes.IoNode;
 import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.nodes.util.ToTruffleStringNodeGen;
 import org.truffle.io.runtime.IoObjectUtil;
 import org.truffle.io.runtime.exceptions.UndefinedNameException;
 
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
+
 @NodeInfo(shortName = "getSlot")
-@NodeChild(value = "receiverNode", type = IoNode.class)
-@NodeChild(value = "nameNode", type = IoNode.class)
-public abstract class ReadMemberNode extends ReadNode {
-    @Specialization
-    public Object read(VirtualFrame frame, Object receiver, Object nameObj,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
-        setReceiver(receiver);
-        setName(toTruffleStringNode.execute(nameObj));
-        setPrototype(IoObjectUtil.lookupSlot(receiver, getName()));
-        Object value = null;
-        if (getPrototype() != null) {
-            value = IoObjectUtil.getOrDefaultUncached(getPrototype(), getName());
-        }
+public final class ReadMemberNode extends IoNode {
+
+    @Child
+    protected IoNode receiverNode;
+    @Child
+    protected IoNode nameNode;
+    protected final ToTruffleStringNode toTruffleStringNode;
+
+    public ReadMemberNode(final IoNode receiverNode, final IoNode nameNode) {
+        this.receiverNode = receiverNode;
+        this.nameNode = nameNode;
+        this.toTruffleStringNode = ToTruffleStringNodeGen.create();
+    }
+
+    @Override
+    public Object executeGeneric(VirtualFrame frame) {
+        Object receiver = receiverNode.executeGeneric(frame);
+        Object name = nameNode.executeGeneric(frame);
+        Object value = IoObjectUtil.getOrDefault(receiver, name);
         if (value == null) {
-            throw UndefinedNameException.undefinedField(this, getName());
+            throw UndefinedNameException.undefinedField(this, name);
         }
         return value;
     }

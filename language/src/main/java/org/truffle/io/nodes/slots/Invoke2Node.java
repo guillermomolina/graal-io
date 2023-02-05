@@ -67,20 +67,31 @@ import org.truffle.io.runtime.objects.IoMethod;
 import org.truffle.io.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "()")
-@NodeChild(value = "valueNode", type = IoNode.class)
-@NodeField(name = "receiver", type = Object.class)
-@NodeField(name = "prototype", type = IoObject.class)
-@NodeField(name = "name", type = TruffleString.class)
+@NodeChild(value = "valueNode", type = ReadNode.class)
 @NodeField(name = "argumentNodes", type = IoNode[].class)
 public abstract class Invoke2Node extends IoNode {
 
-    public abstract Object getReceiver();
-
-    public abstract IoObject getPrototype();
-
-    public abstract TruffleString getName();
+    public abstract ReadNode getValueNode();
 
     public abstract IoNode[] getArgumentNodes();
+
+    public Object getReceiver() {
+        Object receiver = getValueNode().getReceiver();;
+        assert receiver != null;
+        return receiver;
+    }
+
+    public IoObject getPrototype() {
+        IoObject prototype = getValueNode().getPrototype();
+        assert prototype != null;
+        return prototype;
+    }
+
+    public TruffleString getName() {
+        TruffleString name = getValueNode().getName();
+        assert name != null;
+        return name;
+    }
 
     @Specialization
     protected final Object invokeFunction(VirtualFrame frame, IoFunction function) {
@@ -122,7 +133,7 @@ public abstract class Invoke2Node extends IoNode {
     }
 
     @Fallback
-    protected final Object invokeMethod(VirtualFrame frame, Object value) {
+    protected final Object getValue(VirtualFrame frame, Object value) {
         return value;
     }
 

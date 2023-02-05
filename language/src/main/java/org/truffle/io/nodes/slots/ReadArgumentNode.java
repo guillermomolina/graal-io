@@ -43,29 +43,15 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.parser.NodeFactory;
-import org.truffle.io.runtime.objects.IoNil;
-
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
-/**
- * Reads a function argument. Arguments are passed in as an object array.
- * <p>
- * Arguments are not type-specialized. To ensure that repeated accesses within a method are
- * specialized and can, e.g., be accessed without unboxing, all arguments are loaded into local
- * variables {@link NodeFactory#addFormalParameter in the method prologue}.
- */
-public class ReadArgumentNode extends IoNode {
+import org.truffle.io.runtime.objects.IoNil;
 
-    /** The argument number, i.e., the index into the array of arguments. */
+public class ReadArgumentNode extends ReadNode {
+
     private final int index;
 
-    /**
-     * Profiling information, collected by the interpreter, capturing whether the function was
-     * called with fewer actual arguments than formal arguments.
-     */
     private final BranchProfile outOfBoundsTaken = BranchProfile.create();
 
     public ReadArgumentNode(int index) {
@@ -79,9 +65,7 @@ public class ReadArgumentNode extends IoNode {
             Object argument = args[index];          
             return argument;
         } else {
-            /* In the interpreter, record profiling information that the branch was used. */
             outOfBoundsTaken.enter();
-            /* Use the default null value. */
             return IoNil.SINGLETON;
         }
     }
