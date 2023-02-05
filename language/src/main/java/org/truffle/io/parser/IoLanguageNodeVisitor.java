@@ -405,7 +405,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         IoNode resultNode = null;
         if (receiverNode == null) {
-            resultNode = factory.createGetSlot(receiverNode, nameNode, start, length);
+            resultNode = factory.createReadSlot(receiverNode, nameNode, start, length);
         }
         if (resultNode != null) {
             return resultNode;

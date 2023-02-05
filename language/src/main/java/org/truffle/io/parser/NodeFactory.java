@@ -46,12 +46,6 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
-import com.oracle.truffle.api.strings.TruffleString;
-
 import org.antlr.v4.runtime.Token;
 import org.truffle.io.IoLanguage;
 import org.truffle.io.NotImplementedException;
@@ -90,10 +84,8 @@ import org.truffle.io.nodes.logic.LogicalAndNode;
 import org.truffle.io.nodes.logic.LogicalNotNodeGen;
 import org.truffle.io.nodes.logic.LogicalOrNode;
 import org.truffle.io.nodes.root.IoRootNode;
+import org.truffle.io.nodes.slots.DoReadNodeGen;
 import org.truffle.io.nodes.slots.Invoke2NodeGen;
-import org.truffle.io.nodes.slots.InvokeDoNodeGen;
-import org.truffle.io.nodes.slots.InvokeLocalSlotNodeGen;
-import org.truffle.io.nodes.slots.InvokeMemberNodeGen;
 import org.truffle.io.nodes.slots.ListLocalSlotNamesNode;
 import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
@@ -104,6 +96,12 @@ import org.truffle.io.nodes.slots.WriteMemberNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
 import org.truffle.io.runtime.objects.IoLocals;
+
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+import com.oracle.truffle.api.strings.TruffleString;
 
 public class NodeFactory {
 
@@ -772,15 +770,13 @@ public class NodeFactory {
         return result;
     }
 
-    public IoNode createGetSlot(IoNode receiverNode, IoNode nameNode, int startPos, int length) {
+    public ReadNode createReadSlot(IoNode receiverNode, IoNode nameNode, int startPos, int length) {
         IoNode targetNode = receiverNode;
         if (receiverNode == null) {
             if (hasLocals()) {
-                IoNode resultNode = createReadLocalSlot(nameNode, startPos, length);
-                if (resultNode == null) {
-                    resultNode = new NilLiteralNode();
-                    resultNode.setSourceSection(startPos, length);
-                    resultNode.addExpressionTag();
+                ReadNode resultNode = createReadLocalSlot(nameNode, startPos, length);
+                if(resultNode == null) {
+                    throw new NotImplementedException();
                 }
                 return resultNode;
             }
@@ -789,52 +785,12 @@ public class NodeFactory {
         return createReadProperty(targetNode, nameNode, 0, 0);
     }
 
-    public IoNode createGetSlot(IoNode nameNode, int startPos, int length) {
-        if (hasLocals()) {
-            IoNode resultNode = createReadLocalSlot(nameNode, startPos, length);
-            if (resultNode == null) {
-                resultNode = new NilLiteralNode();
-                resultNode.setSourceSection(startPos, length);
-                resultNode.addExpressionTag();
-            }
-            return resultNode;
-        }
-        return null;
-    }
-
-    /*public IoNode createInvokeSlot(IoNode receiverNode, IoNode nameNode, List<IoNode> argumentNodes,
-            int startPos, int length) {
-        if (nameNode == null) {
-            return null;
-        }
-        assert nameNode instanceof StringLiteralNode;
-        TruffleString name = ((StringLiteralNode) nameNode).executeGeneric(null);
-        IoNode result = null;
-        if (receiverNode == null) {
-            result = createInvokeLocalSlot(name, argumentNodes, startPos, length);
-            if (result == null) {
-                receiverNode = createReadSelfOrTarget();
-            }
-        }
-        if (result == null) {
-            result = createInvokeProperty(receiverNode, name, argumentNodes, startPos, length);
-        }
-        assert result != null;
-        return result;
-    }*/
-
     public IoNode createInvokeSlot(IoNode receiverNode, IoNode nameNode, List<IoNode> argumentNodes,
             int startPos, int length) {
         if (nameNode == null) {
             return null;
         }
-        ReadNode valueNode = null;
-        if (receiverNode == null) {
-            valueNode = createReadLocalSlot(nameNode, startPos, length);
-        } 
-        if (valueNode == null) {
-            valueNode = createReadProperty(createReadSelfOrTarget(), nameNode, startPos, length);
-        }
+        ReadNode valueNode = createReadSlot(receiverNode, nameNode, startPos, length);
         assert valueNode != null;
         final IoNode result = Invoke2NodeGen.create(valueNode, argumentNodes.toArray(new IoNode[argumentNodes.size()]));
         result.setSourceSection(startPos, length);
@@ -842,33 +798,16 @@ public class NodeFactory {
         return result;
     }
 
-    public IoNode createInvokeLocalSlot(TruffleString name, List<IoNode> argumentNodes, int startPos, int length) {
-        if (!hasLocals()) {
-            return null;
-        }
-        final int slotIndex = currentScope.findLocal(name);
-        if (slotIndex < 0) {
-            return null;
-        }
-        final IoNode result = InvokeLocalSlotNodeGen.create(createReadSelf(), name,
-                argumentNodes.toArray(new IoNode[argumentNodes.size()]), slotIndex);
+    public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
+        IoNode targetNode = receiverNode == null ? createReadSelfOrTarget() : receiverNode;
+        assert targetNode != null;
+        ReadNode valueNode = DoReadNodeGen.create(receiverNode, functionNode);
+        valueNode.setSourceSection(startPos, length);
+        valueNode.addExpressionTag();
+        assert valueNode != null;
+        final IoNode result = Invoke2NodeGen.create(valueNode, new IoNode[0]);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
-        return result;
-    }
-
-    public IoNode createInvokeProperty(IoNode receiverNode, TruffleString name, List<IoNode> argumentNodes,
-            int startPos,
-            int length) {
-        if (receiverNode == null) {
-            return null;
-        }
-
-        final IoNode result = InvokeMemberNodeGen.create(receiverNode, name,
-                argumentNodes.toArray(new IoNode[argumentNodes.size()]));
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-
         return result;
     }
 
@@ -876,16 +815,6 @@ public class NodeFactory {
         final IoNode result = new TryCatchUndefinedNameNode(receiverNode);
         result.addExpressionTag();
         result.setSourceSection(startPos, length);
-        return result;
-    }
-
-    public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
-        IoNode targetNode = receiverNode == null ? createReadSelfOrTarget() : receiverNode;
-        TruffleString name = Symbols.fromJavaString("do");
-        assert targetNode != null;
-        IoNode result = InvokeDoNodeGen.create(targetNode, functionNode, name, new IoNode[0]);
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
         return result;
     }
 

@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2013, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -43,28 +43,23 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.runtime.Symbols;
+import org.truffle.io.runtime.objects.IoFunction;
+
+import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.exceptions.UndefinedNameException;
-import org.truffle.io.runtime.objects.IoObject;
-
-@NodeInfo(shortName = "()")
-public abstract class InvokeMemberNode extends InvokeNode {
-    static final int LIBRARY_LIMIT = 3;
-
+@NodeInfo(shortName = "do")
+@NodeChild(value = "receiverNode", type = IoNode.class)
+@NodeChild(value = "functionNode", type = IoNode.class)
+public abstract class DoReadNode extends ReadNode {
     @Specialization
-    protected Object invoke(VirtualFrame frame, Object receiver) {
-        final IoObject prototype = IoObjectUtil.lookupSlot(receiver, getName());
-        Object value = null;
-        if (prototype != null) {
-            value = IoObjectUtil.getOrDefaultUncached(prototype, getName());
-        }
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, getName());
-        }
-        return invokeOrGet(frame, value, receiver, prototype);
+    public Object read(VirtualFrame frame, Object receiver, IoFunction function) {
+        setReceiver(receiver);
+        setName(Symbols.fromJavaString("do"));
+        return function;
     }
 }

@@ -43,26 +43,26 @@
  */
 package org.truffle.io.nodes.slots;
 
+import org.truffle.io.nodes.IoNode;
+import org.truffle.io.nodes.util.ToTruffleStringNode;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.exceptions.UndefinedNameException;
+
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.exceptions.UndefinedNameException;
-
 @NodeInfo(shortName = "getSlot")
 @NodeChild(value = "receiverNode", type = IoNode.class)
 @NodeChild(value = "nameNode", type = IoNode.class)
 public abstract class ReadMemberNode extends ReadNode {
     @Specialization
-    public Object read(VirtualFrame frame, Object receiver, Object nameObj,
+    public Object read(VirtualFrame frame, Object receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         setReceiver(receiver);
-        setName(toTruffleStringNode.execute(nameObj));
+        setName(toTruffleStringNode.execute(name));
         setPrototype(IoObjectUtil.lookupSlot(receiver, getName()));
         Object value = null;
         if (getPrototype() != null) {
