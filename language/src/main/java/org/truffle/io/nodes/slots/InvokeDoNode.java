@@ -43,22 +43,19 @@
  */
 package org.truffle.io.nodes.slots;
 
-import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.truffle.io.nodes.IoNode;
-import org.truffle.io.nodes.util.ToTruffleStringNode;
 import org.truffle.io.runtime.objects.IoFunction;
 
 @NodeInfo(shortName = "()")
 @NodeChild(value = "invokableNode", type = IoNode.class)
 public abstract class InvokeDoNode extends InvokeNode {
     @Specialization
-    protected Object invoke(VirtualFrame frame, Object receiver, IoFunction invokable,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
+    protected Object invoke(VirtualFrame frame, Object receiver, IoFunction invokable) {
         return invokeFunction(frame, invokable, receiver, null);
     }
 }

@@ -826,34 +826,6 @@ public class NodeFactory {
         return result;
     }
 
-    /*public IoNode createInvokeSlot(IoNode receiverNode, Token identifierToken, List<IoNode> argumentNodes,
-            int startPos, int length) {
-        IoNode valueNode = null;
-        final IoNode targetNode;
-        if (receiverNode == null) {
-            if (hasLocals()) {
-                valueNode = createReadLocalSlot(identifierToken);
-                if (valueNode == null) {
-                    targetNode = createReadCallSender(startPos, length);
-                } else {
-                    targetNode = createReadSelf();
-                }
-            } else {
-                targetNode = createReadTarget();
-            }
-        } else {
-            targetNode = receiverNode;
-        }
-    
-        TruffleString identifier = asTruffleString(identifierToken, false);
-        assert targetNode != null;
-        IoNode result = new InvokeNode(targetNode, valueNode, identifier,
-                argumentNodes.toArray(new IoNode[argumentNodes.size()]));
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-        return result;
-    }*/
-
     public IoNode createInvokeLocalSlot(TruffleString name, List<IoNode> argumentNodes, int startPos, int length) {
         if (!hasLocals()) {
             return null;

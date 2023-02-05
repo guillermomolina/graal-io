@@ -72,7 +72,7 @@ import org.truffle.io.runtime.objects.IoObject;
 @NodeField(name = "prototype", type = IoObject.class)
 @NodeField(name = "name", type = TruffleString.class)
 @NodeField(name = "argumentNodes", type = IoNode[].class)
-public abstract class InvokeNode2 extends IoNode {
+public abstract class Invoke2Node extends IoNode {
 
     public abstract Object getReceiver();
 

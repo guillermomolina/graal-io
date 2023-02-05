@@ -67,21 +67,4 @@ public abstract class InvokeMemberNode extends InvokeNode {
         }
         return invokeOrGet(frame, value, receiver, prototype);
     }
-
-    /*@Specialization(guards = {"!isIoObject(receiver)", "objects.hasMembers(receiver)"}, limit = "LIBRARY_LIMIT")
-    protected Object readObject(Object receiver, Object name,
-                    @CachedLibrary("receiver") InteropLibrary objects,
-                    @Cached ToMemberNode asMember) {
-        try {
-            Object result = objects.readMember(receiver, asMember.execute(name));
-            return result;
-        } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            throw UndefinedNameException.undefinedField(this, name);
-        }
-    }
-    
-    static boolean isIoObject(Object receiver) {
-        return receiver instanceof IoObject;
-    }*/
-
 }
