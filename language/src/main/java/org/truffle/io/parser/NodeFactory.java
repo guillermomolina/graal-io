@@ -91,6 +91,7 @@ import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.ReadMemberNodeGen;
 import org.truffle.io.nodes.slots.ReadNode;
+import org.truffle.io.nodes.slots.ReadRemoteSlotNodeGen;
 import org.truffle.io.nodes.slots.WriteLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.WriteMemberNode;
 import org.truffle.io.nodes.util.UnboxNodeGen;
@@ -547,7 +548,7 @@ public class NodeFactory {
         return result;
     }*/
 
-    public ReadNode createReadLocalSlot(StringLiteralNode nameNode) {
+    public ReadNode createReadLocalSlot(StringLiteralNode nameNode, int startPos, int length) {
         assert nameNode != null;
         TruffleString name = nameNode.executeGeneric(null);
         final int slotIndex = currentScope.findLocal(name);
@@ -555,21 +556,7 @@ public class NodeFactory {
             return null;
         }
         final ReadNode result = ReadLocalSlotNodeGen.create(slotIndex);
-        if (nameNode.hasSource()) {
-            result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
-        }
-        result.addExpressionTag();
-        return result;
-    }
-
-    public IoNode createReadLocalSlot(Token nameToken) {
-        TruffleString name = asTruffleString(nameToken, false);
-        final int slotIndex = currentScope.findLocal(name);
-        if (slotIndex < 0) {
-            return null;
-        }
-        final IoNode result = ReadLocalSlotNodeGen.create(slotIndex);
-        srcFromToken(result, nameToken);
+        result.setSourceSection(startPos, length);
         result.addExpressionTag();
         return result;
     }
@@ -579,7 +566,25 @@ public class NodeFactory {
             return null;
         }
         if (nameNode instanceof StringLiteralNode) {
-            return createReadLocalSlot((StringLiteralNode) nameNode);
+            return createReadLocalSlot((StringLiteralNode) nameNode, startPos, length);
+        }
+        throw new NotImplementedException();
+    }
+
+    public ReadNode createReadRemoteSlot(StringLiteralNode nameNode, int startPos, int length) {
+        assert nameNode != null;
+        final ReadNode result = ReadRemoteSlotNodeGen.create(createReadCallSender(startPos, length), nameNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+        return result;
+    }
+
+    public ReadNode createReadRemoteSlot(IoNode nameNode, int startPos, int length) {
+        if (!hasLocals()) {
+            return null;
+        }
+        if (nameNode instanceof StringLiteralNode) {
+            return createReadRemoteSlot((StringLiteralNode) nameNode, startPos, length);
         }
         throw new NotImplementedException();
     }
@@ -776,7 +781,7 @@ public class NodeFactory {
             if (hasLocals()) {
                 ReadNode resultNode = createReadLocalSlot(nameNode, startPos, length);
                 if(resultNode == null) {
-                    throw new NotImplementedException();
+                    resultNode = createReadRemoteSlot(nameNode, startPos, length);
                 }
                 return resultNode;
             }
