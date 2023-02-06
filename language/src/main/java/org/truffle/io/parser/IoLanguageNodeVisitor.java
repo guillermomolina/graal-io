@@ -215,9 +215,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         assert assignmentNameNode != null;
         IoNode valueNode = visitOperation(ctx.operation());
         assert valueNode != null;
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
-        IoNode resultNode = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, start, length, initialize);
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
+        IoNode resultNode = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, startPos, length, initialize);
         assert resultNode != null;
         return resultNode;
     }
@@ -353,16 +353,18 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     }
 
     public IoNode visitModifiedMessageNext(final ModifiedMessageNextContext ctx, IoNode receiverNode) {
-        IoNode targetNode = receiverNode == null? factory.createReadSelfOrTarget() : receiverNode;
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
+        IoNode targetNode = receiverNode == null? factory.createReadSelfOrTarget(startPos, length) : receiverNode;
         return visitMessageNext(ctx.messageNext(), targetNode);
     }
 
     public IoNode visitMessageInvoke(final MessageInvokeContext ctx, IoNode receiverNode) {
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
         List<IoNode> argumentNodes = createArgumentsList(ctx.arguments());
         final IoNode nameNode = visitIdentifier(ctx.identifier());
-        final IoNode resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, start, length);
+        final IoNode resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
         assert resultNode != null;
         return resultNode;
     }
@@ -370,33 +372,33 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     public IoNode visitSlotNamesMessage(final SlotNamesMessageContext ctx, IoNode receiverNode) {
         IoNode resultNode = null;
         if (receiverNode == null) {
-            int start = ctx.start.getStartIndex();
-            int length = ctx.stop.getStopIndex() - start + 1;
-            resultNode = factory.createListLocalSlotNames(start, length);
+            int startPos = ctx.start.getStartIndex();
+            int length = ctx.stop.getStopIndex() - startPos + 1;
+            resultNode = factory.createListLocalSlotNames(startPos, length);
         }
         if (resultNode != null) {
             return resultNode;
         }
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
         List<IoNode> argumentNodes = new ArrayList<>();
         final IoNode nameNode = factory.createStringLiteral(ctx.start, true);
-        resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, start, length);
+        resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
         assert resultNode != null;
         return resultNode;
     }
 
     public IoNode visitThisLocalContextMessage(final ThisLocalContextMessageContext ctx, IoNode receiverNode) {
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
-        final IoNode resultNode = factory.createThisLocalContext(receiverNode, start, length);
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
+        final IoNode resultNode = factory.createThisLocalContext(receiverNode, startPos, length);
         assert resultNode != null;
         return resultNode;
     }
 
     public IoNode visitGetSlotMessage(final GetSlotMessageContext ctx, IoNode receiverNode) {
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
         final IoNode nameNode;
         if (ctx.name == null) {
             nameNode = visitExpression(ctx.expression());
@@ -405,14 +407,14 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         IoNode resultNode = null;
         if (receiverNode == null) {
-            resultNode = factory.createReadSlot(receiverNode, nameNode, start, length);
+            resultNode = factory.createReadSlot(receiverNode, nameNode, startPos, length);
         }
         if (resultNode != null) {
             return resultNode;
         }
         List<IoNode> argumentNodes = new ArrayList<>();
         argumentNodes.add(nameNode);
-        resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, start, length);
+        resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
         assert resultNode != null;
         return resultNode;
     }
@@ -428,9 +430,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         assert nameNode != null;
         IoNode valueNode = visitExpression(ctx.value);
         assert valueNode != null;
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
-        IoNode resultNode = factory.createWriteSlot(receiverNode, nameNode, valueNode, start, length, initialize);
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
+        IoNode resultNode = factory.createWriteSlot(receiverNode, nameNode, valueNode, startPos, length, initialize);
         assert resultNode != null;
         return resultNode;
     }
@@ -439,19 +441,19 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         factory.startLoop();
         final IoNode bodyNode;
         if (ctx.expression() == null) {
-            int start = ctx.OPEN().getSymbol().getStartIndex();
-            int length = ctx.CLOSE().getSymbol().getStopIndex() - start + 1;
-            bodyNode = visitEmptyExpression(start, length);
+            int startPos = ctx.OPEN().getSymbol().getStartIndex();
+            int length = ctx.CLOSE().getSymbol().getStopIndex() - startPos + 1;
+            bodyNode = visitEmptyExpression(startPos, length);
         } else {
             bodyNode = visitExpression(ctx.expression());
         }
         IoNode receiverNode = r;
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
         if (receiverNode == null) {
-            receiverNode = factory.createReadSelf();
+            receiverNode = factory.createReadSelf(startPos, length);
         }
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
-        IoNode resultNode = factory.createRepeat(receiverNode, bodyNode, start, length);
+        IoNode resultNode = factory.createRepeat(receiverNode, bodyNode, startPos, length);
         assert resultNode != null;
         return resultNode;
     }
@@ -466,7 +468,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
                 }
             }
         }
-        body.add(factory.createReadTarget());
+        body.add(factory.createReadTarget(startPos, length));
         final IoNode resultNode = factory.createExpression(body, startPos, length);
         assert resultNode != null;
         return resultNode;
@@ -478,9 +480,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         factory.enterNewScope(bodyStart);
         final IoNode bodyNode = visitTargetExpression(ctx.expression(), bodyStart, length);
         FunctionLiteralNode functionNode = factory.createFunction(bodyNode, bodyStart, length);
-        int start = ctx.start.getStartIndex();
-        length = ctx.stop.getStopIndex() - start + 1;
-        IoNode resultNode = factory.createDo(receiverNode, functionNode, start, length);
+        int startPos = ctx.start.getStartIndex();
+        length = ctx.stop.getStopIndex() - startPos + 1;
+        IoNode resultNode = factory.createDo(receiverNode, functionNode, startPos, length);
         assert resultNode != null;
         return resultNode;
     }

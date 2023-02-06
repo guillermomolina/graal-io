@@ -54,7 +54,6 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public final class ListLocalSlotNamesNode extends IoNode {
 
     public ListLocalSlotNamesNode() {
-
     }
 
     @Override

@@ -43,6 +43,10 @@
  */
 package org.truffle.io.runtime.objects;
 
+import org.truffle.io.IoLanguage;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.Symbols;
+
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -62,13 +66,10 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
 
-import org.truffle.io.IoLanguage;
-import org.truffle.io.runtime.IoObjectUtil;
-import org.truffle.io.runtime.Symbols;
-
 @ExportLibrary(InteropLibrary.class)
-public class IoObject extends DynamicObject {
+public class IoObject extends DynamicObject implements IoTruffleObject {
     protected static final int CACHE_LIMIT = 3;
+
     public static final Shape SHAPE = Shape.newBuilder().layout(IoObject.class).build();
 
     protected IoObject prototype;
@@ -143,7 +144,7 @@ public class IoObject extends DynamicObject {
     public String toString(int depth) {
         String string = String.format("Object_0x%08x", hashCode());
         if (depth == 0) {
-            string += ":" + IoObjectUtil.toString(this);
+            //string += ":" + IoObjectUtil.toString(this);
         }
         return string;
     }

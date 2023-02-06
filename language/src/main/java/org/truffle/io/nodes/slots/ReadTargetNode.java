@@ -43,31 +43,18 @@
  */
 package org.truffle.io.nodes.slots;
 
-import org.truffle.io.nodes.IoNode;
-import org.truffle.io.runtime.objects.IoNil;
+import org.truffle.io.runtime.objects.IoLocals;
 
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.profiles.BranchProfile;
 
-public class ReadArgumentNode extends IoNode {
-
-    private final int index;
-
-    private final BranchProfile outOfBoundsTaken = BranchProfile.create();
-
-    public ReadArgumentNode(int index) {
-        this.index = index;
+public class ReadTargetNode extends ReadNode {
+    public ReadTargetNode() {
     }
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        Object[] args = frame.getArguments();
-        if (index < args.length) {
-            Object argument = args[index];          
-            return argument;
-        } else {
-            outOfBoundsTaken.enter();
-            return IoNil.SINGLETON;
-        }
+        Object target = frame.getArguments()[IoLocals.TARGET_ARGUMENT_INDEX];
+        setReceiver(target);
+        return target;
     }
 }

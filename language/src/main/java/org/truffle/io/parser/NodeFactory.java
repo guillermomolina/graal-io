@@ -91,12 +91,11 @@ import org.truffle.io.nodes.slots.ReadArgumentNode;
 import org.truffle.io.nodes.slots.ReadLocalSlotNodeGen;
 import org.truffle.io.nodes.slots.ReadMemberNodeGen;
 import org.truffle.io.nodes.slots.ReadNode;
-import org.truffle.io.nodes.slots.ReadRemoteSlotNodeGen;
+import org.truffle.io.nodes.slots.ReadTargetNode;
 import org.truffle.io.nodes.slots.WriteLocalSlotNodeGen;
-import org.truffle.io.nodes.slots.WriteMemberNode;
+import org.truffle.io.nodes.slots.WriteMemberNodeGen;
 import org.truffle.io.nodes.util.UnboxNodeGen;
 import org.truffle.io.runtime.Symbols;
-import org.truffle.io.runtime.objects.IoLocals;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
@@ -240,7 +239,7 @@ public class NodeFactory {
         return WriteLocalSlotNodeGen.create(readArgNode, localIndex, nameNode);
     }
 
-    public List<IoNode> setupLocals(IoNode bodyNode) {
+    public List<IoNode> setupLocals(IoNode bodyNode, int startPos, int length) {
         assert currentScope.argumentCount >= 1;
         List<IoNode> initializationNodes = new ArrayList<IoNode>(currentScope.argumentCount);
         int callSlotIndex = currentScope.findLocal(CALL_SYMBOL);
@@ -252,7 +251,8 @@ public class NodeFactory {
             int selfSlotIndex = currentScope.findLocal(Symbols.SELF);
             assert selfSlotIndex == 0;
             StringLiteralNode nameNode = new StringLiteralNode(Symbols.SELF);
-            IoNode initializeSelfNode = WriteLocalSlotNodeGen.create(createReadCallTarget(), selfSlotIndex, nameNode);
+            IoNode initializeSelfNode = WriteLocalSlotNodeGen.create(createReadCallTarget(startPos, 0), selfSlotIndex,
+                    nameNode);
             initializationNodes.add(initializeSelfNode);
         }
         for (int i = 1; i < currentScope.argumentCount; i++) {
@@ -264,7 +264,7 @@ public class NodeFactory {
 
     public IoRootNode createRoot(IoNode bodyNode, int startPos, int length) {
         assert bodyNode != null;
-        List<IoNode> initializedBodyNode = setupLocals(bodyNode);
+        List<IoNode> initializedBodyNode = setupLocals(bodyNode, startPos, 0);
         final int bodyEndPos = bodyNode.getSourceEndIndex();
         int methodBodyLength = bodyEndPos - currentScope.bodyStartPos + 1;
         final SourceSection methodSrc = source.createSection(currentScope.bodyStartPos, methodBodyLength);
@@ -285,7 +285,7 @@ public class NodeFactory {
         if (hasLocals()) {
             homeNode = createReadCallSender(startPos, length);
         } else {
-            homeNode = createReadTarget();
+            homeNode = createReadTarget(startPos, length);
         }
         final BlockLiteralNode blockLiteralNode = new BlockLiteralNode(rootNode, argNames, homeNode, callSlotIsUsed);
         blockLiteralNode.setSourceSection(startPos, length);
@@ -418,7 +418,7 @@ public class NodeFactory {
         IoNode valueNode = valueNodeOrNull;
         if (valueNode == null) {
             length = t.getText().length();
-            valueNode = createReadSelf();
+            valueNode = createReadSelf(startPos, length);
         } else {
             length = valueNode.getSourceEndIndex() - startPos;
         }
@@ -497,7 +497,7 @@ public class NodeFactory {
                 if (hasLocals()) {
                     receiverNode = createReadCallSender(startPos, length);
                 } else {
-                    receiverNode = createReadTarget();
+                    receiverNode = createReadTarget(startPos, length);
                 }
             }
         }
@@ -531,22 +531,12 @@ public class NodeFactory {
             return null;
         }
 
-        final IoNode result = new WriteMemberNode(receiverNode, nameNode, valueNode, initialize);
+        final IoNode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode, initialize);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
         return result;
     }
-
-    /*public IoNode createWriteRemoteSlot(IoNode sender, IoNode nameNode, IoNode valueNode, int startPos, int length) {
-        if (nameNode == null || valueNode == null) {
-            return null;
-        }
-        final IoNode result = WriteRemoteSlotNodeGen.create(senderNode, nameNode, valueNode, nameNode);
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-        return result;
-    }*/
 
     public ReadNode createReadLocalSlot(StringLiteralNode nameNode, int startPos, int length) {
         assert nameNode != null;
@@ -567,24 +557,6 @@ public class NodeFactory {
         }
         if (nameNode instanceof StringLiteralNode) {
             return createReadLocalSlot((StringLiteralNode) nameNode, startPos, length);
-        }
-        throw new NotImplementedException();
-    }
-
-    public ReadNode createReadRemoteSlot(StringLiteralNode nameNode, int startPos, int length) {
-        assert nameNode != null;
-        final ReadNode result = ReadRemoteSlotNodeGen.create(createReadCallSender(startPos, length), nameNode);
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-        return result;
-    }
-
-    public ReadNode createReadRemoteSlot(IoNode nameNode, int startPos, int length) {
-        if (!hasLocals()) {
-            return null;
-        }
-        if (nameNode instanceof StringLiteralNode) {
-            return createReadRemoteSlot((StringLiteralNode) nameNode, startPos, length);
         }
         throw new NotImplementedException();
     }
@@ -620,49 +592,50 @@ public class NodeFactory {
         return forNode;*/
     }
 
-    public ReadNode createReadSelf() {
+    public ReadNode createReadSelf(int startPos, int length) {
         assert hasLocals();
         final StringLiteralNode selfNode = new StringLiteralNode(Symbols.SELF);
-        final ReadNode result = createReadLocalSlot(selfNode);
+        final ReadNode result = createReadLocalSlot(selfNode, startPos, length);
         assert result != null;
         return result;
     }
 
-    public ReadNode createReadTarget() {
+    public ReadNode createReadTarget(int startPos, int length) {
         assert !hasLocals();
-        ReadNode result = new ReadArgumentNode(IoLocals.TARGET_ARGUMENT_INDEX);
-        //result.addExpressionTag();
+        ReadNode result = new ReadTargetNode();
         assert result != null;
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
         return result;
 
     }
 
-    public ReadNode createReadSelfOrTarget() {
+    public ReadNode createReadSelfOrTarget(int startPos, int length) {
         if (hasLocals()) {
-            return createReadSelf();
+            return createReadSelf(startPos, length);
         }
-        return createReadTarget();
+        return createReadTarget(startPos, length);
     }
 
-    public IoNode createReadCall() {
+    public IoNode createReadCall(int startPos, int length) {
         assert hasLocals() == true;
         currentScope.findOrAddLocal(CALL_SYMBOL);
         final StringLiteralNode callNode = new StringLiteralNode(CALL_SYMBOL);
-        final IoNode result = createReadLocalSlot(callNode);
+        final IoNode result = createReadLocalSlot(callNode, startPos, length);
         assert result != null;
         return result;
     }
 
     public IoNode createReadCallSender(int startPos, int length) {
         final StringLiteralNode senderNode = new StringLiteralNode(SENDER_SYMBOL);
-        final IoNode result = createReadProperty(createReadCall(), senderNode, startPos, length);
+        final IoNode result = createReadProperty(createReadCall(startPos, length), senderNode, startPos, length);
         assert result != null;
         return result;
     }
 
-    public IoNode createReadCallTarget() {
+    public IoNode createReadCallTarget(int startPos, int length) {
         final StringLiteralNode targetNode = new StringLiteralNode(TARGET_SYMBOL);
-        final IoNode result = createReadProperty(createReadCall(), targetNode, 0, 0);
+        final IoNode result = createReadProperty(createReadCall(startPos, length), targetNode, startPos, length);
         assert result != null;
         return result;
     }
@@ -762,9 +735,9 @@ public class NodeFactory {
         final IoNode targetNode;
         if (receiverNode == null) {
             if (hasLocals()) {
-                targetNode = createReadCall();
+                targetNode = createReadCall(startPos, length);
             } else {
-                targetNode = createReadTarget();
+                targetNode = createReadTarget(startPos, length);
             }
         } else {
             targetNode = receiverNode;
@@ -780,12 +753,13 @@ public class NodeFactory {
         if (receiverNode == null) {
             if (hasLocals()) {
                 ReadNode resultNode = createReadLocalSlot(nameNode, startPos, length);
-                if(resultNode == null) {
-                    resultNode = createReadRemoteSlot(nameNode, startPos, length);
+                if (resultNode != null) {
+                    return resultNode;
                 }
-                return resultNode;
+                targetNode = createReadCallSender(startPos, length);
+            } else {
+                targetNode = createReadTarget(startPos, length);
             }
-            targetNode = createReadTarget();
         }
         return createReadProperty(targetNode, nameNode, 0, 0);
     }
@@ -804,7 +778,7 @@ public class NodeFactory {
     }
 
     public IoNode createDo(IoNode receiverNode, IoNode functionNode, int startPos, int length) {
-        IoNode targetNode = receiverNode == null ? createReadSelfOrTarget() : receiverNode;
+        IoNode targetNode = receiverNode == null ? createReadSelfOrTarget(startPos, length) : receiverNode;
         assert targetNode != null;
         ReadNode valueNode = DoReadNodeGen.create(receiverNode, functionNode);
         valueNode.setSourceSection(startPos, length);

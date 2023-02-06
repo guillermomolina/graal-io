@@ -40,11 +40,31 @@
  */
 package org.truffle.io.runtime.objects;
 
+import org.truffle.io.IoLanguage;
+import org.truffle.io.NotImplementedException;
+import org.truffle.io.runtime.IoObjectUtil;
+import org.truffle.io.runtime.Symbols;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Cached.Shared;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.frame.MaterializedFrame;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.utilities.TriState;
 
-public final class IoLocals extends IoObject {
+@ExportLibrary(InteropLibrary.class)
+public final class IoLocals implements IoTruffleObject {
 
     public static final int CALL_ARGUMENT_INDEX = 0;
     public static final int TARGET_ARGUMENT_INDEX = 0;
@@ -53,6 +73,7 @@ public final class IoLocals extends IoObject {
     public static final int CALL_SLOT_INDEX = 0;
     public static final int FIRST_USER_SLOT_INDEX = 1;
 
+    protected IoObject prototype;
     private final MaterializedFrame frame;
 
     public IoLocals(final MaterializedFrame frame) {
@@ -60,8 +81,16 @@ public final class IoLocals extends IoObject {
     }
 
     public IoLocals(IoObject prototype, final MaterializedFrame frame) {
-        super(prototype);
+        this.prototype = prototype;
         this.frame = frame;
+    }
+
+    public IoObject getPrototype() {
+        return prototype;
+    }
+
+    public void setPrototype(final IoObject prototype) {
+        this.prototype = prototype;
     }
 
     public MaterializedFrame getFrame() {
@@ -123,5 +152,163 @@ public final class IoLocals extends IoObject {
             return value;
         }
         return null;
+    }
+
+    public Object[] getSlotNames() {
+        final FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+        int count = frameDescriptor.getNumberOfSlots();
+        Object[] slotNames = new Object[count];
+        for (int i = 0; i < count; i++) {
+            slotNames[i] = frameDescriptor.getSlotName(i);
+        }
+        return slotNames;
+    }
+
+    @ExportMessage
+    boolean hasLanguage() {
+        return true;
+    }
+
+    @ExportMessage
+    Class<? extends TruffleLanguage<?>> getLanguage() {
+        return IoLanguage.class;
+    }
+
+    @ExportMessage
+    static final class IsIdenticalOrUndefined {
+        @Specialization
+        static TriState doIOObject(IoLocals receiver, IoLocals other) {
+            return TriState.valueOf(receiver == other);
+        }
+
+        @Fallback
+        static TriState doOther(IoLocals receiver, Object other) {
+            return TriState.UNDEFINED;
+        }
+    }
+
+    @ExportMessage
+    @TruffleBoundary
+    int identityHashCode() {
+        return System.identityHashCode(this);
+    }
+
+    @ExportMessage
+    boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    Object getMetaObject() {
+        return getPrototype();
+    }
+
+    @Override
+    public String toString() {
+        return toString(0);
+    }
+
+    public String toString(int depth) {
+        throw new NotImplementedException();
+        // String string = String.format("Object_0x%08x", hashCode());
+        // if (depth == 0) {
+        //     string += ":" + IoObjectUtil.toString(this);
+        // }
+        // return string;
+    }
+
+    @ExportMessage
+    @TruffleBoundary
+    Object toDisplayString(boolean allowSideEffects) {
+        return Symbols.fromJavaString(toString());
+    }
+
+    @ExportMessage
+    boolean isMetaObject() {
+        return true;
+    }
+
+    @ExportMessage(name = "getMetaQualifiedName")
+    @ExportMessage(name = "getMetaSimpleName")
+    public Object getName() {
+        return Symbols.OBJECT;
+    }
+
+    @ExportMessage
+    boolean isMetaInstance(Object instance) {
+        return IoObjectUtil.hasPrototype(instance, this);
+    }
+
+    @ExportMessage
+    boolean hasMembers() {
+        return true;
+    }
+
+    @ExportMessage
+    Object getMembers(boolean includeInternal) {
+        return new Keys(getSlotNames());
+    }
+
+    @ExportMessage(name = "isMemberReadable")
+    @ExportMessage(name = "isMemberModifiable")
+    boolean existsMember(String member,
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) {
+        return hasLocal(fromJavaStringNode.execute(member, IoLanguage.STRING_ENCODING));
+    }
+
+    @ExportMessage
+    boolean isMemberInsertable(String member) {
+        return false;
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    static final class Keys implements TruffleObject {
+
+        private final Object[] keys;
+
+        Keys(Object[] keys) {
+            this.keys = keys;
+        }
+
+        @ExportMessage
+        Object readArrayElement(long index) throws InvalidArrayIndexException {
+            if (!isArrayElementReadable(index)) {
+                throw InvalidArrayIndexException.create(index);
+            }
+            return keys[(int) index];
+        }
+
+        @ExportMessage
+        boolean hasArrayElements() {
+            return true;
+        }
+
+        @ExportMessage
+        long getArraySize() {
+            return keys.length;
+        }
+
+        @ExportMessage
+        boolean isArrayElementReadable(long index) {
+            return index >= 0 && index < keys.length;
+        }
+    }
+
+    @ExportMessage
+    Object readMember(String name,
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode)
+            throws UnknownIdentifierException {
+        TruffleString nameTS = fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING);
+        Object result = getLocalOrDefault(nameTS, null);
+        if (result == null) {
+            throw UnknownIdentifierException.create(name);
+        }
+        return result;
+    }
+
+    @ExportMessage
+    void writeMember(String name, Object value,
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) {
+        setLocal(fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING), value);
     }
 }
