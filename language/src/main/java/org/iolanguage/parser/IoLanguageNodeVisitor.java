@@ -406,15 +406,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             nameNode = factory.createStringLiteral(ctx.name, true);
         }
         IoNode resultNode = null;
-        if (receiverNode == null) {
-            resultNode = factory.createReadSlot(receiverNode, nameNode, startPos, length);
-        }
-        if (resultNode != null) {
-            return resultNode;
-        }
-        List<IoNode> argumentNodes = new ArrayList<>();
-        argumentNodes.add(nameNode);
-        resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
+        resultNode = factory.createGetSlot(receiverNode, nameNode, startPos, length);
         assert resultNode != null;
         return resultNode;
     }

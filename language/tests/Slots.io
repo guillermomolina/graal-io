@@ -4,6 +4,7 @@ m1 := method(
     y := 6
     getSlot("y") println
     getSlot("x") println
+    call target getSlot("x") println
     slotNames println
     m2 := method(
         z := 7
