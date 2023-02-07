@@ -3,6 +3,9 @@ package org.truffle.io.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.source.Source;
+
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -50,9 +53,6 @@ import org.truffle.io.parser.IoLanguageParser.SubExpressionContext;
 import org.truffle.io.parser.IoLanguageParser.ThisLocalContextMessageContext;
 import org.truffle.io.parser.IoLanguageParser.TryMessageContext;
 import org.truffle.io.parser.IoLanguageParser.WhileMessageContext;
-
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.source.Source;
 
 public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
@@ -382,7 +382,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
         List<IoNode> argumentNodes = new ArrayList<>();
-        final IoNode nameNode = factory.createStringLiteral(ctx.start, true);
+        final IoNode nameNode = factory.createStringLiteral(ctx.start, false);
         resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
         assert resultNode != null;
         return resultNode;

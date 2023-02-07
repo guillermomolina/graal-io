@@ -49,11 +49,12 @@ import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
 import org.truffle.io.runtime.objects.IoFalse;
+import org.truffle.io.runtime.objects.IoLocals;
 import org.truffle.io.runtime.objects.IoNil;
 import org.truffle.io.runtime.objects.IoObject;
 import org.truffle.io.runtime.objects.IoTrue;
 
-@TypeSystem({boolean.class, long.class, double.class, IoObject.class})
+@TypeSystem({boolean.class, long.class, double.class, IoObject.class, IoLocals.class})
 public abstract class IoTypes {
 
     @TypeCheck(IoNil.class)
