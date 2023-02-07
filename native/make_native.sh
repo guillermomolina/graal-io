@@ -51,5 +51,5 @@ fi
 "$JAVA_HOME"/bin/native-image \
     --macro:truffle --no-fallback --initialize-at-build-time \
     -cp ../language/target/iolanguage.jar:../launcher/target/io-launcher.jar \
-    org.truffle.io.launcher.IoMain \
+    org.iolanguage.launcher.IoMain \
     ionative

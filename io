@@ -48,7 +48,7 @@
 VERSION="22.3.0"
 IO_VERSION="1.0.0"
 
-MAIN_CLASS="org.truffle.io.launcher.IoMain"
+MAIN_CLASS="org.iolanguage.launcher.IoMain"
 SCRIPT_HOME="$(cd "$(dirname "$0")" && pwd -P)"
 
 function extractGraalVMVersion() {
