@@ -40,11 +40,6 @@
  */
 package org.iolanguage.runtime.objects;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.NotImplementedException;
-import org.iolanguage.runtime.IoObjectUtil;
-import org.iolanguage.runtime.Symbols;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -62,6 +57,10 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.strings.TruffleString;
 import com.oracle.truffle.api.utilities.TriState;
+
+import org.iolanguage.IoLanguage;
+import org.iolanguage.runtime.IoObjectUtil;
+import org.iolanguage.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
 public final class IoLocals implements IoTruffleObject {
@@ -209,12 +208,14 @@ public final class IoLocals implements IoTruffleObject {
     }
 
     public String toString(int depth) {
-        throw new NotImplementedException();
-        // String string = String.format("Object_0x%08x", hashCode());
-        // if (depth == 0) {
-        //     string += ":" + IoObjectUtil.toString(this);
-        // }
-        // return string;
+        String string = String.format("Object_0x%08x", hashCode());
+        final FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
+        int count = frameDescriptor.getNumberOfSlots();
+        for (int i = 0; i < count; i++) {
+            TruffleString slotName = (TruffleString)frameDescriptor.getSlotName(i);
+            Object slotValue = frame.getValue(i);
+        }
+        return string;
     }
 
     @ExportMessage
@@ -308,7 +309,11 @@ public final class IoLocals implements IoTruffleObject {
 
     @ExportMessage
     void writeMember(String name, Object value,
-            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) {
-        setLocal(fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING), value);
+            @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) throws UnknownIdentifierException {
+        TruffleString nameTS = fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING);
+        Object result = setLocal(nameTS, value);
+        if (result == null) {
+            throw UnknownIdentifierException.create(name);
+        }
     }
 }

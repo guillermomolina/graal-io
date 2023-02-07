@@ -43,6 +43,17 @@
  */
 package org.iolanguage.nodes.slots;
 
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.objects.IoBlock;
@@ -54,17 +65,6 @@ import org.iolanguage.runtime.objects.IoLocals;
 import org.iolanguage.runtime.objects.IoMessage;
 import org.iolanguage.runtime.objects.IoMethod;
 import org.iolanguage.runtime.objects.IoObject;
-
-import com.oracle.truffle.api.CompilerAsserts;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
-import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
 @NodeInfo(shortName = "()")
 @NodeChild(value = "valueNode", type = ReadNode.class)

@@ -43,14 +43,6 @@
  */
 package org.iolanguage.nodes.slots;
 
-import org.iolanguage.NotImplementedException;
-import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.util.ToMemberNode;
-import org.iolanguage.nodes.util.ToTruffleStringNode;
-import org.iolanguage.runtime.IoObjectUtil;
-import org.iolanguage.runtime.exceptions.UndefinedNameException;
-import org.iolanguage.runtime.objects.IoObject;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
@@ -64,6 +56,15 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.NotImplementedException;
+import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.util.ToMemberNode;
+import org.iolanguage.nodes.util.ToTruffleStringNode;
+import org.iolanguage.nodes.util.ToTruffleStringNodeGen;
+import org.iolanguage.runtime.IoObjectUtil;
+import org.iolanguage.runtime.exceptions.UndefinedNameException;
+import org.iolanguage.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "setSlot")
 @NodeChild("receiverNode")
@@ -95,7 +96,13 @@ public abstract class WriteMemberNode extends IoNode {
         try {
             objectLibrary.writeMember(receiver, asMember.execute(name), value);
         } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
-            throw UndefinedNameException.undefinedField(this, name);
+            ToTruffleStringNode toTruffleStringNode = ToTruffleStringNodeGen.create();
+            TruffleString nameTS = toTruffleStringNode.execute(name);
+            IoObject prototype = IoObjectUtil.getPrototype(receiver);
+            if (!IoObjectUtil.hasSlotUncached(prototype, nameTS)) {
+                throw UndefinedNameException.undefinedField(this, nameTS);
+            }
+            IoObjectUtil.putUncached(prototype, nameTS, value);
         }
         return value;
     }

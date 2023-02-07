@@ -43,12 +43,6 @@
  */
 package org.iolanguage.nodes.slots;
 
-import org.iolanguage.nodes.interop.NodeObjectDescriptor;
-import org.iolanguage.runtime.IoObjectUtil;
-import org.iolanguage.runtime.objects.IoFalse;
-import org.iolanguage.runtime.objects.IoPrototype;
-import org.iolanguage.runtime.objects.IoTrue;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -57,39 +51,30 @@ import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.iolanguage.NotImplementedException;
+import org.iolanguage.nodes.interop.NodeObjectDescriptor;
+import org.iolanguage.runtime.IoObjectUtil;
+import org.iolanguage.runtime.objects.IoCall;
+import org.iolanguage.runtime.objects.IoInvokable;
+import org.iolanguage.runtime.objects.IoLocals;
+
 @NodeField(name = "slot", type = int.class)
 public abstract class ReadLocalSlotNode extends ReadNode {
     protected abstract int getSlot();
 
-    protected void setName(VirtualFrame frame) {
-        setName((TruffleString)frame.getFrameDescriptor().getSlotName(getSlot()));
-    }
-
     @Specialization(guards = "frame.isLong(getSlot())")
     protected long readLong(VirtualFrame frame) {
-        setName(frame);
-        setPrototype(IoPrototype.NUMBER);
-        long value = frame.getLong(getSlot());
-        setReceiver(value);
-        return value;
+        return frame.getLong(getSlot());
     }
 
     @Specialization(guards = "frame.isDouble(getSlot())")
     protected double readDouble(VirtualFrame frame) {
-        setName(frame);
-        setPrototype(IoPrototype.NUMBER);
-        double value = frame.getDouble(getSlot());
-        setReceiver(value);
-        return value;
+        return frame.getDouble(getSlot());
     }
 
     @Specialization(guards = "frame.isBoolean(getSlot())")
     protected boolean readBoolean(VirtualFrame frame) {
-        setName(frame);
-        boolean value = frame.getBoolean(getSlot());
-        setPrototype(value? IoTrue.SINGLETON: IoFalse.SINGLETON);
-        setReceiver(value);
-        return value;
+        return frame.getBoolean(getSlot());
     }
 
     @Specialization(replaces = { "readLong", "readDouble", "readBoolean" })
@@ -102,10 +87,20 @@ public abstract class ReadLocalSlotNode extends ReadNode {
             value = frame.getValue(getSlot());
             frame.setObject(getSlot(), value);
         }
-        setReceiver(value);
-        setPrototype(IoObjectUtil.getPrototype(value));
-        setName(frame);
+        if(value instanceof IoInvokable) {
+            setPrototype(IoObjectUtil.getPrototype(value));
+            setName((TruffleString)frame.getFrameDescriptor().getSlotName(getSlot()));
+            setReceiver(getSelfOrTarget(frame));
+        }
         return value;
+    }
+
+    public Object getSelfOrTarget(VirtualFrame frame) {
+        Object target = frame.getArguments()[IoLocals.TARGET_ARGUMENT_INDEX];
+        if(target instanceof IoCall) {
+            throw new NotImplementedException();
+        }
+        return target;
     }
 
     @Override
