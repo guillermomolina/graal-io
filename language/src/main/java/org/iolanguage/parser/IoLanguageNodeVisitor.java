@@ -370,17 +370,15 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     }
 
     public IoNode visitSlotNamesMessage(final SlotNamesMessageContext ctx, IoNode receiverNode) {
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
         IoNode resultNode = null;
         if (receiverNode == null) {
-            int startPos = ctx.start.getStartIndex();
-            int length = ctx.stop.getStopIndex() - startPos + 1;
             resultNode = factory.createListLocalSlotNames(startPos, length);
         }
         if (resultNode != null) {
             return resultNode;
         }
-        int startPos = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - startPos + 1;
         List<IoNode> argumentNodes = new ArrayList<>();
         final IoNode nameNode = factory.createStringLiteral(ctx.start, false);
         resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
@@ -406,7 +404,16 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             nameNode = factory.createStringLiteral(ctx.name, true);
         }
         IoNode resultNode = null;
-        resultNode = factory.createGetSlot(receiverNode, nameNode, startPos, length);
+        if (receiverNode == null) {
+            resultNode = factory.createGetSlot(nameNode, startPos, length);
+        }
+        if (resultNode != null) {
+            return resultNode;
+        }
+        List<IoNode> argumentNodes = new ArrayList<>();
+        argumentNodes.add(nameNode);
+        final IoNode getSlotNameNode = factory.createStringLiteral(ctx.start, false);
+        resultNode = factory.createInvokeSlot(receiverNode, getSlotNameNode, argumentNodes, startPos, length);
         assert resultNode != null;
         return resultNode;
     }

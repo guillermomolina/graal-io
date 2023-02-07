@@ -540,14 +540,16 @@ public class NodeFactory {
 
     public ReadNode createReadLocalSlot(StringLiteralNode nameNode, int startPos, int length) {
         assert nameNode != null;
-        if(!hasLocals()) {
+        if (!hasLocals()) {
             return null;
         }
         TruffleString name = nameNode.executeGeneric(null);
-        if(name.equals(CALL_SYMBOL)) {
-            return createReadCall(startPos, length);
+        final int slotIndex;
+        if (name.equals(CALL_SYMBOL)) {
+            slotIndex = currentScope.findOrAddLocal(name);
+        } else {
+            slotIndex = currentScope.findLocal(name);
         }
-        final int slotIndex = currentScope.findLocal(name);
         if (slotIndex < 0) {
             return null;
         }
@@ -575,7 +577,7 @@ public class NodeFactory {
         if (slotNameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
             assert slotNameNode instanceof StringLiteralNode;
             TruffleString name = ((StringLiteralNode) slotNameNode).executeGeneric(null);
-            final Pair<Integer, Integer> foundSlot = currentScope.findOrAddLocalSlot(name, null, false);
+            final Pair<Integer, Integer> foundSlot = currentScope.findOrAddLocal(name, null, false);
             int contextLevel = foundSlot.a;
             int slotFrameIndex = foundSlot.b;
             startValueNode.addExpressionTag();
@@ -754,7 +756,7 @@ public class NodeFactory {
         return result;
     }
 
-    public IoNode createGetSlot(IoNode receiverNode, IoNode nameNode, int startPos, int length) {
+    /*public IoNode createGetSlot(IoNode receiverNode, IoNode nameNode, int startPos, int length) {
         IoNode targetNode = receiverNode;
         if (receiverNode == null) {
             if (hasLocals()) {
@@ -773,6 +775,19 @@ public class NodeFactory {
         List<IoNode> argumentNodes = new ArrayList<>();
         argumentNodes.add(nameNode);
         return createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
+    }*/
+
+    public IoNode createGetSlot(IoNode nameNode, int startPos, int length) {
+        if (!hasLocals()) {
+            return null;
+        }
+        IoNode resultNode = createReadLocalSlot(nameNode, startPos, length);
+        if (resultNode == null) {
+            resultNode = new NilLiteralNode();
+            resultNode.setSourceSection(startPos, length);
+            resultNode.addExpressionTag();
+        }
+        return resultNode;
     }
 
     public ReadNode createReadSlot(IoNode receiverNode, IoNode nameNode, int startPos, int length) {
