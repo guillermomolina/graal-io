@@ -78,50 +78,50 @@ public class IoCall extends IoDynamicObject {
     }
 
     public IoLocals getSender() {
-        return (IoLocals)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_SENDER);
+        return (IoLocals)IoObjectUtil.getOrDefault(this, SYMBOL_SENDER);
     }
 
     protected void setSender(IoLocals sender) {
-        IoObjectUtil.putUncached(this, SYMBOL_SENDER, sender);
+        IoObjectUtil.put(this, SYMBOL_SENDER, sender);
     }
 
     public IoMessage getMessage() {
-        return (IoMessage)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_MESSAGE);
+        return (IoMessage)IoObjectUtil.getOrDefault(this, SYMBOL_MESSAGE);
     }
 
     protected void setMessage(IoMessage message) {
-        IoObjectUtil.putUncached(this, SYMBOL_MESSAGE, message);
+        IoObjectUtil.put(this, SYMBOL_MESSAGE, message);
     }
 
     public Object getTarget() {
-        return IoObjectUtil.getOrDefaultUncached(this, SYMBOL_TARGET);
+        return IoObjectUtil.getOrDefault(this, SYMBOL_TARGET);
     }
 
     protected void setTarget(Object target) {
-        IoObjectUtil.putUncached(this, SYMBOL_TARGET, target);
+        IoObjectUtil.put(this, SYMBOL_TARGET, target);
     }
 
     public IoObject getSlotContext() {
-        return (IoObject)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_SLOT_CONTEXT);
+        return (IoObject)IoObjectUtil.getOrDefault(this, SYMBOL_SLOT_CONTEXT);
     }
 
     protected void setSlotContext(IoObject slotcontext) {
-        IoObjectUtil.putUncached(this, SYMBOL_SLOT_CONTEXT, slotcontext);
+        IoObjectUtil.put(this, SYMBOL_SLOT_CONTEXT, slotcontext);
     }
 
     public IoInvokable getActivated() {
-        return (IoInvokable)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_ACTIVATED);
+        return (IoInvokable)IoObjectUtil.getOrDefault(this, SYMBOL_ACTIVATED);
     }
 
     protected void setActivated(IoInvokable activated) {
-        IoObjectUtil.putUncached(this, SYMBOL_ACTIVATED, activated);
+        IoObjectUtil.put(this, SYMBOL_ACTIVATED, activated);
     }
 
     public IoCoroutine getCoroutine() {
-        return (IoCoroutine)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
+        return (IoCoroutine)IoObjectUtil.getOrDefault(this, SYMBOL_COROUTINE);
     }
 
     protected void setCoroutine(IoCoroutine coroutine) {
-        IoObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
+        IoObjectUtil.put(this, SYMBOL_COROUTINE, coroutine);
     }
 }

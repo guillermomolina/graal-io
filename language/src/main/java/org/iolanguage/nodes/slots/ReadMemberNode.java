@@ -50,14 +50,12 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.nodes.util.ToMemberNode;
 import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;
-import org.iolanguage.runtime.objects.IoDynamicObject;
 import org.iolanguage.runtime.objects.IoObject;
 
 @NodeChild(value = "receiverNode", type = IoNode.class)
@@ -65,28 +63,16 @@ import org.iolanguage.runtime.objects.IoObject;
 public abstract class ReadMemberNode extends ReadNode {
     static final int LIBRARY_LIMIT = 3;
 
-    @Specialization(limit = "LIBRARY_LIMIT")
-    public Object readIoObject(IoDynamicObject receiver, Object name,
-            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
+    @Specialization
+    public Object readIoObject(IoObject receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         setReceiver(receiver);
         setName(toTruffleStringNode.execute(name));
-        setPrototype(IoObjectUtil.lookupSlot(objectLibrary, receiver, getName()));
+        setPrototype(IoObjectUtil.lookupSlot(receiver, getName()));
         return getMember();
     }
 
-    protected Object getMember() {
-        Object value = null;
-        if (getPrototype() != null) {
-            value = IoObjectUtil.getOrDefault(getPrototype(), getName());
-        }
-        if (value == null) {
-            throw UndefinedNameException.undefinedField(this, getName());
-        }
-        return value;
-    }
-
-    @Specialization(guards = { "!isIoDynamicObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
+    @Specialization(guards = { "!isIoObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
     public Object readObject(Object receiver, Object name,
             @CachedLibrary("receiver") InteropLibrary objects,
             @Cached ToMemberNode asMember,
@@ -102,6 +88,17 @@ public abstract class ReadMemberNode extends ReadNode {
         }
     }
 
+    protected Object getMember() {
+        Object value = null;
+        if (getPrototype() != null) {
+            value = IoObjectUtil.getOrDefault(getPrototype(), getName());
+        }
+        if (value == null) {
+            throw UndefinedNameException.undefinedField(this, getName());
+        }
+        return value;
+    }
+
     @Specialization
     protected Object readObject(Object receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
@@ -112,7 +109,7 @@ public abstract class ReadMemberNode extends ReadNode {
         return getMember();
     }
 
-    static boolean isIoDynamicObject(Object receiver) {
-        return receiver instanceof IoDynamicObject;
+    static boolean isIoObject(Object receiver) {
+        return receiver instanceof IoObject;
     }
 }

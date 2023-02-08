@@ -76,7 +76,6 @@ import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
@@ -220,27 +219,26 @@ public final class IoState {
     private void setupLobby() {
         IoPrototype.OBJECT.setPrototype(lobby);
 
-        DynamicObjectLibrary lib = DynamicObjectLibrary.getUncached();
-        IoObjectUtil.put(lib, protos, Symbols.OBJECT, IoPrototype.OBJECT);
-        IoObjectUtil.put(lib, protos, Symbols.NUMBER, IoPrototype.NUMBER);
-        IoObjectUtil.put(lib, protos, Symbols.SEQUENCE, IoPrototype.SEQUENCE);
-        IoObjectUtil.put(lib, protos, Symbols.LIST, IoPrototype.LIST);
-        IoObjectUtil.put(lib, protos, Symbols.DATE, IoPrototype.DATE);
-        IoObjectUtil.put(lib, protos, Symbols.SYSTEM, IoPrototype.SYSTEM);
-        IoObjectUtil.put(lib, protos, Symbols.CALL, IoPrototype.CALL);
-        IoObjectUtil.put(lib, protos, Symbols.MESSAGE, IoPrototype.MESSAGE);
-        IoObjectUtil.put(lib, protos, Symbols.BLOCK, IoPrototype.BLOCK);
-        IoObjectUtil.put(lib, protos, Symbols.COROUTINE, IoPrototype.COROUTINE);
-        IoObjectUtil.put(lib, protos, Symbols.EXCEPTION, IoPrototype.EXCEPTION);
+        IoObjectUtil.put(protos, Symbols.OBJECT, IoPrototype.OBJECT);
+        IoObjectUtil.put(protos, Symbols.NUMBER, IoPrototype.NUMBER);
+        IoObjectUtil.put(protos, Symbols.SEQUENCE, IoPrototype.SEQUENCE);
+        IoObjectUtil.put(protos, Symbols.LIST, IoPrototype.LIST);
+        IoObjectUtil.put(protos, Symbols.DATE, IoPrototype.DATE);
+        IoObjectUtil.put(protos, Symbols.SYSTEM, IoPrototype.SYSTEM);
+        IoObjectUtil.put(protos, Symbols.CALL, IoPrototype.CALL);
+        IoObjectUtil.put(protos, Symbols.MESSAGE, IoPrototype.MESSAGE);
+        IoObjectUtil.put(protos, Symbols.BLOCK, IoPrototype.BLOCK);
+        IoObjectUtil.put(protos, Symbols.COROUTINE, IoPrototype.COROUTINE);
+        IoObjectUtil.put(protos, Symbols.EXCEPTION, IoPrototype.EXCEPTION);
 
-        IoObjectUtil.put(lib, protos, Symbols.NIL, IoNil.SINGLETON);
-        IoObjectUtil.put(lib, protos, Symbols.TRUE, IoTrue.SINGLETON);
-        IoObjectUtil.put(lib, protos, Symbols.FALSE, IoFalse.SINGLETON);
+        IoObjectUtil.put(protos, Symbols.NIL, IoNil.SINGLETON);
+        IoObjectUtil.put(protos, Symbols.TRUE, IoTrue.SINGLETON);
+        IoObjectUtil.put(protos, Symbols.FALSE, IoFalse.SINGLETON);
 
-        IoObjectUtil.put(lib, lobby, Symbols.LOBBY, lobby);
-        IoObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
+        IoObjectUtil.put(lobby, Symbols.LOBBY, lobby);
+        IoObjectUtil.put(lobby, Symbols.PROTOS, protos);
 
-        IoObjectUtil.put(lib, lobby, Symbols.PROTOS, protos);
+        IoObjectUtil.put(lobby, Symbols.PROTOS, protos);
     }
 
     private void installBuiltins() {
@@ -313,7 +311,7 @@ public final class IoState {
                 BUILTIN_SOURCE.createUnavailableSection());
         String functionName = targetName + "_" + name;
         IoFunction function = createFunction(rootNode.getCallTarget(), Symbols.fromJavaString(functionName));
-        IoObjectUtil.putUncached(target, Symbols.fromJavaString(name), function);
+        IoObjectUtil.put(target, Symbols.fromJavaString(name), function);
     }
 
     public void initialize() {

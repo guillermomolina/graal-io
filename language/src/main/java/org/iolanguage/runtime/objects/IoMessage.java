@@ -63,11 +63,11 @@ public class IoMessage extends IoDynamicObject {
     }
 
     public TruffleString getSymbolName() {
-        return (TruffleString)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_NAME);
+        return (TruffleString)IoObjectUtil.getOrDefault(this, SYMBOL_NAME);
     }
 
     protected void setSymbolName(final TruffleString name) {
-        IoObjectUtil.putUncached(this, SYMBOL_NAME, name);
+        IoObjectUtil.put(this, SYMBOL_NAME, name);
     }
 
     public IoNode[] getArgumentNodes() {

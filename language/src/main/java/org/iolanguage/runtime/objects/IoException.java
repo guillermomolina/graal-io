@@ -70,42 +70,42 @@ public class IoException extends IoDynamicObject {
     }
 
     public TruffleString getSymbolError() {
-        return (TruffleString)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_ERROR);
+        return (TruffleString)IoObjectUtil.getOrDefault(this, SYMBOL_ERROR);
     }
 
     protected void setSymbolError(TruffleString error) {
-        IoObjectUtil.putUncached(this, SYMBOL_ERROR, error);
+        IoObjectUtil.put(this, SYMBOL_ERROR, error);
     }
 
     public IoCoroutine getSymbolCoroutine() {
-        return (IoCoroutine)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_COROUTINE);
+        return (IoCoroutine)IoObjectUtil.getOrDefault(this, SYMBOL_COROUTINE);
     }
 
     protected void setCoroutine(IoCoroutine coroutine) {
-        IoObjectUtil.putUncached(this, SYMBOL_COROUTINE, coroutine);
+        IoObjectUtil.put(this, SYMBOL_COROUTINE, coroutine);
     }
 
     public IoMessage getSymbolCaughtMessage() {
-        return (IoMessage)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_CAUGHT_MESSAGE);
+        return (IoMessage)IoObjectUtil.getOrDefault(this, SYMBOL_CAUGHT_MESSAGE);
     }
 
     protected void setCaughtMessage(IoMessage caughtMessage) {
-        IoObjectUtil.putUncached(this, SYMBOL_CAUGHT_MESSAGE, caughtMessage);
+        IoObjectUtil.put(this, SYMBOL_CAUGHT_MESSAGE, caughtMessage);
     }
 
     public IoException getSymbolNestedException() {
-        return (IoException)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_NESTED_EXCEPTION);
+        return (IoException)IoObjectUtil.getOrDefault(this, SYMBOL_NESTED_EXCEPTION);
     }
 
     protected void setNestedException(IoException nestedException) {
-        IoObjectUtil.putUncached(this, SYMBOL_NESTED_EXCEPTION, nestedException);
+        IoObjectUtil.put(this, SYMBOL_NESTED_EXCEPTION, nestedException);
     }
 
     public IoCall getSymbolOriginalCall() {
-        return (IoCall)IoObjectUtil.getOrDefaultUncached(this, SYMBOL_ORIGINAL_CALL);
+        return (IoCall)IoObjectUtil.getOrDefault(this, SYMBOL_ORIGINAL_CALL);
     }
 
     protected void setOriginalCall(IoCall originalCall) {
-        IoObjectUtil.putUncached(this, SYMBOL_ORIGINAL_CALL, originalCall);
+        IoObjectUtil.put(this, SYMBOL_ORIGINAL_CALL, originalCall);
     }
 }

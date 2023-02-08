@@ -72,69 +72,81 @@ public final class IoObjectUtil {
     private IoObjectUtil() {
     }
 
-    public static boolean hasSlot(Object obj, Object key) {
-        IoObject objectOrProto = asIoObject(obj);
+    public static boolean hasSlot(Object object, Object key) {
+        IoObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
-            objectOrProto = getPrototype(obj);
+            objectOrProto = getPrototype(object);
         }
-        if(objectOrProto instanceof IoDynamicObject) {
-            return hasSlotUncached((IoDynamicObject)objectOrProto, key);
+        return hasSlot(objectOrProto, key);
+    }
+
+    public static boolean hasSlot(IoObject object, Object key) {
+        if (object instanceof IoDynamicObject) {
+            return hasSlot((IoDynamicObject) object, key);
         }
-        if(objectOrProto instanceof IoLocals) {
-            return ((IoLocals)obj).hasLocal(key);
-        }   
+        if (object instanceof IoLocals) {
+            return ((IoLocals) object).hasLocal(key);
+        }
         throw new ShouldNotBeHereException();
     }
 
-    public static boolean hasSlotUncached(IoDynamicObject obj, Object key) {
-        return hasSlot(DynamicObjectLibrary.getUncached(), obj, key);
+    public static boolean hasSlot(IoDynamicObject object, Object key) {
+        return hasSlot(DynamicObjectLibrary.getUncached(), object, key);
     }
 
-    public static boolean hasSlot(DynamicObjectLibrary lib, IoDynamicObject obj, Object key) {
-        return lib.containsKey(obj, key);
+    public static boolean hasSlot(DynamicObjectLibrary lib, IoDynamicObject object, Object key) {
+        return lib.containsKey(object, key);
     }
 
-    public static Object getOrDefault(Object obj, Object key) {
-        return getOrDefault(obj, key, null);
+    public static Object getOrDefault(Object object, Object key) {
+        return getOrDefault(object, key, null);
     }
 
-    public static Object getOrDefault(Object obj, Object key, Object defaultValue) {
-        IoObject objectOrProto = asIoObject(obj);
+    public static Object getOrDefault(Object object, Object key, Object defaultValue) {
+        IoObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
-            objectOrProto = getPrototype(obj);
+            objectOrProto = getPrototype(object);
         }
-        if(obj instanceof IoDynamicObject) {
-            return getOrDefaultUncached((IoDynamicObject)objectOrProto, key, defaultValue);
+        return getOrDefault(objectOrProto, key, defaultValue);
+    }
+
+    public static Object getOrDefault(IoObject objectOrProto, Object key, Object defaultValue) {
+        if (objectOrProto instanceof IoDynamicObject) {
+            return getOrDefault((IoDynamicObject) objectOrProto, key, defaultValue);
         }
-        throw new NotImplementedException();
-    }
-
-    public static Object getOrDefaultUncached(IoDynamicObject obj, Object key) {
-        return getOrDefault(DynamicObjectLibrary.getUncached(), obj, key, null);
-    }
-
-    public static Object getOrDefaultUncached(IoDynamicObject obj, Object key, Object defaultValue) {
-        return getOrDefault(DynamicObjectLibrary.getUncached(), obj, key, defaultValue);
-    }
-
-    public static Object getOrDefault(DynamicObjectLibrary lib, IoDynamicObject obj, Object key) {
-        return getOrDefault(lib, obj, key, null);
-    }
-
-    public static Object getOrDefault(DynamicObjectLibrary lib, IoDynamicObject obj, Object key, Object defaultValue) {
-        return lib.getOrDefault(obj, key, defaultValue);
-    }
-
-    protected static IoObject asIoObject(Object obj) {
-        if (obj instanceof IoObject) {
-            return (IoObject) obj;
+        if (objectOrProto instanceof IoLocals) {
+            return ((IoLocals) objectOrProto).getLocalOrDefault(key, defaultValue);
         }
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
-        if (interop.isNull(obj)) {
+        throw new ShouldNotBeHereException();
+    }
+
+    public static Object getOrDefault(IoDynamicObject object, Object key) {
+        return getOrDefault(DynamicObjectLibrary.getUncached(), object, key, null);
+    }
+
+    public static Object getOrDefault(IoDynamicObject object, Object key, Object defaultValue) {
+        return getOrDefault(DynamicObjectLibrary.getUncached(), object, key, defaultValue);
+    }
+
+    public static Object getOrDefault(DynamicObjectLibrary lib, IoDynamicObject object, Object key) {
+        return getOrDefault(lib, object, key, null);
+    }
+
+    public static Object getOrDefault(DynamicObjectLibrary lib, IoDynamicObject object, Object key,
+            Object defaultValue) {
+        return lib.getOrDefault(object, key, defaultValue);
+    }
+
+    protected static IoObject asIoObject(Object object) {
+        if (object instanceof IoObject) {
+            return (IoObject) object;
+        }
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached(object);
+        if (interop.isNull(object)) {
             return IoNil.SINGLETON;
         }
-        if (interop.isBoolean(obj)) {
-            if ((Boolean) obj == Boolean.TRUE) {
+        if (interop.isBoolean(object)) {
+            if ((Boolean) object == Boolean.TRUE) {
                 return IoTrue.SINGLETON;
             }
             return IoFalse.SINGLETON;
@@ -142,34 +154,34 @@ public final class IoObjectUtil {
         return null;
     }
 
-    public static IoObject getPrototype(Object obj) {
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached(obj);
-        if (obj instanceof String) {
+    public static IoObject getPrototype(Object object) {
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached(object);
+        if (object instanceof String) {
             return IoPrototype.SEQUENCE;
         }
-        if (obj instanceof TruffleString) {
+        if (object instanceof TruffleString) {
             return IoPrototype.SEQUENCE;
         }
-        if (interop.fitsInLong(obj)) {
+        if (interop.fitsInLong(object)) {
             return IoPrototype.NUMBER;
         }
-        if (interop.fitsInDouble(obj)) {
+        if (interop.fitsInDouble(object)) {
             return IoPrototype.NUMBER;
         }
-        IoObject asIoObject = asIoObject(obj);
+        IoObject asIoObject = asIoObject(object);
         if (asIoObject != null) {
             return asIoObject.getPrototype();
         }
-        if (interop.hasMembers(obj)) {
+        if (interop.hasMembers(object)) {
             return IoPrototype.OBJECT;
         }
         return null;
     }
 
-    public static boolean hasPrototype(Object obj, Object prototype) {
-        IoObject objectOrProto = asIoObject(obj);
+    public static boolean hasPrototype(Object object, Object prototype) {
+        IoObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
-            objectOrProto = getPrototype(obj);
+            objectOrProto = getPrototype(object);
         }
         if (objectOrProto == prototype) {
             return true;
@@ -355,32 +367,21 @@ public final class IoObjectUtil {
         throw new NotImplementedException();
     }
 
-    public static IoObject lookupSlot(Object obj, Object key) {
-        IoObject objectOrProto = asIoObject(obj);
+    public static IoObject lookupSlot(Object object, Object key) {
+        IoObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
-            objectOrProto = getPrototype(obj);
+            objectOrProto = getPrototype(object);
         }
-        if(objectOrProto instanceof IoDynamicObject) {
-            return lookupSlotUncached((IoDynamicObject)objectOrProto, key);
-        }
-        if (objectOrProto instanceof IoLocals) {
-            throw new NotImplementedException();
-        }
-        throw new ShouldNotBeHereException();
+        return lookupSlot(objectOrProto, key);
     }
 
-    public static IoObject lookupSlotUncached(IoDynamicObject obj, Object key) {
-        return lookupSlot(DynamicObjectLibrary.getUncached(), obj, key);
-    }
-
-    public static IoObject lookupSlot(DynamicObjectLibrary lib, IoDynamicObject obj, Object key) {
+    public static IoObject lookupSlot(IoObject obj, Object key) {
         List<IoObject> visitedProtos = new ArrayList<IoObject>();
         IoObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
-            //if (hasSlot(lib, object, key)) {
             if (hasSlot(object, key)) {
-                    return object;
+                return object;
             }
             visitedProtos.add(object);
             object = object.getPrototype();
@@ -393,49 +394,42 @@ public final class IoObjectUtil {
         if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
-        IoObject slotOwner = lookupSlot(objectOrProto, key);
+        return updateSlot(objectOrProto, key, value);
+    }
+
+    public static Object updateSlot(IoObject object, Object key, Object value) {
+        IoObject slotOwner = lookupSlot(object, key);
         if (slotOwner != null) {
             put(slotOwner, key, value);
             return value;
         }
-        return null;    
+        return null;
     }
 
-    public static Object setSlot(Object obj, Object key, Object value) {
-        IoObject objectOrProto = asIoObject(obj);
+    public static Object put(Object object, Object key, Object value) {
+        IoObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
-            objectOrProto = getPrototype(obj);
+            objectOrProto = getPrototype(object);
         }
-        if (objectOrProto instanceof IoDynamicObject) {
-            putUncached((IoDynamicObject)objectOrProto, key, value);
-            return value;
-        } 
-         if (objectOrProto instanceof IoLocals) {
-            return ((IoLocals)objectOrProto).setLocal(key, value);
+        return put(objectOrProto, key, value);
+    }
+
+    public static Object put(IoObject object, Object key, Object value) {
+        if (object instanceof IoDynamicObject) {
+            return put((IoDynamicObject) object, key, value);
+        }
+        if (object instanceof IoLocals) {
+            return ((IoLocals) object).setLocal(key, value);
         }
         throw new ShouldNotBeHereException();
     }
 
-    public static Object put(Object obj, Object key, Object value) {
-        IoObject objectOrProto = asIoObject(obj);
-        if (objectOrProto == null) {
-            objectOrProto = getPrototype(obj);
-        }
-        if(objectOrProto instanceof IoDynamicObject) {
-            return putUncached((IoDynamicObject)objectOrProto, key, value);
-        }
-        if(objectOrProto instanceof IoLocals) {
-            return ((IoLocals)objectOrProto).setLocal(key, value);
-        }
-        throw new ShouldNotBeHereException();
+    public static Object put(IoDynamicObject object, Object key, Object value) {
+        return put(DynamicObjectLibrary.getUncached(), object, key, value);
     }
 
-    public static Object putUncached(IoDynamicObject obj, Object key, Object value) {
-        return put(DynamicObjectLibrary.getUncached(), obj, key, value);
-    }
-
-    public static Object put(DynamicObjectLibrary lib, IoDynamicObject obj, Object key, Object value) {
-        lib.put(obj, key, value);
+    public static Object put(DynamicObjectLibrary lib, IoDynamicObject object, Object key, Object value) {
+        lib.put(object, key, value);
         return value;
     }
 

@@ -82,11 +82,11 @@ public class IoPrototype extends IoDynamicObject {
     }
 
     public TruffleString getSymbolType() {
-        return (TruffleString) IoObjectUtil.getOrDefaultUncached(this, SYMBOL_TYPE);
+        return (TruffleString) IoObjectUtil.getOrDefault(this, SYMBOL_TYPE);
     }
 
     public void setSymbolType(TruffleString type) {
-        IoObjectUtil.putUncached(this, SYMBOL_TYPE, type);
+        IoObjectUtil.put(this, SYMBOL_TYPE, type);
     }
 
     @ExportMessage

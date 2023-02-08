@@ -54,7 +54,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.NotImplementedException;
@@ -64,7 +63,6 @@ import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.nodes.util.ToTruffleStringNodeGen;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;
-import org.iolanguage.runtime.objects.IoDynamicObject;
 import org.iolanguage.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "setSlot")
@@ -78,19 +76,18 @@ public abstract class WriteMemberNode extends IoNode {
 
     protected abstract boolean getInitialize();
 
-    @Specialization(limit = "LIBRARY_LIMIT")
-    protected Object writeIOObject(IoDynamicObject receiver, Object name, Object value,
-            @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
+    @Specialization
+    protected Object writeIOObject(IoObject receiver, Object name, Object value,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        if (!getInitialize() && !IoObjectUtil.hasSlot(objectLibrary, nameTS)) {
+        if (!getInitialize() && !IoObjectUtil.hasSlot(receiver, nameTS)) {
             throw UndefinedNameException.undefinedField(this, nameTS);
         }
-        IoObjectUtil.put(objectLibrary, receiver, nameTS, value);
+        IoObjectUtil.put(receiver, nameTS, value);
         return value;
     }
 
-    @Specialization(guards = "!isIoDynamicObject(receiver)", limit = "LIBRARY_LIMIT")
+    @Specialization(guards = "!isIoObject(receiver)", limit = "LIBRARY_LIMIT")
     protected Object writeObject(Object receiver, Object name, Object value,
             @CachedLibrary("receiver") InteropLibrary objectLibrary,
             @Cached ToMemberNode asMember) {
@@ -100,10 +97,10 @@ public abstract class WriteMemberNode extends IoNode {
             ToTruffleStringNode toTruffleStringNode = ToTruffleStringNodeGen.create();
             TruffleString nameTS = toTruffleStringNode.execute(name);
             IoObject prototype = IoObjectUtil.getPrototype(receiver);
-            if (!IoObjectUtil.hasSlotUncached(prototype, nameTS)) {
+            if (!IoObjectUtil.hasSlot(prototype, nameTS)) {
                 throw UndefinedNameException.undefinedField(this, nameTS);
             }
-            IoObjectUtil.putUncached(prototype, nameTS, value);
+            IoObjectUtil.put(prototype, nameTS, value);
         }
         return value;
     }
@@ -113,7 +110,7 @@ public abstract class WriteMemberNode extends IoNode {
         throw new NotImplementedException();
     }
 
-    static boolean isIoDynamicObject(Object receiver) {
-        return receiver instanceof IoDynamicObject;
+    static boolean isIoObject(Object receiver) {
+        return receiver instanceof IoObject;
     }
 }

@@ -247,7 +247,7 @@ public class IoDynamicObject extends DynamicObject implements IoObject {
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode)
             throws UnknownIdentifierException {
         TruffleString nameTS = fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING);
-        Object result = IoObjectUtil.getOrDefaultUncached(this, nameTS, null);
+        Object result = IoObjectUtil.getOrDefault(this, nameTS, null);
         if (result == null) {
             throw UnknownIdentifierException.create(name);
         }
@@ -257,6 +257,6 @@ public class IoDynamicObject extends DynamicObject implements IoObject {
     @ExportMessage
     void writeMember(String name, Object value,
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) {
-        IoObjectUtil.putUncached(this, fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING), value);
+        IoObjectUtil.put(this, fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING), value);
     }
 }
