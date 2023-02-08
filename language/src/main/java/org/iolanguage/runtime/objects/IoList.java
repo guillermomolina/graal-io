@@ -42,16 +42,16 @@ package org.iolanguage.runtime.objects;
 
 import java.util.List;
 
-import org.iolanguage.runtime.IoObjectUtil;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
+import org.iolanguage.runtime.IoObjectUtil;
+
 @ExportLibrary(InteropLibrary.class)
-public class IoList extends IoObject {
+public class IoList extends IoDynamicObject {
     private Object[] list;
 
     public IoList(int size) {

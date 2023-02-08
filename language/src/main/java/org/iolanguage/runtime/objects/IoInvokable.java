@@ -58,7 +58,7 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
-public abstract class IoInvokable extends IoObject {
+public abstract class IoInvokable extends IoDynamicObject {
 
     public static final int INLINE_CACHE_SIZE = 2;
 

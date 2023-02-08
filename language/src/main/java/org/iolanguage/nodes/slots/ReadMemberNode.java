@@ -57,6 +57,7 @@ import org.iolanguage.nodes.util.ToMemberNode;
 import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;
+import org.iolanguage.runtime.objects.IoDynamicObject;
 import org.iolanguage.runtime.objects.IoObject;
 
 @NodeChild(value = "receiverNode", type = IoNode.class)
@@ -65,7 +66,7 @@ public abstract class ReadMemberNode extends ReadNode {
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(limit = "LIBRARY_LIMIT")
-    public Object readIoObject(IoObject receiver, Object name,
+    public Object readIoObject(IoDynamicObject receiver, Object name,
             @CachedLibrary("receiver") DynamicObjectLibrary objectLibrary,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         setReceiver(receiver);
@@ -85,7 +86,7 @@ public abstract class ReadMemberNode extends ReadNode {
         return value;
     }
 
-    @Specialization(guards = { "!isIoObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
+    @Specialization(guards = { "!isIoDynamicObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
     public Object readObject(Object receiver, Object name,
             @CachedLibrary("receiver") InteropLibrary objects,
             @Cached ToMemberNode asMember,
@@ -111,7 +112,7 @@ public abstract class ReadMemberNode extends ReadNode {
         return getMember();
     }
 
-    static boolean isIoObject(Object receiver) {
-        return receiver instanceof IoObject;
+    static boolean isIoDynamicObject(Object receiver) {
+        return receiver instanceof IoDynamicObject;
     }
 }

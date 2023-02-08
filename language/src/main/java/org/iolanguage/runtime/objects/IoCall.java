@@ -40,12 +40,12 @@
  */
 package org.iolanguage.runtime.objects;
 
+import com.oracle.truffle.api.strings.TruffleString;
+
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
-import com.oracle.truffle.api.strings.TruffleString;
-
-public class IoCall extends IoObject { 
+public class IoCall extends IoDynamicObject { 
     private static final TruffleString SYMBOL_SENDER = Symbols.constant("sender");
     private static final TruffleString SYMBOL_MESSAGE = Symbols.constant("message");
     private static final TruffleString SYMBOL_TARGET = Symbols.constant("target");

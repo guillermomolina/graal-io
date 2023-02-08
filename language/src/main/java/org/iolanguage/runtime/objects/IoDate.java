@@ -47,7 +47,7 @@ import java.util.Date;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 
-public final class IoDate extends IoObject implements Comparable<IoDate> {
+public final class IoDate extends IoDynamicObject implements Comparable<IoDate> {
 
     private Date value;
 
