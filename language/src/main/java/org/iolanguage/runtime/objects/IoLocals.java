@@ -212,8 +212,8 @@ public final class IoLocals implements IoTruffleObject {
         final FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
         int count = frameDescriptor.getNumberOfSlots();
         for (int i = 0; i < count; i++) {
-            TruffleString slotName = (TruffleString)frameDescriptor.getSlotName(i);
-            Object slotValue = frame.getValue(i);
+           // TruffleString slotName = (TruffleString)frameDescriptor.getSlotName(i);
+           // Object slotValue = frame.getValue(i);
         }
         return string;
     }
@@ -247,7 +247,7 @@ public final class IoLocals implements IoTruffleObject {
 
     @ExportMessage
     Object getMembers(boolean includeInternal) {
-        return new Keys(getSlotNames());
+        return new LocalsKeys(getSlotNames());
     }
 
     @ExportMessage(name = "isMemberReadable")
@@ -263,11 +263,11 @@ public final class IoLocals implements IoTruffleObject {
     }
 
     @ExportLibrary(InteropLibrary.class)
-    static final class Keys implements TruffleObject {
+    static final class LocalsKeys implements TruffleObject {
 
         private final Object[] keys;
 
-        Keys(Object[] keys) {
+        LocalsKeys(Object[] keys) {
             this.keys = keys;
         }
 
