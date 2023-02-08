@@ -243,6 +243,7 @@ public class NodeFactory {
         assert currentScope.argumentCount >= 1;
         List<IoNode> initializationNodes = new ArrayList<IoNode>(currentScope.argumentCount);
         int callSlotIndex = currentScope.findLocal(CALL_SYMBOL);
+        //int callSlotIndex = currentScope.findOrAddLocal(CALL_SYMBOL);
         if (callSlotIndex == -1) {
             // does not use call, intialize self with arg 0
             initializationNodes.add(createInitializationNode(0, 0));

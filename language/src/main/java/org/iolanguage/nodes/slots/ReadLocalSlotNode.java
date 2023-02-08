@@ -51,7 +51,6 @@ import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.interop.NodeObjectDescriptor;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.objects.IoCall;
@@ -90,15 +89,15 @@ public abstract class ReadLocalSlotNode extends ReadNode {
         if(value instanceof IoInvokable) {
             setPrototype(IoObjectUtil.getPrototype(value));
             setName((TruffleString)frame.getFrameDescriptor().getSlotName(getSlot()));
-            setReceiver(getSelfOrTarget(frame));
+            setReceiver(getTarget(frame));
         }
         return value;
     }
 
-    public Object getSelfOrTarget(VirtualFrame frame) {
+    public Object getTarget(VirtualFrame frame) {
         Object target = frame.getArguments()[IoLocals.TARGET_ARGUMENT_INDEX];
         if(target instanceof IoCall) {
-            throw new NotImplementedException();
+            target = ((IoCall)target).getTarget();
         }
         return target;
     }
