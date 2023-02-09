@@ -73,7 +73,7 @@ public final class IoObjectUtil {
     }
 
     public static boolean hasSlot(Object object, Object key) {
-        IoBaseObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoBaseObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
@@ -103,7 +103,7 @@ public final class IoObjectUtil {
     }
 
     public static Object getOrDefault(Object object, Object key, Object defaultValue) {
-        IoBaseObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoBaseObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
@@ -137,7 +137,7 @@ public final class IoObjectUtil {
         return lib.getOrDefault(object, key, defaultValue);
     }
 
-    protected static IoBaseObject asIoObject(Object object) {
+    protected static IoBaseObject asIoBaseObject(Object object) {
         if (object instanceof IoBaseObject) {
             return (IoBaseObject) object;
         }
@@ -168,9 +168,9 @@ public final class IoObjectUtil {
         if (interop.fitsInDouble(object)) {
             return IoPrototype.NUMBER;
         }
-        IoBaseObject asIoObject = asIoObject(object);
-        if (asIoObject != null) {
-            return asIoObject.getPrototype();
+        IoBaseObject ioBaseObject = asIoBaseObject(object);
+        if (ioBaseObject != null) {
+            return ioBaseObject.getPrototype();
         }
         if (interop.hasMembers(object)) {
             return IoPrototype.OBJECT;
@@ -179,7 +179,7 @@ public final class IoObjectUtil {
     }
 
     public static boolean hasPrototype(Object object, Object prototype) {
-        IoBaseObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoBaseObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
@@ -368,7 +368,7 @@ public final class IoObjectUtil {
     }
 
     public static IoBaseObject lookupSlot(Object object, Object key) {
-        IoBaseObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoBaseObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
@@ -390,7 +390,7 @@ public final class IoObjectUtil {
     }
 
     public static Object updateSlot(Object obj, Object key, Object value) {
-        IoBaseObject objectOrProto = asIoObject(obj);
+        IoBaseObject objectOrProto = asIoBaseObject(obj);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
@@ -407,7 +407,7 @@ public final class IoObjectUtil {
     }
 
     public static Object put(Object object, Object key, Object value) {
-        IoBaseObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoBaseObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }

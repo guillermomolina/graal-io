@@ -72,7 +72,7 @@ public abstract class ReadMemberNode extends ReadNode {
         return getMember();
     }
 
-    @Specialization(guards = { "!isIoObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
+    @Specialization(guards = { "!isIoBaseObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
     public Object readObject(Object receiver, Object name,
             @CachedLibrary("receiver") InteropLibrary objects,
             @Cached ToMemberNode asMember,
@@ -109,7 +109,7 @@ public abstract class ReadMemberNode extends ReadNode {
         return getMember();
     }
 
-    static boolean isIoObject(Object receiver) {
+    static boolean isIoBaseObject(Object receiver) {
         return receiver instanceof IoBaseObject;
     }
 }

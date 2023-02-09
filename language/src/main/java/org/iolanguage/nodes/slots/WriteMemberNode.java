@@ -87,7 +87,7 @@ public abstract class WriteMemberNode extends IoNode {
         return value;
     }
 
-    @Specialization(guards = "!isIoObject(receiver)", limit = "LIBRARY_LIMIT")
+    @Specialization(guards = "!isIoBaseObject(receiver)", limit = "LIBRARY_LIMIT")
     protected Object writeObject(Object receiver, Object name, Object value,
             @CachedLibrary("receiver") InteropLibrary objectLibrary,
             @Cached ToMemberNode asMember) {
@@ -110,7 +110,7 @@ public abstract class WriteMemberNode extends IoNode {
         throw new NotImplementedException();
     }
 
-    static boolean isIoObject(Object receiver) {
+    static boolean isIoBaseObject(Object receiver) {
         return receiver instanceof IoBaseObject;
     }
 }
