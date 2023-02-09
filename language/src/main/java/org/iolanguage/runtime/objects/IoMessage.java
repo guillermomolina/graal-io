@@ -47,7 +47,7 @@ import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
 
-public class IoMessage extends IoDynamicObject {
+public class IoMessage extends IoObject {
 
     private static final TruffleString SYMBOL_NAME = Symbols.constant("name");
 

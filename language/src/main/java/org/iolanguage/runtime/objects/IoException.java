@@ -45,7 +45,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
-public class IoException extends IoDynamicObject { 
+public class IoException extends IoObject { 
     private static final TruffleString SYMBOL_ERROR = Symbols.constant("error");
     private static final TruffleString SYMBOL_COROUTINE = Symbols.constant("coroutine");
     private static final TruffleString SYMBOL_CAUGHT_MESSAGE = Symbols.constant("caughtMessage");

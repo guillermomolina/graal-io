@@ -67,24 +67,24 @@ import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
-public class IoDynamicObject extends DynamicObject implements IoBaseObject {
+public class IoObject extends DynamicObject implements IoBaseObject {
     protected static final int CACHE_LIMIT = 3;
 
-    public static final Shape SHAPE = Shape.newBuilder().layout(IoDynamicObject.class).build();
+    public static final Shape SHAPE = Shape.newBuilder().layout(IoObject.class).build();
 
     protected IoBaseObject prototype;
 
-    public IoDynamicObject() {
+    public IoObject() {
         super(SHAPE);
         this.prototype = IoPrototype.OBJECT;
     }
 
-    public IoDynamicObject(final Shape shape, IoBaseObject prototype) {
+    public IoObject(final Shape shape, IoBaseObject prototype) {
         super(shape);
         this.prototype = prototype;
     }
 
-    public IoDynamicObject(IoBaseObject prototype) {
+    public IoObject(IoBaseObject prototype) {
         super(SHAPE);
         this.prototype = prototype;
     }
@@ -110,12 +110,12 @@ public class IoDynamicObject extends DynamicObject implements IoBaseObject {
     @ExportMessage
     static final class IsIdenticalOrUndefined {
         @Specialization
-        static TriState doIoDynamicObject(IoDynamicObject receiver, IoDynamicObject other) {
+        static TriState doIoDynamicObject(IoObject receiver, IoObject other) {
             return TriState.valueOf(receiver == other);
         }
 
         @Fallback
-        static TriState doOther(IoDynamicObject receiver, Object other) {
+        static TriState doOther(IoObject receiver, Object other) {
             return TriState.UNDEFINED;
         }
     }

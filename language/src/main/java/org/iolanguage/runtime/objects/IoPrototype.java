@@ -55,7 +55,7 @@ import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
-public class IoPrototype extends IoDynamicObject {
+public class IoPrototype extends IoObject {
     public static final TruffleString SYMBOL_TYPE = Symbols.constant("type");
 
     public static final IoPrototype OBJECT = new IoPrototype(null, Symbols.OBJECT);

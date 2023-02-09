@@ -56,7 +56,7 @@ import org.iolanguage.NotImplementedException;
 import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoDate;
-import org.iolanguage.runtime.objects.IoDynamicObject;
+import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoFalse;
 import org.iolanguage.runtime.objects.IoList;
 import org.iolanguage.runtime.objects.IoLocals;
@@ -81,8 +81,8 @@ public final class IoObjectUtil {
     }
 
     public static boolean hasSlot(IoBaseObject object, Object key) {
-        if (object instanceof IoDynamicObject) {
-            return hasSlot((IoDynamicObject) object, key);
+        if (object instanceof IoObject) {
+            return hasSlot((IoObject) object, key);
         }
         if (object instanceof IoLocals) {
             return ((IoLocals) object).hasLocal(key);
@@ -90,11 +90,11 @@ public final class IoObjectUtil {
         throw new ShouldNotBeHereException();
     }
 
-    public static boolean hasSlot(IoDynamicObject object, Object key) {
+    public static boolean hasSlot(IoObject object, Object key) {
         return hasSlot(DynamicObjectLibrary.getUncached(), object, key);
     }
 
-    public static boolean hasSlot(DynamicObjectLibrary lib, IoDynamicObject object, Object key) {
+    public static boolean hasSlot(DynamicObjectLibrary lib, IoObject object, Object key) {
         return lib.containsKey(object, key);
     }
 
@@ -111,8 +111,8 @@ public final class IoObjectUtil {
     }
 
     public static Object getOrDefault(IoBaseObject objectOrProto, Object key, Object defaultValue) {
-        if (objectOrProto instanceof IoDynamicObject) {
-            return getOrDefault((IoDynamicObject) objectOrProto, key, defaultValue);
+        if (objectOrProto instanceof IoObject) {
+            return getOrDefault((IoObject) objectOrProto, key, defaultValue);
         }
         if (objectOrProto instanceof IoLocals) {
             return ((IoLocals) objectOrProto).getLocalOrDefault(key, defaultValue);
@@ -120,19 +120,19 @@ public final class IoObjectUtil {
         throw new ShouldNotBeHereException();
     }
 
-    public static Object getOrDefault(IoDynamicObject object, Object key) {
+    public static Object getOrDefault(IoObject object, Object key) {
         return getOrDefault(DynamicObjectLibrary.getUncached(), object, key, null);
     }
 
-    public static Object getOrDefault(IoDynamicObject object, Object key, Object defaultValue) {
+    public static Object getOrDefault(IoObject object, Object key, Object defaultValue) {
         return getOrDefault(DynamicObjectLibrary.getUncached(), object, key, defaultValue);
     }
 
-    public static Object getOrDefault(DynamicObjectLibrary lib, IoDynamicObject object, Object key) {
+    public static Object getOrDefault(DynamicObjectLibrary lib, IoObject object, Object key) {
         return getOrDefault(lib, object, key, null);
     }
 
-    public static Object getOrDefault(DynamicObjectLibrary lib, IoDynamicObject object, Object key,
+    public static Object getOrDefault(DynamicObjectLibrary lib, IoObject object, Object key,
             Object defaultValue) {
         return lib.getOrDefault(object, key, defaultValue);
     }
@@ -415,8 +415,8 @@ public final class IoObjectUtil {
     }
 
     public static Object put(IoBaseObject object, Object key, Object value) {
-        if (object instanceof IoDynamicObject) {
-            return put((IoDynamicObject) object, key, value);
+        if (object instanceof IoObject) {
+            return put((IoObject) object, key, value);
         }
         if (object instanceof IoLocals) {
             return ((IoLocals) object).setLocal(key, value);
@@ -424,11 +424,11 @@ public final class IoObjectUtil {
         throw new ShouldNotBeHereException();
     }
 
-    public static Object put(IoDynamicObject object, Object key, Object value) {
+    public static Object put(IoObject object, Object key, Object value) {
         return put(DynamicObjectLibrary.getUncached(), object, key, value);
     }
 
-    public static Object put(DynamicObjectLibrary lib, IoDynamicObject object, Object key, Object value) {
+    public static Object put(DynamicObjectLibrary lib, IoObject object, Object key, Object value) {
         lib.put(object, key, value);
         return value;
     }

@@ -45,7 +45,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
-public class IoCall extends IoDynamicObject { 
+public class IoCall extends IoObject { 
     private static final TruffleString SYMBOL_SENDER = Symbols.constant("sender");
     private static final TruffleString SYMBOL_MESSAGE = Symbols.constant("message");
     private static final TruffleString SYMBOL_TARGET = Symbols.constant("target");

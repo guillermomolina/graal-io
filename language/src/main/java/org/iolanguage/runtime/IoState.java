@@ -117,7 +117,7 @@ import org.iolanguage.runtime.objects.IoBlock;
 import org.iolanguage.runtime.objects.IoCall;
 import org.iolanguage.runtime.objects.IoCoroutine;
 import org.iolanguage.runtime.objects.IoDate;
-import org.iolanguage.runtime.objects.IoDynamicObject;
+import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoException;
 import org.iolanguage.runtime.objects.IoFalse;
 import org.iolanguage.runtime.objects.IoFunction;
@@ -452,7 +452,7 @@ public final class IoState {
 
     public IoBaseObject cloneObject(IoBaseObject prototype) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        IoBaseObject object = new IoDynamicObject(prototype);
+        IoBaseObject object = new IoObject(prototype);
         allocationReporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
     }

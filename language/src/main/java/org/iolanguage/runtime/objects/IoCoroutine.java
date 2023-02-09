@@ -40,7 +40,7 @@
  */
 package org.iolanguage.runtime.objects;
 
-public class IoCoroutine extends IoDynamicObject {
+public class IoCoroutine extends IoObject {
     public IoCoroutine() {
         super(IoPrototype.COROUTINE);
     }

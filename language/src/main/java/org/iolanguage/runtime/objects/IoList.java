@@ -51,7 +51,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import org.iolanguage.runtime.IoObjectUtil;
 
 @ExportLibrary(InteropLibrary.class)
-public class IoList extends IoDynamicObject {
+public class IoList extends IoObject {
     private Object[] list;
 
     public IoList(int size) {
