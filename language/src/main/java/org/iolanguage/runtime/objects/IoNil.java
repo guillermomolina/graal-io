@@ -63,7 +63,7 @@ public final class IoNil extends IoPrototype {
     }
 
     @Override
-    public String toString(int depth) {
+    public String toStringInner() {
         return "nil";
     }
 

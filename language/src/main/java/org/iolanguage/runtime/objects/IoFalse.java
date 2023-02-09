@@ -60,7 +60,7 @@ public final class IoFalse extends IoPrototype {
     }
 
     @Override
-    public String toString(int depth) {
+    public String toStringInner() {
         return "false";
     }
 

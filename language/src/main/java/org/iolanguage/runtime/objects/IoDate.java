@@ -74,7 +74,7 @@ public final class IoDate extends IoObject implements Comparable<IoDate> {
     }
 
     @Override
-    public String toString(int depth) {
+    public String toStringInner() {
         return value.toString();
     }
 

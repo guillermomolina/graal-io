@@ -111,10 +111,12 @@ public class IoPrototype extends IoObject {
     }
 
     @Override
-    public String toString(int depth) {
-        if(depth == 0) {
-            return String.format("%s_0x%08x: %s", getSymbolType(), hashCode(), IoObjectUtil.toString(this));
-        }
+    public String toString() {
+        return String.format("%s_0x%08x: %s", getSymbolType(), hashCode(), IoObjectUtil.toString(this));
+     }
+
+    @Override
+    public String toStringInner() {
         return String.format("%s_0x%08x", getSymbolType(), hashCode());
     }
 }

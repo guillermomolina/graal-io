@@ -74,8 +74,29 @@ public class IoList extends IoObject {
     }
 
     @Override
-    public String toString(int depth) {
-        String string = String.format("list(%s)", IoObjectUtil.toString(this, depth));
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        if (list.length == 0) {
+            return "";
+        }
+        for (int i = 0; i < list.length; i++) {
+            if (i > 0) {
+                sb.append(", ");
+             }
+            Object value = list[i];
+            if (value == null) {
+                sb.append("<UNKNOWN>");
+            } else {
+                sb.append(IoObjectUtil.toStringInner(value));
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String toStringInner() {
+        String string = String.format("list(%s)", IoObjectUtil.toStringInner(this));
         return string;
     }
 

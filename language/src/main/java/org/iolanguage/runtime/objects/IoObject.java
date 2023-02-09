@@ -50,7 +50,9 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -136,15 +138,40 @@ public class IoObject extends DynamicObject implements IoBaseObject {
 
     @Override
     public String toString() {
-        return toString(0);
+        StringBuilder sb = new StringBuilder(toStringInner());
+        DynamicObjectLibrary objInterop = DynamicObjectLibrary.getUncached();
+        Object[] keys = objInterop.getKeyArray(this);
+        String spaces = "  ";
+        sb.append("\n");
+        sb.append(spaces);
+        for (int i = 0; i < keys.length; i++) {
+            if (i > 0) {
+                sb.append("\n");
+                sb.append(spaces);
+            }
+            Object key = keys[i];
+            String stringKey = null;
+            try {
+                assert InteropLibrary.getUncached().isString(key);
+                stringKey = InteropLibrary.getUncached().asString(key);
+            } catch (UnsupportedMessageException e) {
+                stringKey = "<UNKNOWN>";
+            }
+            sb.append(stringKey);
+            sb.append(" = ");
+            Object value = objInterop.getOrDefault(this, key, null);
+            if (value == null) {
+                sb.append("<UNKNOWN>");
+            } else {
+                sb.append(IoObjectUtil.toStringInner(value));
+            }
+        }
+        return sb.toString();
     }
 
-    public String toString(int depth) {
-        String string = String.format("Object_0x%08x", hashCode());
-        if (depth == 0) {
-            //string += ":" + IoObjectUtil.toString(this);
-        }
-        return string;
+    @Override
+    public String toStringInner() {
+        return String.format("Object_0x%08x", hashCode());
     }
 
     @ExportMessage

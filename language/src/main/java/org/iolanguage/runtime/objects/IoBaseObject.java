@@ -8,5 +8,5 @@ public interface IoBaseObject extends TruffleObject {
 
     public void setPrototype(final IoBaseObject prototype);
 
-    public String toString(int depth);
+    public String toStringInner();
 }

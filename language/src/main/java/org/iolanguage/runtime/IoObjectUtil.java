@@ -207,124 +207,27 @@ public final class IoObjectUtil {
         if (object instanceof IoBaseObject) {
             return toString((IoBaseObject) object);
         }
-        if (object instanceof IoLocals) {
-            throw new NotImplementedException();
-        }
-        return toStringInner(object, 0);
+        return toStringInner(object);
     }
 
-    public static String toString(IoBaseObject object) {
-        return toString(object, 0);
-    }
-
-    public static String toString(IoBaseObject object, int depth) {
-        if (object instanceof IoList) {
-            return toString((IoList) object, depth);
-        }
+    public static String toStringInner(Object object) {
         CompilerAsserts.neverPartOfCompilation();
-        StringBuilder sb = new StringBuilder();
-        try {
-            InteropLibrary objInterop = InteropLibrary.getFactory().getUncached(object);
-            assert objInterop.hasMembers(object);
-            Object keys = objInterop.getMembers(object);
-            InteropLibrary keysInterop = InteropLibrary.getFactory().getUncached(keys);
-            long keyCount = keysInterop.getArraySize(keys);
-            if (keyCount == 0 || depth >= TO_STRING_MAX_DEPTH) {
-                return "";
-            }
-            String spaces = "  ";
-            spaces = spaces.repeat(depth + 1);
-            sb.append("\n");
-            sb.append(spaces);
-            for (long i = 0; i < keyCount; i++) {
-                if (i > 0) {
-                    sb.append("\n");
-                    sb.append(spaces);
-                    if (i >= TO_STRING_MAX_ELEMENTS) {
-                        sb.append("...");
-                        break;
-                    }
-                }
-                String stringKey = null;
-                try {
-                    Object key = keysInterop.readArrayElement(keys, i);
-                    assert InteropLibrary.getUncached().isString(key);
-                    stringKey = InteropLibrary.getUncached().asString(key);
-                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-                    stringKey = "<UNKNOWN>";
-                }
-                sb.append(stringKey);
-                sb.append(" = ");
-                Object value = null;
-                try {
-                    value = objInterop.readMember(object, stringKey);
-                } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-                    value = "<UNKNOWN>";
-                }
-                sb.append(toStringInner(value, depth + 1));
-            }
-        } catch (UnsupportedMessageException e) {
-        }
-        return sb.toString();
-    }
-
-    public static String toString(IoList object, int depth) {
-        CompilerAsserts.neverPartOfCompilation();
-        StringBuilder sb = new StringBuilder();
-        try {
-            InteropLibrary interop = InteropLibrary.getFactory().getUncached(object);
-            assert interop.hasArrayElements(object);
-            long size = interop.getArraySize(object);
-            if (size == 0) {
-                return "";
-            } else if (depth >= TO_STRING_MAX_DEPTH) {
-                return String.format("<%d>", size);
-            }
-            boolean topLevel = depth == 0;
-            if (topLevel && size >= 2 && TO_STRING_INCLUDE_ARRAY_LENGTH) {
-                sb.append('<');
-                sb.append(size);
-                sb.append('>');
-            }
-            for (long i = 0; i < size; i++) {
-                if (i > 0) {
-                    sb.append(", ");
-                    if (i >= TO_STRING_MAX_ELEMENTS) {
-                        sb.append("...");
-                        break;
-                    }
-                }
-                Object value = null;
-                try {
-                    value = interop.readArrayElement(object, i);
-                } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-                    value = "<UNKNOWN>";
-                }
-                sb.append(toStringInner(value, depth + 1));
-            }
-        } catch (UnsupportedMessageException e) {
-        }
-        return sb.toString();
-    }
-
-    public static String toStringInner(Object value, int depth) {
-        CompilerAsserts.neverPartOfCompilation();
-        if (value == IoNil.SINGLETON) {
+        if (object == IoNil.SINGLETON) {
             return "nil";
         }
         try {
-            String asString = InteropLibrary.getUncached().asString(value);
-            /*if (value instanceof TruffleString) {
+            String asString = InteropLibrary.getUncached().asString(object);
+            /*if (object instanceof TruffleString) {
                 return String.format("\"%s\"", asString);
             }*/
             return asString;
         } catch (UnsupportedMessageException e) {
         }
-        if (value instanceof IoBaseObject) {
-            return ((IoBaseObject) value).toString(depth);
+        if (object instanceof IoBaseObject) {
+            return ((IoBaseObject) object).toStringInner();
         }
-        if (value instanceof Double) {
-            Double doubleValue = (Double) value;
+        if (object instanceof Double) {
+            Double doubleValue = (Double) object;
             if (Double.valueOf(doubleValue.intValue()).compareTo(doubleValue) == 0) {
                 return String.format("%d", doubleValue.intValue());
             }
@@ -350,17 +253,17 @@ public final class IoObjectUtil {
 
             }
         }
-        if (value instanceof Long) {
-            Long longValue = (Long) value;
+        if (object instanceof Long) {
+            Long longValue = (Long) object;
             if (Long.valueOf(longValue.intValue()).compareTo(longValue) == 0) {
                 return String.format("%d", longValue.intValue());
             }
             return String.format("%e", longValue.doubleValue());
         }
-        if (value instanceof IoLocals) {
+        if (object instanceof IoLocals) {
             throw new NotImplementedException();
         }
-        return value.toString();
+        return object.toString();
     }
 
     public static Date getDate(IoDate date) {

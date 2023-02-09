@@ -204,10 +204,10 @@ public final class IoLocals implements IoBaseObject {
 
     @Override
     public String toString() {
-        return toString(0);
+        return toStringInner();
     }
 
-    public String toString(int depth) {
+    public String toStringInner() {
         String string = String.format("Object_0x%08x", hashCode());
         final FrameDescriptor frameDescriptor = frame.getFrameDescriptor();
         int count = frameDescriptor.getNumberOfSlots();

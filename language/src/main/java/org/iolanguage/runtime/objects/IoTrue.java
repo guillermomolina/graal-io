@@ -60,7 +60,7 @@ public final class IoTrue extends IoPrototype {
     }
 
     @Override
-    public String toString(int depth) {
+    public String toStringInner() {
         return "true";
     }
 

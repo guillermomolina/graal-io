@@ -75,16 +75,13 @@ public class IoMethod extends IoInvokable {
     }
 
     @Override
-    public String toString(int depth) {
-        return "method(" + printSource(depth) + ")";
+    public String toString() {
+        return "method(" + getSourceLocation().getCharacters().toString() + ")";
     }
 
-    public String printSource(int depth) {
-        if (depth == 0) {
-            return getSourceLocation().getCharacters().toString();
-        } else {
-            return "...";
-        }
+    @Override
+    public String toStringInner() {
+        return "method(...)";
     }
 
     @ExportMessage

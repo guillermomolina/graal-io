@@ -75,7 +75,7 @@ public class IoMessage extends IoObject {
     }
 
     @Override
-    public String toString(int depth) {
+    public String toStringInner() {
         TruffleString name = getSymbolName();
         if(name == null) {
             return "[unnamed]";

@@ -85,7 +85,7 @@ public abstract class IoInvokable extends IoObject {
     }
 
     @Override
-    public abstract String toString(int depth);
+    public abstract String toStringInner();
     
     @ExportMessage
     @TruffleBoundary

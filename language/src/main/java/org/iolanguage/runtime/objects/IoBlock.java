@@ -63,10 +63,15 @@ public final class IoBlock extends IoMethod {
     public IoLocals getSender() {
         return sender;
     }
- 
+
     @Override
-    public String toString(int depth) {
-        return "block(" + printSource(depth) + ")";
+    public String toString() {
+        return "block(" + getSourceLocation().getCharacters().toString() + ")";
+    }
+
+    @Override
+    public String toStringInner() {
+        return "block(...)";
     }
 
     @ExportMessage
