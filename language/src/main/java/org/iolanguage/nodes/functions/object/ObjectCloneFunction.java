@@ -43,13 +43,6 @@
  */
 package org.iolanguage.nodes.functions.object;
 
-import org.iolanguage.NotImplementedException;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.objects.IoNil;
-import org.iolanguage.runtime.objects.IoObject;
-import org.iolanguage.runtime.objects.IoPrototype;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -57,6 +50,13 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.NotImplementedException;
+import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.runtime.IoState;
+import org.iolanguage.runtime.objects.IoBaseObject;
+import org.iolanguage.runtime.objects.IoNil;
+import org.iolanguage.runtime.objects.IoPrototype;
 
 /**
  * Built-in function to create a clone object. Objects in IO are simply made up of name/value pairs.
@@ -92,7 +92,7 @@ public abstract class ObjectCloneFunction extends FunctionBodyNode {
     }
 
     @Specialization(guards = "!values.isNull(obj)", limit = "3")
-    public Object cloneIOObject(IoObject obj, @CachedLibrary("obj") InteropLibrary values) {
+    public Object cloneIOObject(IoBaseObject obj, @CachedLibrary("obj") InteropLibrary values) {
         return IoState.get(this).cloneObject(obj);
     }
 

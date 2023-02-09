@@ -66,7 +66,7 @@ public abstract class IoInvokable extends IoDynamicObject {
     private final RootCallTarget callTarget;
     private final boolean hasCall; 
     
-    public IoInvokable(IoObject prototype, final RootCallTarget callTarget) {
+    public IoInvokable(IoBaseObject prototype, final RootCallTarget callTarget) {
         super(prototype);
         this.callTarget = callTarget;
         this.hasCall = false;

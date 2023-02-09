@@ -43,15 +43,15 @@
  */
 package org.iolanguage.nodes.expression;
 
-import org.iolanguage.nodes.IoNode;
-import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.objects.IoCall;
-import org.iolanguage.runtime.objects.IoObject;
-
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.nodes.IoNode;
+import org.iolanguage.runtime.IoState;
+import org.iolanguage.runtime.objects.IoBaseObject;
+import org.iolanguage.runtime.objects.IoCall;
 
 @NodeInfo(shortName = "thisLocalContext")
 @NodeChild("receiverNode")
@@ -63,7 +63,7 @@ public abstract class ThisLocalContextNode extends IoNode {
     }
 
     @Specialization
-    public Object thisContext(VirtualFrame frame, IoObject receiver) {
+    public Object thisContext(VirtualFrame frame, IoBaseObject receiver) {
         return receiver;
     }
 

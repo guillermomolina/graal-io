@@ -63,7 +63,7 @@ import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.nodes.util.ToTruffleStringNodeGen;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;
-import org.iolanguage.runtime.objects.IoObject;
+import org.iolanguage.runtime.objects.IoBaseObject;
 
 @NodeInfo(shortName = "setSlot")
 @NodeChild("receiverNode")
@@ -77,7 +77,7 @@ public abstract class WriteMemberNode extends IoNode {
     protected abstract boolean getInitialize();
 
     @Specialization
-    protected Object writeIOObject(IoObject receiver, Object name, Object value,
+    protected Object writeIOObject(IoBaseObject receiver, Object name, Object value,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
         if (!getInitialize() && !IoObjectUtil.hasSlot(receiver, nameTS)) {
@@ -96,7 +96,7 @@ public abstract class WriteMemberNode extends IoNode {
         } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
             ToTruffleStringNode toTruffleStringNode = ToTruffleStringNodeGen.create();
             TruffleString nameTS = toTruffleStringNode.execute(name);
-            IoObject prototype = IoObjectUtil.getPrototype(receiver);
+            IoBaseObject prototype = IoObjectUtil.getPrototype(receiver);
             if (!IoObjectUtil.hasSlot(prototype, nameTS)) {
                 throw UndefinedNameException.undefinedField(this, nameTS);
             }
@@ -111,6 +111,6 @@ public abstract class WriteMemberNode extends IoNode {
     }
 
     static boolean isIoObject(Object receiver) {
-        return receiver instanceof IoObject;
+        return receiver instanceof IoBaseObject;
     }
 }

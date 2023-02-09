@@ -67,33 +67,33 @@ import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
-public class IoDynamicObject extends DynamicObject implements IoObject {
+public class IoDynamicObject extends DynamicObject implements IoBaseObject {
     protected static final int CACHE_LIMIT = 3;
 
     public static final Shape SHAPE = Shape.newBuilder().layout(IoDynamicObject.class).build();
 
-    protected IoObject prototype;
+    protected IoBaseObject prototype;
 
     public IoDynamicObject() {
         super(SHAPE);
         this.prototype = IoPrototype.OBJECT;
     }
 
-    public IoDynamicObject(final Shape shape, IoObject prototype) {
+    public IoDynamicObject(final Shape shape, IoBaseObject prototype) {
         super(shape);
         this.prototype = prototype;
     }
 
-    public IoDynamicObject(IoObject prototype) {
+    public IoDynamicObject(IoBaseObject prototype) {
         super(SHAPE);
         this.prototype = prototype;
     }
 
-    public IoObject getPrototype() {
+    public IoBaseObject getPrototype() {
         return prototype;
     }
 
-    public void setPrototype(final IoObject prototype) {
+    public void setPrototype(final IoBaseObject prototype) {
         this.prototype = prototype;
     }
 

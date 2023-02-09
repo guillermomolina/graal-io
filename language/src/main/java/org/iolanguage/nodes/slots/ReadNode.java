@@ -46,18 +46,18 @@ package org.iolanguage.nodes.slots;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.runtime.objects.IoObject;
+import org.iolanguage.runtime.objects.IoBaseObject;
 
 public abstract class ReadNode extends IoNode {
     private Object receiver = null;
-    private IoObject prototype = null;
+    private IoBaseObject prototype = null;
     private TruffleString name = null;
 
     public Object getReceiver() {
         return receiver;
     }
 
-    public IoObject getPrototype() {
+    public IoBaseObject getPrototype() {
         return prototype;
     }
 
@@ -69,7 +69,7 @@ public abstract class ReadNode extends IoNode {
         this.receiver = receiver;
     }
 
-    protected void setPrototype(final IoObject prototype) {
+    protected void setPrototype(final IoBaseObject prototype) {
         this.prototype = prototype;
     }
 

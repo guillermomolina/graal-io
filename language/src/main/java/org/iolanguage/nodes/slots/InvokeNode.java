@@ -56,6 +56,7 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.runtime.IoState;
+import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoBlock;
 import org.iolanguage.runtime.objects.IoCall;
 import org.iolanguage.runtime.objects.IoCoroutine;
@@ -64,7 +65,6 @@ import org.iolanguage.runtime.objects.IoInvokable;
 import org.iolanguage.runtime.objects.IoLocals;
 import org.iolanguage.runtime.objects.IoMessage;
 import org.iolanguage.runtime.objects.IoMethod;
-import org.iolanguage.runtime.objects.IoObject;
 
 @NodeInfo(shortName = "()")
 @NodeChild(value = "valueNode", type = ReadNode.class)
@@ -81,8 +81,8 @@ public abstract class InvokeNode extends IoNode {
         return receiver;
     }
 
-    public IoObject getPrototype() {
-        IoObject prototype = getValueNode().getPrototype();
+    public IoBaseObject getPrototype() {
+        IoBaseObject prototype = getValueNode().getPrototype();
         assert prototype != null;
         return prototype;
     }

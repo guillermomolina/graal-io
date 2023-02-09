@@ -63,7 +63,7 @@ import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.Symbols;
 
 @ExportLibrary(InteropLibrary.class)
-public final class IoLocals implements IoObject {
+public final class IoLocals implements IoBaseObject {
 
     public static final int CALL_ARGUMENT_INDEX = 0;
     public static final int TARGET_ARGUMENT_INDEX = 0;
@@ -72,23 +72,23 @@ public final class IoLocals implements IoObject {
     public static final int CALL_SLOT_INDEX = 0;
     public static final int FIRST_USER_SLOT_INDEX = 1;
 
-    protected IoObject prototype;
+    protected IoBaseObject prototype;
     private final MaterializedFrame frame;
 
     public IoLocals(final MaterializedFrame frame) {
         this(IoPrototype.OBJECT, frame);
     }
 
-    public IoLocals(IoObject prototype, final MaterializedFrame frame) {
+    public IoLocals(IoBaseObject prototype, final MaterializedFrame frame) {
         this.prototype = prototype;
         this.frame = frame;
     }
 
-    public IoObject getPrototype() {
+    public IoBaseObject getPrototype() {
         return prototype;
     }
 
-    public void setPrototype(final IoObject prototype) {
+    public void setPrototype(final IoBaseObject prototype) {
         this.prototype = prototype;
     }
 

@@ -54,13 +54,13 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.NotImplementedException;
 import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoDate;
 import org.iolanguage.runtime.objects.IoDynamicObject;
 import org.iolanguage.runtime.objects.IoFalse;
 import org.iolanguage.runtime.objects.IoList;
 import org.iolanguage.runtime.objects.IoLocals;
 import org.iolanguage.runtime.objects.IoNil;
-import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoPrototype;
 import org.iolanguage.runtime.objects.IoTrue;
 
@@ -73,14 +73,14 @@ public final class IoObjectUtil {
     }
 
     public static boolean hasSlot(Object object, Object key) {
-        IoObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
         return hasSlot(objectOrProto, key);
     }
 
-    public static boolean hasSlot(IoObject object, Object key) {
+    public static boolean hasSlot(IoBaseObject object, Object key) {
         if (object instanceof IoDynamicObject) {
             return hasSlot((IoDynamicObject) object, key);
         }
@@ -103,14 +103,14 @@ public final class IoObjectUtil {
     }
 
     public static Object getOrDefault(Object object, Object key, Object defaultValue) {
-        IoObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
         return getOrDefault(objectOrProto, key, defaultValue);
     }
 
-    public static Object getOrDefault(IoObject objectOrProto, Object key, Object defaultValue) {
+    public static Object getOrDefault(IoBaseObject objectOrProto, Object key, Object defaultValue) {
         if (objectOrProto instanceof IoDynamicObject) {
             return getOrDefault((IoDynamicObject) objectOrProto, key, defaultValue);
         }
@@ -137,9 +137,9 @@ public final class IoObjectUtil {
         return lib.getOrDefault(object, key, defaultValue);
     }
 
-    protected static IoObject asIoObject(Object object) {
-        if (object instanceof IoObject) {
-            return (IoObject) object;
+    protected static IoBaseObject asIoObject(Object object) {
+        if (object instanceof IoBaseObject) {
+            return (IoBaseObject) object;
         }
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(object);
         if (interop.isNull(object)) {
@@ -154,7 +154,7 @@ public final class IoObjectUtil {
         return null;
     }
 
-    public static IoObject getPrototype(Object object) {
+    public static IoBaseObject getPrototype(Object object) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(object);
         if (object instanceof String) {
             return IoPrototype.SEQUENCE;
@@ -168,7 +168,7 @@ public final class IoObjectUtil {
         if (interop.fitsInDouble(object)) {
             return IoPrototype.NUMBER;
         }
-        IoObject asIoObject = asIoObject(object);
+        IoBaseObject asIoObject = asIoObject(object);
         if (asIoObject != null) {
             return asIoObject.getPrototype();
         }
@@ -179,7 +179,7 @@ public final class IoObjectUtil {
     }
 
     public static boolean hasPrototype(Object object, Object prototype) {
-        IoObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
@@ -189,9 +189,9 @@ public final class IoObjectUtil {
         return hasPrototype(objectOrProto, prototype);
     }
 
-    public static boolean hasPrototype(IoObject obj, Object prototype) {
-        List<IoObject> visitedProtos = new ArrayList<IoObject>();
-        IoObject object = obj;
+    public static boolean hasPrototype(IoBaseObject obj, Object prototype) {
+        List<IoBaseObject> visitedProtos = new ArrayList<IoBaseObject>();
+        IoBaseObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
             if (object == prototype) {
@@ -204,8 +204,8 @@ public final class IoObjectUtil {
     }
 
     public static String toString(Object object) {
-        if (object instanceof IoObject) {
-            return toString((IoObject) object);
+        if (object instanceof IoBaseObject) {
+            return toString((IoBaseObject) object);
         }
         if (object instanceof IoLocals) {
             throw new NotImplementedException();
@@ -213,11 +213,11 @@ public final class IoObjectUtil {
         return toStringInner(object, 0);
     }
 
-    public static String toString(IoObject object) {
+    public static String toString(IoBaseObject object) {
         return toString(object, 0);
     }
 
-    public static String toString(IoObject object, int depth) {
+    public static String toString(IoBaseObject object, int depth) {
         if (object instanceof IoList) {
             return toString((IoList) object, depth);
         }
@@ -320,8 +320,8 @@ public final class IoObjectUtil {
             return asString;
         } catch (UnsupportedMessageException e) {
         }
-        if (value instanceof IoObject) {
-            return ((IoObject) value).toString(depth);
+        if (value instanceof IoBaseObject) {
+            return ((IoBaseObject) value).toString(depth);
         }
         if (value instanceof Double) {
             Double doubleValue = (Double) value;
@@ -367,17 +367,17 @@ public final class IoObjectUtil {
         throw new NotImplementedException();
     }
 
-    public static IoObject lookupSlot(Object object, Object key) {
-        IoObject objectOrProto = asIoObject(object);
+    public static IoBaseObject lookupSlot(Object object, Object key) {
+        IoBaseObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
         return lookupSlot(objectOrProto, key);
     }
 
-    public static IoObject lookupSlot(IoObject obj, Object key) {
-        List<IoObject> visitedProtos = new ArrayList<IoObject>();
-        IoObject object = obj;
+    public static IoBaseObject lookupSlot(IoBaseObject obj, Object key) {
+        List<IoBaseObject> visitedProtos = new ArrayList<IoBaseObject>();
+        IoBaseObject object = obj;
         while (!visitedProtos.contains(object)) {
             assert object != null;
             if (hasSlot(object, key)) {
@@ -390,15 +390,15 @@ public final class IoObjectUtil {
     }
 
     public static Object updateSlot(Object obj, Object key, Object value) {
-        IoObject objectOrProto = asIoObject(obj);
+        IoBaseObject objectOrProto = asIoObject(obj);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(obj);
         }
         return updateSlot(objectOrProto, key, value);
     }
 
-    public static Object updateSlot(IoObject object, Object key, Object value) {
-        IoObject slotOwner = lookupSlot(object, key);
+    public static Object updateSlot(IoBaseObject object, Object key, Object value) {
+        IoBaseObject slotOwner = lookupSlot(object, key);
         if (slotOwner != null) {
             put(slotOwner, key, value);
             return value;
@@ -407,14 +407,14 @@ public final class IoObjectUtil {
     }
 
     public static Object put(Object object, Object key, Object value) {
-        IoObject objectOrProto = asIoObject(object);
+        IoBaseObject objectOrProto = asIoObject(object);
         if (objectOrProto == null) {
             objectOrProto = getPrototype(object);
         }
         return put(objectOrProto, key, value);
     }
 
-    public static Object put(IoObject object, Object key, Object value) {
+    public static Object put(IoBaseObject object, Object key, Object value) {
         if (object instanceof IoDynamicObject) {
             return put((IoDynamicObject) object, key, value);
         }

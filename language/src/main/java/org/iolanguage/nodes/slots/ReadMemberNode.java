@@ -56,7 +56,7 @@ import org.iolanguage.nodes.util.ToMemberNode;
 import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;
-import org.iolanguage.runtime.objects.IoObject;
+import org.iolanguage.runtime.objects.IoBaseObject;
 
 @NodeChild(value = "receiverNode", type = IoNode.class)
 @NodeChild(value = "nameNode", type = IoNode.class)
@@ -64,7 +64,7 @@ public abstract class ReadMemberNode extends ReadNode {
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization
-    public Object readIoObject(IoObject receiver, Object name,
+    public Object readIoObject(IoBaseObject receiver, Object name,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         setReceiver(receiver);
         setName(toTruffleStringNode.execute(name));
@@ -104,12 +104,12 @@ public abstract class ReadMemberNode extends ReadNode {
             @Cached ToTruffleStringNode toTruffleStringNode) {
         setReceiver(receiver);
         setName(toTruffleStringNode.execute(name));
-        IoObject slotOwner = IoObjectUtil.lookupSlot(receiver, getName());
+        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(receiver, getName());
         setPrototype(slotOwner);
         return getMember();
     }
 
     static boolean isIoObject(Object receiver) {
-        return receiver instanceof IoObject;
+        return receiver instanceof IoBaseObject;
     }
 }
