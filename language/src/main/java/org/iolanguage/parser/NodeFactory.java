@@ -242,8 +242,8 @@ public class NodeFactory {
     public List<IoNode> setupLocals(IoNode bodyNode, int startPos, int length) {
         assert currentScope.argumentCount >= 1;
         List<IoNode> initializationNodes = new ArrayList<IoNode>(currentScope.argumentCount);
-        int callSlotIndex = currentScope.findLocal(CALL_SYMBOL);
-        //int callSlotIndex = currentScope.findOrAddLocal(CALL_SYMBOL);
+        //int callSlotIndex = currentScope.findLocal(CALL_SYMBOL);
+        int callSlotIndex = currentScope.findOrAddLocal(CALL_SYMBOL);
         if (callSlotIndex == -1) {
             // does not use call, intialize self with arg 0
             initializationNodes.add(createInitializationNode(0, 0));
@@ -621,7 +621,8 @@ public class NodeFactory {
 
     public ReadNode createReadSelfOrTarget(int startPos, int length) {
         if (hasLocals()) {
-            return createReadSelf(startPos, length);
+            return createReadCall(startPos, length);
+//            return createReadSelf(startPos, length);
         }
         return createReadTarget(startPos, length);
     }

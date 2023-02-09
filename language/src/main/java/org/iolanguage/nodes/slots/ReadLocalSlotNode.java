@@ -96,9 +96,6 @@ public abstract class ReadLocalSlotNode extends ReadNode {
 
     public Object getTarget(VirtualFrame frame) {
         Object target = frame.getArguments()[IoLocals.TARGET_ARGUMENT_INDEX];
-        if(target instanceof IoCall) {
-            target = ((IoCall)target).getTarget();
-        }
         return target;
     }
 

@@ -76,8 +76,24 @@ public abstract class InvokeNode extends IoNode {
     public abstract IoNode[] getArgumentNodes();
 
     public Object getReceiver() {
-        Object receiver = getValueNode().getReceiver();;
+        Object receiver = getValueNode().getReceiver();
         assert receiver != null;
+        return receiver;
+    }
+
+    public Object getSender() {
+        Object receiver = getReceiver();
+        if(receiver instanceof IoCall) {
+            return ((IoCall)receiver).getSender();
+        }
+        return receiver;
+    }
+
+    public Object getTarget() {
+        Object receiver = getReceiver();
+        if(receiver instanceof IoCall) {
+            return ((IoCall)receiver).getTarget();
+        }
         return receiver;
     }
 
@@ -92,7 +108,7 @@ public abstract class InvokeNode extends IoNode {
         assert name != null;
         return name;
     }
-    
+
     @Specialization
     public long readLong(VirtualFrame frame, long value) {
         return value;
@@ -116,7 +132,7 @@ public abstract class InvokeNode extends IoNode {
 
     @Specialization
     protected final Object invokeBlock(VirtualFrame frame, IoBlock block) {
-        final Object target;
+        Object target = getTarget();
         if (block.getCallSlotIsUsed()) {
             IoLocals sender = block.getSender();
             IoMessage message = IoState.get(this).createMessage(getName(), getArgumentNodes());
@@ -124,8 +140,6 @@ public abstract class InvokeNode extends IoNode {
             IoCall call = IoState.get(this).createCall(sender, sender, message, getPrototype(), block,
                     currentCoroutine);
             target = call;
-        } else {
-            target = getReceiver();
         }
         int argumentsCount = block.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return doInvoke(frame, block, target, argumentsCount);
@@ -133,15 +147,14 @@ public abstract class InvokeNode extends IoNode {
 
     @Specialization
     protected final Object invokeMethod(VirtualFrame frame, IoMethod method) {
-        final Object target;
+        Object target = getTarget();
         if (method.getCallSlotIsUsed()) {
-            IoLocals sender = IoState.get(this).createLocals(getReceiver(), frame.materialize());
+            IoLocals sender = IoState.get(this).createLocals(getSender(), frame.materialize());
             IoMessage message = IoState.get(this).createMessage(getName(), getArgumentNodes());
             IoCoroutine currentCoroutine = IoState.get(this).getCurrentCoroutine();
-            IoCall call = IoState.get(this).createCall(sender, getReceiver(), message, getPrototype(), method, currentCoroutine);
+            IoCall call = IoState.get(this).createCall(sender, target, message, getPrototype(), method,
+                    currentCoroutine);
             target = call;
-        } else {
-            target = getReceiver();
         }
         int argumentsCount = method.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
         return doInvoke(frame, method, target, argumentsCount);
@@ -153,7 +166,8 @@ public abstract class InvokeNode extends IoNode {
     }
 
     @ExplodeLoop
-    protected final Object doInvoke(VirtualFrame frame, IoInvokable invokable, final Object receiver, final int argumentsCount) {
+    protected final Object doInvoke(VirtualFrame frame, IoInvokable invokable, final Object receiver,
+            final int argumentsCount) {
         CompilerAsserts.compilationConstant(argumentsCount);
         Object[] argumentValues = new Object[argumentsCount];
         argumentValues[IoLocals.TARGET_ARGUMENT_INDEX] = receiver;

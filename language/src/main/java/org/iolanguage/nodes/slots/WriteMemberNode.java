@@ -80,10 +80,15 @@ public abstract class WriteMemberNode extends IoNode {
     protected Object writeIOObject(IoBaseObject receiver, Object name, Object value,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
-        if (!getInitialize() && !IoObjectUtil.hasSlot(receiver, nameTS)) {
-            throw UndefinedNameException.undefinedField(this, nameTS);
+        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(receiver, nameTS);
+        if (slotOwner == null) {
+            if (getInitialize()) {
+                slotOwner = receiver;
+            } else {
+                throw UndefinedNameException.undefinedField(this, nameTS);
+            }
         }
-        IoObjectUtil.put(receiver, nameTS, value);
+        IoObjectUtil.put(slotOwner, nameTS, value);
         return value;
     }
 
