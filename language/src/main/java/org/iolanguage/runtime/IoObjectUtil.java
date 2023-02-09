@@ -46,8 +46,6 @@ import java.util.List;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
@@ -58,16 +56,15 @@ import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoDate;
 import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoFalse;
-import org.iolanguage.runtime.objects.IoList;
 import org.iolanguage.runtime.objects.IoLocals;
 import org.iolanguage.runtime.objects.IoNil;
 import org.iolanguage.runtime.objects.IoPrototype;
 import org.iolanguage.runtime.objects.IoTrue;
 
 public final class IoObjectUtil {
-    private static int TO_STRING_MAX_DEPTH = 1;
-    private static int TO_STRING_MAX_ELEMENTS = 10;
-    private static boolean TO_STRING_INCLUDE_ARRAY_LENGTH = false;
+    // private static int TO_STRING_MAX_DEPTH = 1;
+    // private static int TO_STRING_MAX_ELEMENTS = 10;
+    // private static boolean TO_STRING_INCLUDE_ARRAY_LENGTH = false;
 
     private IoObjectUtil() {
     }
