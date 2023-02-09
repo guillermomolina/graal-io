@@ -6,7 +6,7 @@ list(self, y, call, m2)
 7
 nil
 nil
-list(self, z)
+list(self, z, call)
 10
 nil
 nil
