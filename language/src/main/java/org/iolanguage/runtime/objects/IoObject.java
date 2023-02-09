@@ -50,8 +50,6 @@ import com.oracle.truffle.api.dsl.Cached.Shared;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -191,7 +189,7 @@ public class IoObject extends DynamicObject implements IoBaseObject {
     @ExportMessage
     Object getMembers(boolean includeInternal,
             @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
-        return new Keys(objectLibrary.getKeyArray(this));
+        return new IoList(objectLibrary.getKeyArray(this));
     }
 
     @ExportMessage(name = "isMemberReadable")
@@ -207,39 +205,6 @@ public class IoObject extends DynamicObject implements IoBaseObject {
     boolean isMemberInsertable(String member,
             @CachedLibrary("this") InteropLibrary receivers) {
         return !receivers.isMemberExisting(this, member);
-    }
-
-    @ExportLibrary(InteropLibrary.class)
-    static final class Keys implements TruffleObject {
-
-        private final Object[] keys;
-
-        Keys(Object[] keys) {
-            this.keys = keys;
-        }
-
-        @ExportMessage
-        Object readArrayElement(long index) throws InvalidArrayIndexException {
-            if (!isArrayElementReadable(index)) {
-                throw InvalidArrayIndexException.create(index);
-            }
-            return keys[(int) index];
-        }
-
-        @ExportMessage
-        boolean hasArrayElements() {
-            return true;
-        }
-
-        @ExportMessage
-        long getArraySize() {
-            return keys.length;
-        }
-
-        @ExportMessage
-        boolean isArrayElementReadable(long index) {
-            return index >= 0 && index < keys.length;
-        }
     }
 
     @ExportMessage

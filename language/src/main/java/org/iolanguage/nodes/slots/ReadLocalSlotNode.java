@@ -53,7 +53,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.nodes.interop.NodeObjectDescriptor;
 import org.iolanguage.runtime.IoObjectUtil;
-import org.iolanguage.runtime.objects.IoCall;
 import org.iolanguage.runtime.objects.IoInvokable;
 import org.iolanguage.runtime.objects.IoLocals;
 

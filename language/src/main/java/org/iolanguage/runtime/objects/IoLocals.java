@@ -247,7 +247,7 @@ public final class IoLocals implements IoBaseObject {
 
     @ExportMessage
     Object getMembers(boolean includeInternal) {
-        return new LocalsKeys(getSlotNames());
+        return new IoList(getSlotNames());
     }
 
     @ExportMessage(name = "isMemberReadable")
@@ -260,39 +260,6 @@ public final class IoLocals implements IoBaseObject {
     @ExportMessage
     boolean isMemberInsertable(String member) {
         return false;
-    }
-
-    @ExportLibrary(InteropLibrary.class)
-    static final class LocalsKeys implements TruffleObject {
-
-        private final Object[] keys;
-
-        LocalsKeys(Object[] keys) {
-            this.keys = keys;
-        }
-
-        @ExportMessage
-        Object readArrayElement(long index) throws InvalidArrayIndexException {
-            if (!isArrayElementReadable(index)) {
-                throw InvalidArrayIndexException.create(index);
-            }
-            return keys[(int) index];
-        }
-
-        @ExportMessage
-        boolean hasArrayElements() {
-            return true;
-        }
-
-        @ExportMessage
-        long getArraySize() {
-            return keys.length;
-        }
-
-        @ExportMessage
-        boolean isArrayElementReadable(long index) {
-            return index >= 0 && index < keys.length;
-        }
     }
 
     @ExportMessage
