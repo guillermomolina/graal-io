@@ -41,16 +41,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.slots;
-
-import org.iolanguage.nodes.IoNode;
-import org.iolanguage.runtime.Symbols;
-import org.iolanguage.runtime.objects.IoFunction;
+package org.iolanguage.nodes.expression;
 
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.slots.ReadNode;
+import org.iolanguage.runtime.Symbols;
+import org.iolanguage.runtime.objects.IoFunction;
 
 @NodeInfo(shortName = "do")
 @NodeChild(value = "receiverNode", type = IoNode.class)

@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.slots;
+package org.iolanguage.nodes.expression;
 
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -55,6 +55,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.slots.ReadNode;
 import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoBlock;
