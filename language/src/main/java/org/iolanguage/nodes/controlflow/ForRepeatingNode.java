@@ -41,11 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.slots;
-
-import org.iolanguage.nodes.IoNode;
-import org.iolanguage.runtime.exceptions.BreakException;
-import org.iolanguage.runtime.exceptions.ContinueException;
+package org.iolanguage.nodes.controlflow;
 
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -54,22 +50,31 @@ import com.oracle.truffle.api.nodes.RepeatingNode;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
+import org.iolanguage.nodes.IoNode;
+import org.iolanguage.runtime.exceptions.BreakException;
+import org.iolanguage.runtime.exceptions.ContinueException;
+
 public final class ForRepeatingNode extends Node implements RepeatingNode {
 
     @Child
-    private IoNode hasEndedNode;
+    private IoNode conditionNode;
     @Child
     private IoNode bodyNode;
     @Child
-    private IoNode stepSlotNode;
+    private IoNode stepNode;
 
     private final BranchProfile continueTaken = BranchProfile.create();
     private final BranchProfile breakTaken = BranchProfile.create();
+    private Object lastResult;
 
-    public ForRepeatingNode(IoNode hasEndedNode, IoNode bodyNode, IoNode stepSlotNode) {
-        this.hasEndedNode = hasEndedNode;
+    public ForRepeatingNode(IoNode conditionNode, IoNode bodyNode, IoNode stepNode) {
+        this.conditionNode = conditionNode;
         this.bodyNode = bodyNode;
-        this.stepSlotNode = stepSlotNode;
+        this.stepNode = stepNode;
+    }
+
+    public Object getLastResult() {
+        return lastResult;
     }
 
     @Override
@@ -79,8 +84,8 @@ public final class ForRepeatingNode extends Node implements RepeatingNode {
         }
 
         try {
-            bodyNode.executeGeneric(frame);
-            stepSlotNode.executeGeneric(frame);
+            lastResult = bodyNode.executeGeneric(frame);
+            stepNode.executeGeneric(frame);
             return true;
 
         } catch (ContinueException ex) {
@@ -95,9 +100,9 @@ public final class ForRepeatingNode extends Node implements RepeatingNode {
 
     private boolean evaluateHasEndedNode(VirtualFrame frame) {
         try {
-            return hasEndedNode.executeBoolean(frame);
+            return conditionNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
-            throw new UnsupportedSpecializationException(this, new Node[] { hasEndedNode }, ex.getResult());
+            throw new UnsupportedSpecializationException(this, new Node[] { conditionNode }, ex.getResult());
         }
     }
 

@@ -109,6 +109,7 @@ modifiedMessageNext
 
 messageNext
     : repeatMessage
+    | forMessage
     | doMessage
     | getSlotMessage
     | setSlotMessage
@@ -120,47 +121,11 @@ messageNext
 messageInvoke: identifier arguments?;
 arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 
-repeatMessage: REPEAT OPEN EOL* expression? EOL* CLOSE;
-doMessage: DO OPEN EOL* expression? EOL* CLOSE;
+repeatMessage: 
+    REPEAT OPEN EOL* 
+        expression? EOL* 
+    CLOSE;
 
-slotNamesMessage: SLOT_NAMES;
-thisLocalContextMessage: THIS_LOCAL_CONTEXT;
-getSlotMessage: 
-    GET_SLOT OPEN EOL* 
-        (name=STRING|expression) EOL* 
-    CLOSE
-    ;
-setSlotMessage:
-    (NEW_SLOT|SET_SLOT|UPDATE_SLOT) OPEN EOL* 
-        (name=STRING|expression) COMMA EOL* 
-        value=expression EOL*
-    CLOSE
-    ;
-
-inlinedMessage
-    : returnMessage
-    | breakMessage
-    | continueMessage
-    | ifMessageVariants
-    | whileMessage 
-    | forMessage
-    | listMessage
-    | blockMessage
-    | tryMessage
-    ;
-
-returnMessage: RETURN operation?;
-breakMessage: BREAK;
-continueMessage: CONTINUE;
-listMessage: LIST arguments?;
-blockMessage: (BLOCK|METHOD) OPEN EOL* parameterList? body=expression? EOL* CLOSE;
-parameterList: (identifier EOL* COMMA EOL*)+;
-whileMessage: 
-    WHILE OPEN EOL* 
-        condition=expression EOL* COMMA EOL* 
-        body=expression EOL* 
-    CLOSE
-    ;
 forMessage: 
     FOR OPEN EOL* 
         counter=identifier EOL* COMMA EOL* 
@@ -168,33 +133,99 @@ forMessage:
         endPart=expression EOL* COMMA EOL* 
         (stepPart=expression EOL* COMMA EOL*)?
         body=expression EOL* 
-    CLOSE
+    CLOSE;
+
+doMessage: 
+    DO OPEN EOL* 
+        expression? EOL* 
+    CLOSE;
+
+slotNamesMessage: SLOT_NAMES;
+
+thisLocalContextMessage: THIS_LOCAL_CONTEXT;
+
+getSlotMessage: 
+    GET_SLOT OPEN EOL* 
+        (name=STRING|expression) EOL* 
+    CLOSE;
+
+setSlotMessage:
+    (NEW_SLOT|SET_SLOT|UPDATE_SLOT) OPEN EOL* 
+        (name=STRING|expression) COMMA EOL* 
+        value=expression EOL*
+    CLOSE;
+
+inlinedMessage
+    : returnMessage
+    | breakMessage
+    | continueMessage
+    | ifMessageVariants
+    | whileMessage 
+    | listMessage
+    | blockMessage
+    | tryMessage
     ;
-tryMessage
-    : TRY OPEN EOL* expression EOL* CLOSE
-    ;
-ifMessageVariants:
-    ifMessage EOL* thenMessage (EOL* elseMessageVariants)?
+
+returnMessage: RETURN operation?;
+
+breakMessage: BREAK;
+
+continueMessage: CONTINUE;
+
+listMessage: LIST arguments?;
+
+blockMessage: (BLOCK|METHOD) OPEN EOL* parameterList? body=expression? EOL* CLOSE;
+
+parameterList: (identifier EOL* COMMA EOL*)+;
+
+whileMessage: 
+    WHILE OPEN EOL* 
+        condition=expression EOL* COMMA EOL* 
+        body=expression EOL* 
+    CLOSE;
+
+tryMessage: 
+    TRY OPEN EOL* 
+        expression EOL* 
+    CLOSE;
+
+ifMessageVariants
+    : ifMessage EOL* thenMessage (EOL* elseMessageVariants)?
     | IF ifArguments
     ;
+
 elseMessageVariants:
     elseifMessage EOL* thenMessage (EOL* elseMessageVariants)?
     | ELSEIF ifArguments
     | elseMessage
     ;
 
-ifMessage: IF OPEN EOL* condition=expression EOL* CLOSE;
-elseifMessage: ELSEIF OPEN EOL* condition=expression EOL* CLOSE;
-thenMessage: THEN OPEN EOL* thenPart=expression EOL* CLOSE;
-elseMessage: ELSE OPEN EOL* elsePart=expression EOL* CLOSE;
-
 ifArguments: 
     OPEN EOL* 
         condition=expression EOL* COMMA EOL* 
         thenPart=expression EOL* (COMMA EOL* 
         elsePart=expression EOL*)? 
-    CLOSE
-    ;
+    CLOSE;
+
+ifMessage: 
+    IF OPEN EOL* 
+        condition=expression EOL* 
+    CLOSE;
+
+elseifMessage: 
+    ELSEIF OPEN EOL* 
+        condition=expression EOL* 
+    CLOSE;
+
+thenMessage: 
+    THEN OPEN EOL* 
+        thenPart=expression EOL* 
+    CLOSE;
+    
+elseMessage: 
+    ELSE OPEN EOL* 
+        elsePart=expression EOL* 
+    CLOSE;
 
 literal
     : number 

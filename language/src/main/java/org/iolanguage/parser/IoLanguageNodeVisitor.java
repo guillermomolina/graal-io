@@ -305,9 +305,6 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.ifMessageVariants() != null) {
             return visitIfMessageVariants(ctx.ifMessageVariants());
         }
-        if (ctx.forMessage() != null) {
-            return visitForMessage(ctx.forMessage());
-        }
         if (ctx.whileMessage() != null) {
             return visitWhileMessage(ctx.whileMessage());
         }
@@ -325,6 +322,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     public IoNode visitMessageNext(final MessageNextContext ctx, IoNode receiverNode) {
         if (ctx.repeatMessage() != null) {
             return visitRepeatMessage(ctx.repeatMessage(), receiverNode);
+        }
+        if (ctx.forMessage() != null) {
+            return visitForMessage(ctx.forMessage(), receiverNode);
         }
         if (ctx.doMessage() != null) {
             return visitDoMessage(ctx.doMessage(), receiverNode);
@@ -457,6 +457,24 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         return resultNode;
     }
 
+    public IoNode visitForMessage(ForMessageContext ctx, IoNode receiverNode) {
+        factory.startLoop();
+        IoNode slotNameNode = visitIdentifier(ctx.identifier());
+        IoNode startValueNode = visitExpression(ctx.startPart);
+        IoNode endValueNode = visitExpression(ctx.endPart);
+        IoNode stepValueNode = null;
+        if (ctx.stepPart != null) {
+            stepValueNode = visitExpression(ctx.stepPart);
+        }
+        IoNode bodyNode = visitExpression(ctx.body);
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
+        IoNode resultNode = factory.createForSlot(receiverNode, slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
+                startPos, length);
+        assert resultNode != null;
+        return factory.createLoopExpression(resultNode, startPos, length);
+    }
+
     public IoNode visitTargetExpression(final ExpressionContext ctx, int startPos, int length) {
         List<IoNode> body = new ArrayList<>();
         if (ctx != null) {
@@ -571,26 +589,6 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         IoNode resultNode = factory.createWhile(ctx.WHILE().getSymbol(), conditionNode, bodyNode);
         return factory.createLoopExpression(resultNode, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);
-    }
-
-    @Override
-    public IoNode visitForMessage(ForMessageContext ctx) {
-        // throw new NotImplementedException();
-        factory.startLoop();
-        IoNode slotNameNode = visitIdentifier(ctx.identifier());
-        IoNode startValueNode = visitExpression(ctx.startPart);
-        IoNode endValueNode = visitExpression(ctx.endPart);
-        IoNode stepValueNode = null;
-        if (ctx.stepPart != null) {
-            stepValueNode = visitExpression(ctx.stepPart);
-        }
-        IoNode bodyNode = visitExpression(ctx.body);
-        int startPos = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
-        IoNode resultNode = factory.createForSlot(slotNameNode, startValueNode, endValueNode, stepValueNode, bodyNode,
-                startPos, length);
-        assert resultNode != null;
-        return factory.createLoopExpression(resultNode, startPos, length);
     }
 
     @Override

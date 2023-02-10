@@ -7,7 +7,7 @@
  *
  * The Universal Permissive License (UPL), Version 1.0
  *
- * Subject to the condition set forth below, permission is hereby granted to any
+ * Subject to the counter set forth below, permission is hereby granted to any
  * person obtaining a copy of this software, associated documentation and/or
  * data (collectively the "Software"), free of charge and under any and all
  * copyright rights in the Software, and any and all patent rights owned or
@@ -27,7 +27,7 @@
  * Software and the Larger Work(s), and to sublicense the foregoing rights on
  * either these or other terms.
  *
- * This license is subject to the following condition:
+ * This license is subject to the following counter:
  *
  * The above copyright notice and either this complete permission notice or at a
  * minimum a reference to the UPL must be included in all copies or substantial
@@ -43,69 +43,34 @@
  */
 package org.iolanguage.nodes.controlflow;
 
-import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RepeatingNode;
-import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.oracle.truffle.api.profiles.BranchProfile;
+import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.util.UnboxNodeGen;
-import org.iolanguage.runtime.exceptions.BreakException;
-import org.iolanguage.runtime.exceptions.ContinueException;
 
-public final class WhileRepeatingNode extends Node implements RepeatingNode {
+@NodeInfo(shortName = "for", description = "The node implementing a for loop")
+public final class ForNode extends IoNode {
 
     @Child
-    private IoNode conditionNode;
+    private IoNode initializeNode;
     @Child
-    private IoNode bodyNode;
+    private ForRepeatingNode forRepeatingNode;
+    @Child
+    private LoopNode loopNode;
 
-    private final BranchProfile continueTaken = BranchProfile.create();
-    private final BranchProfile breakTaken = BranchProfile.create();
-    private Object lastResult;
 
-    public WhileRepeatingNode(IoNode conditionNode, IoNode bodyNode) {
-        this.conditionNode = UnboxNodeGen.create(conditionNode);
-        this.bodyNode = bodyNode;
-    }
-
-    public Object getLastResult() {
-        return lastResult;
+    public ForNode(IoNode initializeNode, IoNode stepNode, IoNode conditionNode, IoNode bodyNode) {
+        this.initializeNode = initializeNode;
+        this.forRepeatingNode = new ForRepeatingNode(conditionNode, bodyNode, stepNode);
+        this.loopNode = Truffle.getRuntime().createLoopNode(forRepeatingNode);
     }
 
     @Override
-    public boolean executeRepeating(VirtualFrame frame) {
-        if (!evaluateCondition(frame)) {
-            return false;
-        }
-
-        try {
-            lastResult = bodyNode.executeGeneric(frame);
-            return true;
-
-        } catch (ContinueException ex) {
-            continueTaken.enter();
-            return true;
-
-        } catch (BreakException ex) {
-            breakTaken.enter();
-            return false;
-        }
+    public Object executeGeneric(VirtualFrame frame) {
+        initializeNode.executeGeneric(frame);
+        loopNode.execute(frame);
+        return forRepeatingNode.getLastResult();
     }
-
-    private boolean evaluateCondition(VirtualFrame frame) {
-        try {
-            return conditionNode.executeBoolean(frame);
-        } catch (UnexpectedResultException ex) {
-            throw new UnsupportedSpecializationException(this, new Node[] { conditionNode }, ex.getResult());
-        }
-    }
-
-    @Override
-    public String toString() {
-        return IoNode.formatSourceSection(this);
-    }
-
 }
