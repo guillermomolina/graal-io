@@ -85,6 +85,35 @@
             "console": "internalConsole",
             "internalConsoleOptions": "openOnSessionStart",
             //"preLaunchTask": "java (build): Build Workspace"
+        },
+        {
+            "type": "java",
+            "name": "Debug (Launch) Test.io with startup files",
+            "request": "launch",
+            "mainClass": "org.iolanguage.launcher.IoMain",
+            "projectName": "launcher",
+            "env": {
+                "IO_LIB_PATH": "./lib"
+            },
+            "args": [
+                "-v",
+                "${workspaceFolder}/tmp/Test.io",
+            ],
+            "vmArgs": [
+                "-ea", "-Dtruffle.class.path.append=${workspaceFolder}/language/target/iolanguage.jar"
+            ],
+            "stepFilters": {
+                "skipClasses": [
+                    "$JDK",
+                    "junit.*"
+                ],
+                "skipSynthetics": true,
+                "skipStaticInitializers": true,
+                "skipConstructors": false
+            },
+            "console": "internalConsole",
+            "internalConsoleOptions": "openOnSessionStart",
+            //"preLaunchTask": "java (build): Build Workspace"
         }
     ]
 }
