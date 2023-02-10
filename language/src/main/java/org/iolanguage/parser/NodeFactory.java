@@ -571,9 +571,8 @@ public class NodeFactory {
         throw new NotImplementedException();
     }
 
-    public IoNode createForSlot(IoNode receiverNode, IoNode nameNode, IoNode startValueNode, IoNode endValueNode, IoNode stepValueNode,            IoNode bodyNode, int startPos, int length) {
+    public IoNode createForSlot(IoNode receiverNode, IoNode nameNode, IoNode initializationNode, IoNode startValueNode, IoNode endValueNode, IoNode stepValueNode,            IoNode bodyNode, int startPos, int length) {
         if (nameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
-            IoNode initializationNode = createWriteSlot(receiverNode, nameNode, startValueNode, startPos, length, true);
             IoNode readValueNode = createReadSlot(receiverNode, nameNode, startPos, length);
             startValueNode.addExpressionTag();
             endValueNode.addExpressionTag();
