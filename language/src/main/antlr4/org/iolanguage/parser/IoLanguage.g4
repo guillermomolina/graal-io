@@ -119,7 +119,8 @@ messageNext
     | messageInvoke
     ;
 
-messageInvoke: identifier arguments?;
+messageInvoke: (operator|identifier) arguments?;
+
 arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 
 repeatMessage: 
@@ -257,6 +258,23 @@ terminator
     | EOL
     ;
 
+operator
+    : '!'
+    | '**'
+    | ('++' | '--')
+    | ('*' | '/' | '%')
+    | ('+' | '-')
+    | ('<<' | '>>')
+    | ('<' | '>' | '<=' | '>=')
+    | ('==' | '!=')
+    | '&'
+    | '^'
+    | '|'
+    | '&&'
+    | '||'
+    | '..'
+    | OPERATOR;
+
 identifier
     : AND
     | BLOCK
@@ -285,7 +303,6 @@ identifier
     | UPDATE_SLOT
     | WHILE
     | IDENTIFIER
-    | OPERATOR
     ;
 
 AND: 'and';

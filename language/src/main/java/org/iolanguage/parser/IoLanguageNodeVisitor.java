@@ -43,6 +43,7 @@ import org.iolanguage.parser.IoLanguageParser.ModifiedMessageNextContext;
 import org.iolanguage.parser.IoLanguageParser.NumberContext;
 import org.iolanguage.parser.IoLanguageParser.OperationContext;
 import org.iolanguage.parser.IoLanguageParser.OperationOrAssignmentContext;
+import org.iolanguage.parser.IoLanguageParser.OperatorContext;
 import org.iolanguage.parser.IoLanguageParser.ParenExpressionContext;
 import org.iolanguage.parser.IoLanguageParser.PseudoVariableContext;
 import org.iolanguage.parser.IoLanguageParser.RepeatMessageContext;
@@ -370,7 +371,14 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
         List<IoNode> argumentNodes = createArgumentsList(ctx.arguments());
-        final IoNode nameNode = visitIdentifier(ctx.identifier());
+        final IoNode nameNode;
+        if(ctx.identifier() != null) {
+            nameNode = visitIdentifier(ctx.identifier());
+        } else if (ctx.operator() != null) {
+            nameNode = visitOperator(ctx.operator());
+        } else {
+            throw new ShouldNotBeHereException();
+        }
         final IoNode resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
         assert resultNode != null;
         return resultNode;
@@ -657,6 +665,11 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
     @Override
     public IoNode visitIdentifier(IdentifierContext ctx) {
+        return factory.createStringLiteral(ctx.start, false);
+    }
+
+    @Override
+    public IoNode visitOperator(OperatorContext ctx) {
         return factory.createStringLiteral(ctx.start, false);
     }
 
