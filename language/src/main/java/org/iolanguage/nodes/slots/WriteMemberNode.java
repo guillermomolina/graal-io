@@ -102,11 +102,16 @@ public abstract class WriteMemberNode extends IoNode {
         } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
             ToTruffleStringNode toTruffleStringNode = ToTruffleStringNodeGen.create();
             TruffleString nameTS = toTruffleStringNode.execute(name);
-            IoBaseObject prototype = IoObjectUtil.getPrototype(receiver);
-            if (!IoObjectUtil.hasSlot(prototype, nameTS)) {
+            final IoBaseObject slotOwner;
+            if (getInitialize()) {
+                slotOwner = IoObjectUtil.getPrototype(receiver);
+            } else {
+                slotOwner = IoObjectUtil.lookupSlot(receiver, nameTS);
+            }
+            if (slotOwner == null) {
                 throw UndefinedNameException.undefinedField(this, nameTS);
             }
-            IoObjectUtil.put(prototype, nameTS, value);
+            IoObjectUtil.put(slotOwner, nameTS, value);
         }
         return value;
     }
