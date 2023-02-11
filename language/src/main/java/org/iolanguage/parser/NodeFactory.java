@@ -71,7 +71,9 @@ import org.iolanguage.nodes.controlflow.ReturnNode;
 import org.iolanguage.nodes.controlflow.TryCatchUndefinedNameNode;
 import org.iolanguage.nodes.controlflow.TryNode;
 import org.iolanguage.nodes.controlflow.WhileNode;
+import org.iolanguage.nodes.expression.DoReadNodeGen;
 import org.iolanguage.nodes.expression.ExpressionNode;
+import org.iolanguage.nodes.expression.InvokeNodeGen;
 import org.iolanguage.nodes.expression.MethodBodyNode;
 import org.iolanguage.nodes.expression.ParenExpressionNode;
 import org.iolanguage.nodes.expression.ThisLocalContextNodeGen;
@@ -91,8 +93,6 @@ import org.iolanguage.nodes.logic.LogicalAndNode;
 import org.iolanguage.nodes.logic.LogicalNotNodeGen;
 import org.iolanguage.nodes.logic.LogicalOrNode;
 import org.iolanguage.nodes.root.IoRootNode;
-import org.iolanguage.nodes.slots.DoReadNodeGen;
-import org.iolanguage.nodes.slots.InvokeNodeGen;
 import org.iolanguage.nodes.slots.ListLocalSlotNamesNode;
 import org.iolanguage.nodes.slots.ReadArgumentNode;
 import org.iolanguage.nodes.slots.ReadLocalSlotNodeGen;
@@ -427,6 +427,33 @@ public class NodeFactory {
         final ReturnNode returnNode = new ReturnNode(valueNode);
         returnNode.setSourceSection(startPos, length);
         return returnNode;
+    }
+
+    public IoNode createUnary(Token opToken, IoNode rightNode) {
+        if (rightNode == null) {
+            return null;
+        }
+        final IoNode rightUnboxed = UnboxNodeGen.create(rightNode);
+
+        final IoNode result;
+        String op = opToken.getText();
+        switch (op) {
+            case "-":
+                result = SubNodeGen.create(new LongLiteralNode(0), rightUnboxed);
+                break;
+            case "!":
+                result = LogicalNotNodeGen.create(rightUnboxed);
+                break;
+            default:
+                throw new RuntimeException("unexpected operation: " + op);
+        }
+
+        int startPos = opToken.getStartIndex();
+        int length = rightNode.getSourceEndIndex() - startPos;
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+
+        return result;
     }
 
     public IoNode createBinary(Token opToken, IoNode leftNode, IoNode rightNode) {

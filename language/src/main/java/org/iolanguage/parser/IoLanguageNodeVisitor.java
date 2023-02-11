@@ -179,14 +179,20 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.subExpression() != null) {
             return visitSubExpression(ctx.subExpression());
         }
-        if (ctx.op == null) {
-            throw new ShouldNotBeHereException();
+        if (ctx.unary != null) {
+            IoNode rightNode = visitOperation(ctx.operation(0));
+            final IoNode resultNode = factory.createUnary(ctx.unary, rightNode);
+            assert resultNode != null;
+            return resultNode;
         }
-        IoNode leftNode = visitOperation(ctx.operation(0));
-        IoNode rightNode = visitOperation(ctx.operation(1));
-        final IoNode resultNode = factory.createBinary(ctx.op, leftNode, rightNode);
-        assert resultNode != null;
-        return resultNode;
+        if (ctx.op != null) {
+            IoNode leftNode = visitOperation(ctx.operation(0));
+            IoNode rightNode = visitOperation(ctx.operation(1));
+            final IoNode resultNode = factory.createBinary(ctx.op, leftNode, rightNode);
+            assert resultNode != null;
+            return resultNode;
+        }
+        throw new ShouldNotBeHereException();
     }
 
     @Override

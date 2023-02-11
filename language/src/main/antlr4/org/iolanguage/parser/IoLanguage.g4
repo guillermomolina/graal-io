@@ -55,7 +55,8 @@ operationOrAssignment
     ;
 
 operation
-    : operation op='**' operation
+    : unary=('-'|'!') operation
+    | operation op='**' operation
     | operation op=('++' | '--') operation
     | operation op=('*' | '/' | '%') operation
     | operation op=('+' | '-') operation
