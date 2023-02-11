@@ -285,6 +285,7 @@ identifier
     | UPDATE_SLOT
     | WHILE
     | IDENTIFIER
+    | OPERATOR
     ;
 
 AND: 'and';
@@ -374,8 +375,8 @@ fragment STRING_ESCAPE_SEQ
 IDENTIFIER: (LETTER | '_') (LETTER | '_' | DIGIT)*;
 
 OPERATOR:  (':' | '.' | '\'' | '~' | '!' | '@' | '$' | 
-    '%' | '^' | '&' | '*' | '-' | '+' | '/' | '=' | '{' | '}' | 
-    '[' | ']' | '|' | '\\' | '<' | '>' )+
+    '%' | '^' | '&' | '*' | '-' | '+' | '/' | '=' | /* '{' | '}' | */ 
+    /* '[' | ']' | */ '|' | '\\' | '<' | '>' )+
     ;
 
 COMMA: ',';
