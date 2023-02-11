@@ -440,7 +440,10 @@ public final class IoState {
         InteropLibrary interopLibrary = InteropLibrary.getUncached();
         for (IoInvokable shutdownHook : shutdownHooks) {
             try {
-                interopLibrary.execute(shutdownHook);
+                IoCall call = createCall(null, getLobby(), null, null, shutdownHook, getCurrentCoroutine());
+                Object[] arguments = new Object[1];
+                arguments[0] = call;
+                interopLibrary.execute(shutdownHook, arguments);
             } catch (UnsupportedTypeException | ArityException | UnsupportedMessageException e) {
                 throw new ShouldNotBeHereException("Shutdown hook is not executable!", e);
             }
