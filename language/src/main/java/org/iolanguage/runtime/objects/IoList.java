@@ -75,11 +75,7 @@ public class IoList extends IoObject {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-
-        if (list.length == 0) {
-            return "";
-        }
+        StringBuilder sb = new StringBuilder("list(");
         for (int i = 0; i < list.length; i++) {
             if (i > 0) {
                 sb.append(", ");
@@ -91,13 +87,13 @@ public class IoList extends IoObject {
                 sb.append(IoObjectUtil.toStringInner(value));
             }
         }
+        sb.append(")");
         return sb.toString();
     }
 
     @Override
     public String toStringInner() {
-        String string = String.format("list(%s)", IoObjectUtil.toStringInner(this));
-        return string;
+        return toString();
     }
 
     @ExportMessage
