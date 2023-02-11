@@ -144,6 +144,8 @@ Call do(
 	)
 )
 
+// Message classes not used in graal
+/*
 Normal do(
 	stopLooping := false
 	isReturn := false
@@ -176,6 +178,7 @@ Return appendProto(Normal) do(
 		getSlot("arg")
 	)
 )
+*/
 
 Object do(
 	//doc Object not Returns nil.

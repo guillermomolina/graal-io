@@ -113,11 +113,11 @@ import org.iolanguage.nodes.functions.system.SystemStackTraceFunctionFactory;
 import org.iolanguage.nodes.root.IoRootNode;
 import org.iolanguage.nodes.slots.ReadArgumentNode;
 import org.iolanguage.runtime.IoOptions.IoContextOptions;
+import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoBlock;
 import org.iolanguage.runtime.objects.IoCall;
 import org.iolanguage.runtime.objects.IoCoroutine;
 import org.iolanguage.runtime.objects.IoDate;
-import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoException;
 import org.iolanguage.runtime.objects.IoFalse;
 import org.iolanguage.runtime.objects.IoFunction;
@@ -127,7 +127,7 @@ import org.iolanguage.runtime.objects.IoLocals;
 import org.iolanguage.runtime.objects.IoMessage;
 import org.iolanguage.runtime.objects.IoMethod;
 import org.iolanguage.runtime.objects.IoNil;
-import org.iolanguage.runtime.objects.IoBaseObject;
+import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoPrototype;
 import org.iolanguage.runtime.objects.IoTrue;
 
@@ -230,6 +230,7 @@ public final class IoState {
         IoObjectUtil.put(protos, Symbols.BLOCK, IoPrototype.BLOCK);
         IoObjectUtil.put(protos, Symbols.COROUTINE, IoPrototype.COROUTINE);
         IoObjectUtil.put(protos, Symbols.EXCEPTION, IoPrototype.EXCEPTION);
+        IoObjectUtil.put(protos, Symbols.MAP, IoPrototype.MAP);
 
         IoObjectUtil.put(protos, Symbols.NIL, IoNil.SINGLETON);
         IoObjectUtil.put(protos, Symbols.TRUE, IoTrue.SINGLETON);

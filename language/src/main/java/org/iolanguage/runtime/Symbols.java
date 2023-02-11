@@ -43,14 +43,14 @@
  */
 package org.iolanguage.runtime;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.nodes.root.EvalRootNode;
-import org.iolanguage.nodes.root.FunctionRootNode;
-
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.IoLanguage;
+import org.iolanguage.nodes.root.EvalRootNode;
+import org.iolanguage.nodes.root.FunctionRootNode;
 
 public final class Symbols {
 
@@ -68,6 +68,7 @@ public final class Symbols {
     public static final TruffleString EXCEPTION = constant("Exception");
     public static final TruffleString LIST = constant("List");
     public static final TruffleString LOBBY = constant("Lobby");
+    public static final TruffleString MAP = constant("Map");
     public static final TruffleString MESSAGE = constant("Message");
     public static final TruffleString NUMBER = constant("Number");
     public static final TruffleString OBJECT = constant("Object");

@@ -69,6 +69,7 @@ public class IoPrototype extends IoObject {
     public static final IoPrototype CALL = new IoPrototype(OBJECT, Symbols.CALL);
     public static final IoPrototype COROUTINE = new IoPrototype(OBJECT, Symbols.COROUTINE);
     public static final IoPrototype EXCEPTION = new IoPrototype(OBJECT, Symbols.EXCEPTION);
+    public static final IoPrototype MAP = new IoPrototype(OBJECT, Symbols.MAP);
 
     @CompilationFinal(dimensions = 1)
     public static final IoPrototype[] PRECEDENCE = new IoPrototype[] { NUMBER, SEQUENCE, BLOCK, LIST, DATE, OBJECT };
