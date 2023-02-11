@@ -119,7 +119,16 @@ messageNext
     | messageInvoke
     ;
 
-messageInvoke: (operator|identifier) arguments?;
+messageInvoke
+    : operator operatorMessageArguments
+    | identifier arguments?
+    ;
+
+operatorMessageArguments: 
+    OPEN EOL* 
+        left=expression EOL* COMMA EOL* 
+        right=expression EOL* EOL*
+    CLOSE;
 
 arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 

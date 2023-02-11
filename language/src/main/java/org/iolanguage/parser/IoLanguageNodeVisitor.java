@@ -44,6 +44,7 @@ import org.iolanguage.parser.IoLanguageParser.NumberContext;
 import org.iolanguage.parser.IoLanguageParser.OperationContext;
 import org.iolanguage.parser.IoLanguageParser.OperationOrAssignmentContext;
 import org.iolanguage.parser.IoLanguageParser.OperatorContext;
+import org.iolanguage.parser.IoLanguageParser.OperatorMessageArgumentsContext;
 import org.iolanguage.parser.IoLanguageParser.ParenExpressionContext;
 import org.iolanguage.parser.IoLanguageParser.PseudoVariableContext;
 import org.iolanguage.parser.IoLanguageParser.RepeatMessageContext;
@@ -370,18 +371,54 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     public IoNode visitMessageInvoke(final MessageInvokeContext ctx, IoNode receiverNode) {
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
-        List<IoNode> argumentNodes = createArgumentsList(ctx.arguments());
+        final List<IoNode> argumentNodes;
         final IoNode nameNode;
         if(ctx.identifier() != null) {
             nameNode = visitIdentifier(ctx.identifier());
+            argumentNodes = createArgumentsList(ctx.arguments());
         } else if (ctx.operator() != null) {
             nameNode = visitOperator(ctx.operator());
+            argumentNodes = createArgumentsList(ctx.operatorMessageArguments());
         } else {
             throw new ShouldNotBeHereException();
         }
         final IoNode resultNode = factory.createInvokeSlot(receiverNode, nameNode, argumentNodes, startPos, length);
         assert resultNode != null;
         return resultNode;
+    }
+
+    @Override
+    public IoNode visitArguments(final ArgumentsContext ctx) {
+        throw new ShouldNotBeHereException();
+    }
+
+    @Override
+    public IoNode visitOperatorMessageArguments(final OperatorMessageArgumentsContext ctx) {
+        throw new ShouldNotBeHereException();
+    }
+
+    public List<IoNode> createArgumentsList(final ArgumentsContext ctx) {
+        List<IoNode> argumentNodes = new ArrayList<>();
+        if (ctx != null) {
+            for (final ExpressionContext expressionCtx : ctx.expression()) {
+                IoNode argumentNode = visitExpression(expressionCtx);
+                assert argumentNode != null;
+                argumentNodes.add(argumentNode);
+            }
+        }
+        return argumentNodes;
+    }
+
+    public List<IoNode> createArgumentsList(final OperatorMessageArgumentsContext ctx) {
+        assert(ctx != null);
+        assert(ctx.expression().size() == 2);
+        List<IoNode> argumentNodes = new ArrayList<>();
+        for (final ExpressionContext expressionCtx : ctx.expression()) {
+            IoNode argumentNode = visitExpression(expressionCtx);
+            assert argumentNode != null;
+            argumentNodes.add(argumentNode);
+        }
+        return argumentNodes;
     }
 
     public IoNode visitSlotNamesMessage(final SlotNamesMessageContext ctx, IoNode receiverNode) {
@@ -520,23 +557,6 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         IoNode resultNode = factory.createDo(receiverNode, functionNode, startPos, length);
         assert resultNode != null;
         return resultNode;
-    }
-
-    @Override
-    public IoNode visitArguments(final ArgumentsContext ctx) {
-        throw new ShouldNotBeHereException();
-    }
-
-    public List<IoNode> createArgumentsList(final ArgumentsContext ctx) {
-        List<IoNode> argumentNodes = new ArrayList<>();
-        if (ctx != null) {
-            for (final ExpressionContext expressionCtx : ctx.expression()) {
-                IoNode argumentNode = visitExpression(expressionCtx);
-                assert argumentNode != null;
-                argumentNodes.add(argumentNode);
-            }
-        }
-        return argumentNodes;
     }
 
     @Override
