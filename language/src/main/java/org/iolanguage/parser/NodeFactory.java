@@ -598,7 +598,8 @@ public class NodeFactory {
         throw new NotImplementedException();
     }
 
-    public IoNode createForSlot(IoNode receiverNode, IoNode nameNode, IoNode initializationNode, IoNode startValueNode, IoNode endValueNode, IoNode stepValueNode,            IoNode bodyNode, int startPos, int length) {
+    public IoNode createForSlot(IoNode receiverNode, IoNode nameNode, IoNode initializationNode, IoNode startValueNode,
+            IoNode endValueNode, IoNode stepValueNode, IoNode bodyNode, int startPos, int length) {
         if (nameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
             IoNode readValueNode = createReadSlot(receiverNode, nameNode, startPos, length);
             startValueNode.addExpressionTag();
@@ -610,10 +611,8 @@ public class NodeFactory {
             nextValueNode.setSourceSection(startPos, length);
             nextValueNode.addExpressionTag();
             IoNode stepNode = createWriteSlot(receiverNode, nameNode, nextValueNode, startPos, length, false);
-            final IoNode conditionNode = LessOrEqualNodeGen.create(readValueNode, endValueNode);
-            conditionNode.setSourceSection(startPos, length);
-            conditionNode.addExpressionTag();
-            final IoNode result = new ForNode(initializationNode, stepNode, conditionNode, bodyNode);
+            final IoNode result = new ForNode(initializationNode, stepNode, readValueNode, startValueNode, endValueNode,
+                    stepValueNode, bodyNode);
             result.setSourceSection(startPos, length);
             result.addExpressionTag();
             return result;

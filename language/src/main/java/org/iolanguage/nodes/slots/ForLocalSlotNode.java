@@ -41,31 +41,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.controlflow;
+package org.iolanguage.nodes.slots;
 
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.arithmetic.AddNodeGen;
+import org.iolanguage.nodes.controlflow.ForRepeatingNode;
 import org.iolanguage.nodes.literals.LongLiteralNode;
 import org.iolanguage.nodes.logic.LessOrEqualNodeGen;
 import org.iolanguage.nodes.logic.LessThanNodeGen;
 import org.iolanguage.nodes.logic.LogicalNotNodeGen;
-import org.iolanguage.runtime.objects.IoNil;
 
 @NodeInfo(shortName = "for", description = "The node implementing a for loop")
-public final class ForNode extends IoNode {
+public final class ForLocalSlotNode extends IoNode {
 
+    private int slotFrameIndex;
     @Child
-    private IoNode initializeNode;
-    @Child
-    private IoNode stepNode;
-    @Child
-    private IoNode readNode;
+    private IoNode slotNameNode;
     @Child
     private IoNode startValueNode;
     @Child
@@ -73,58 +72,58 @@ public final class ForNode extends IoNode {
     @Child
     private IoNode stepValueNode;
     @Child
+    private IoNode readControlNode;
+    @Child
     private IoNode bodyNode;
     @Child
     private IoNode isDescendingNode;
-    @Child
-    private IoNode isPositiveStepValueNode;
 
-    public ForNode(IoNode initializeNode, IoNode stepNode, IoNode readNode, IoNode startValueNode,
-            IoNode endValueNode, IoNode stepValueNode, IoNode bodyNode) {
-        this.initializeNode = initializeNode;
-        this.stepNode = stepNode;
-        this.readNode = readNode;
+    public ForLocalSlotNode(int slotFrameIndex, IoNode slotNameNode,
+            IoNode startValueNode, IoNode endValueNode, IoNode stepValueNode,
+            IoNode bodyNode) {
+        this.slotFrameIndex = slotFrameIndex;
+        this.slotNameNode = slotNameNode;
         this.startValueNode = startValueNode;
         this.endValueNode = endValueNode;
         this.stepValueNode = stepValueNode;
         this.bodyNode = bodyNode;
+        this.readControlNode = ReadLocalSlotNodeGen.create(slotFrameIndex);
         this.isDescendingNode = LessThanNodeGen.create(endValueNode, startValueNode);
-        this.isPositiveStepValueNode = LessThanNodeGen.create(new LongLiteralNode(0), stepValueNode);
     }
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
+        IoNode initialAssignmentNode = WriteLocalSlotNodeGen.create(startValueNode, slotFrameIndex,
+                slotNameNode);
         final boolean isDescending = evaluateIsDescendingNode(frame);
-        final IoNode conditionNode;
+        final IoNode hasEndedNode;
         if (isDescending) {
-            if(evaluateIsPositiveStepValueNode(frame)) {
-                return IoNil.SINGLETON;
-            }
-            conditionNode = LogicalNotNodeGen.create(LessThanNodeGen.create(readNode, endValueNode));
+            hasEndedNode = LogicalNotNodeGen.create(LessThanNodeGen.create(readControlNode, endValueNode));
         } else {
-            conditionNode = LessOrEqualNodeGen.create(readNode, endValueNode);
+            hasEndedNode = LessOrEqualNodeGen.create(readControlNode, endValueNode);
         }
-        ForRepeatingNode forRepeatingNode = new ForRepeatingNode(conditionNode, bodyNode, stepNode);
+        if (stepValueNode == null) {
+            if (isDescending) {
+                stepValueNode = new LongLiteralNode(-1);
+            } else {
+                stepValueNode = new LongLiteralNode(1);
+            }
+        }
+        IoNode addNode = AddNodeGen.create(readControlNode, stepValueNode);
+        IoNode stepSlotNode = WriteLocalSlotNodeGen.create(addNode, slotFrameIndex, slotNameNode);
+        ForRepeatingNode forRepeatingNode = new ForRepeatingNode(hasEndedNode, bodyNode, stepSlotNode);
         LoopNode loopNode = Truffle.getRuntime().createLoopNode(forRepeatingNode);
 
-        initializeNode.executeGeneric(frame);
-        loopNode.execute(frame);
-        return forRepeatingNode.getLastResult();
+        initialAssignmentNode.executeGeneric(frame);
+        return loopNode.execute(frame);
     }
 
-    protected boolean evaluateIsDescendingNode(VirtualFrame frame) {
+    private boolean evaluateIsDescendingNode(VirtualFrame frame) {
         try {
             return isDescendingNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
-            throw new UnsupportedSpecializationException(this, new IoNode[] { isDescendingNode }, ex.getResult());
+            throw new UnsupportedSpecializationException(this, new Node[] { isDescendingNode }, ex.getResult());
         }
     }
 
-    protected boolean evaluateIsPositiveStepValueNode(VirtualFrame frame) {
-        try {
-            return isPositiveStepValueNode.executeBoolean(frame);
-        } catch (UnexpectedResultException ex) {
-            throw new UnsupportedSpecializationException(this, new IoNode[] { isDescendingNode }, ex.getResult());
-        }
-    }
 }
