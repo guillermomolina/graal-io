@@ -84,6 +84,8 @@ import org.iolanguage.IoLanguage;
 import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.block.BlockGetPassStopsFunctionFactory;
+import org.iolanguage.nodes.functions.block.BlockSetPassStopsFunctionFactory;
 import org.iolanguage.nodes.functions.date.DateNowFunctionFactory;
 import org.iolanguage.nodes.functions.date.DateSecondsSinceFunctionFactory;
 import org.iolanguage.nodes.functions.exception.ExceptionRaiseFunctionFactory;
@@ -271,6 +273,8 @@ public final class IoState {
         installBuiltin(SystemRegisterShutdownHookFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");
         installBuiltin(LobbyExitFunctionFactory.getInstance(), lobby, "Lobby");
         installBuiltin(ExceptionRaiseFunctionFactory.getInstance(), IoPrototype.EXCEPTION, "Exception");
+        installBuiltin(BlockGetPassStopsFunctionFactory.getInstance(), IoPrototype.BLOCK, "Block");
+        installBuiltin(BlockSetPassStopsFunctionFactory.getInstance(), IoPrototype.BLOCK, "Block");
     }
 
     public void installBuiltin(NodeFactory<? extends FunctionBodyNode> factory) {

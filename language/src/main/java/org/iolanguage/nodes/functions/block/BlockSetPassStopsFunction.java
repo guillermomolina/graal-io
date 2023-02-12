@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2014, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,62 +38,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.runtime.objects;
+package org.iolanguage.nodes.functions.block;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.ExportLibrary;
-import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
-@ExportLibrary(InteropLibrary.class)
-public class IoMethod extends IoInvokable {
+import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.runtime.objects.IoMethod;
 
-    private final TruffleString[] argNames;
-    private final boolean callSlotIsUsed;
-    private boolean passStops;
+@NodeInfo(shortName = "setPassStops")
+public abstract class BlockSetPassStopsFunction extends FunctionBodyNode {
 
-    public IoMethod(final RootCallTarget callTarget, final TruffleString[] argNames, final boolean callSlotIsUsed) {
-        super(IoPrototype.BLOCK, callTarget);
-        this.argNames = argNames;
-        this.callSlotIsUsed = callSlotIsUsed;
-        this.passStops = false;
-    }
-
-    public int getNumArgs() {
-        return argNames.length;
-    }
-
-    public TruffleString[] getArgNames() {
-        return argNames;
-    }
-
-    public boolean getCallSlotIsUsed() {
-        return callSlotIsUsed;
-    }
-
-    public boolean getPassStops() {
-        return passStops;
-    }
-
-    public void setPassStops(boolean passStops) {
-        this.passStops = passStops;
-    }
-
-    @Override
-    public String toString() {
-        return "method(" + getSourceLocation().getCharacters().toString() + ")";
-    }
-
-    @Override
-    public String toStringInner() {
-        return "method(...)";
-    }
-
-    @ExportMessage
-    @TruffleBoundary
-    static int identityHashCode(IoMethod receiver) {
-        return System.identityHashCode(receiver);
+    @Specialization
+    protected Object setPassStops(IoMethod receiver, boolean value) {
+        receiver.setPassStops(value);
+        return value;
     }
 }
