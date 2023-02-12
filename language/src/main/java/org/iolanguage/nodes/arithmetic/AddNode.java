@@ -45,13 +45,13 @@ package org.iolanguage.nodes.arithmetic;
 
 import java.math.BigInteger;
 
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.nodes.expression.BinaryNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 @NodeInfo(shortName = "+")
 public abstract class AddNode extends BinaryNode {
@@ -82,20 +82,7 @@ public abstract class AddNode extends BinaryNode {
     public static final double doDouble(final double left, final double right) {
       return right + left;
     }
- /* 
-    @Specialization(guards = "isString(left, right)")
-    @TruffleBoundary
-    protected TruffleString add(Object left, Object right,
-                    @Cached ToTruffleStringNode toTruffleStringNodeLeft,
-                    @Cached ToTruffleStringNode toTruffleStringNodeRight,
-                    @Cached TruffleString.ConcatNode concatNode) {
-        return concatNode.execute(toTruffleStringNodeLeft.execute(left), toTruffleStringNodeRight.execute(right), IoLanguage.STRING_ENCODING, true);
-    }
-
-    protected boolean isString(Object a, Object b) {
-        return a instanceof TruffleString || b instanceof TruffleString;
-    }
-*/   
+   
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw IoLanguageException.typeError(this, left, right);

@@ -89,7 +89,6 @@ message
     | parenExpression messageNext?
     | message messageNext
     | messageNext
-    | operator operation?
     ;
 
 modifiedMessage
@@ -163,6 +162,7 @@ setSlotMessage:
 
 inlinedMessage
     : returnMessage
+    | operatorMessage
     | breakMessage
     | continueMessage
     | ifMessageVariants
@@ -173,6 +173,8 @@ inlinedMessage
     ;
 
 returnMessage: RETURN operation?;
+
+operatorMessage: operator operation?;
 
 breakMessage: BREAK;
 

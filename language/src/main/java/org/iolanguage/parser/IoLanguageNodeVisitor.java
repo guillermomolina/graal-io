@@ -44,6 +44,7 @@ import org.iolanguage.parser.IoLanguageParser.NumberContext;
 import org.iolanguage.parser.IoLanguageParser.OperationContext;
 import org.iolanguage.parser.IoLanguageParser.OperationOrAssignmentContext;
 import org.iolanguage.parser.IoLanguageParser.OperatorContext;
+import org.iolanguage.parser.IoLanguageParser.OperatorMessageContext;
 import org.iolanguage.parser.IoLanguageParser.ParenExpressionContext;
 import org.iolanguage.parser.IoLanguageParser.PseudoVariableContext;
 import org.iolanguage.parser.IoLanguageParser.RepeatMessageContext;
@@ -243,9 +244,6 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
     @Override
     public IoNode visitMessage(final MessageContext ctx) {
-        if (ctx.operator() != null) {
-            throw new NotImplementedException();
-        }
         if (ctx.inlinedMessage() != null) {
             return visitInlinedMessage(ctx.inlinedMessage());
         }
@@ -301,6 +299,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.returnMessage() != null) {
             return visitReturnMessage(ctx.returnMessage());
         }
+        if (ctx.operatorMessage() != null) {
+            return visitOperatorMessage(ctx.operatorMessage());
+        }
         if (ctx.continueMessage() != null) {
             return factory.createContinue(ctx.continueMessage().CONTINUE().getSymbol());
         }
@@ -323,6 +324,21 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             return visitTryMessage(ctx.tryMessage());
         }
         throw new ShouldNotBeHereException();
+    }
+
+    public IoNode visitOperatorMessage(final OperatorMessageContext ctx) {
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
+        final IoNode nameNode = visitOperator(ctx.operator());
+        final List<IoNode> argumentNodes = new ArrayList<>();
+        if (ctx.operation() != null) {
+            IoNode argumentNode = visitOperation(ctx.operation());
+            assert argumentNode != null;
+            argumentNodes.add(argumentNode);
+        }
+        final IoNode resultNode = factory.createInvokeSlot(null, nameNode, argumentNodes, startPos, length);
+        assert resultNode != null;
+        return resultNode;
     }
 
     @Override
@@ -379,7 +395,8 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             nameNode = visitIdentifier(ctx.identifier());
         } else if (ctx.operator() != null) {
             if (receiverNode != null && argumentNodes.size() == 1) {
-                final IoNode resultNode = factory.createBinary(ctx.operator().start, receiverNode, argumentNodes.get(0));
+                final IoNode resultNode = factory.createBinary(ctx.operator().start, receiverNode,
+                        argumentNodes.get(0));
                 if (resultNode != null) {
                     return resultNode;
                 }

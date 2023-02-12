@@ -91,6 +91,7 @@ import org.iolanguage.nodes.functions.list.ListAtFunctionFactory;
 import org.iolanguage.nodes.functions.list.ListAtPutFunctionFactory;
 import org.iolanguage.nodes.functions.list.ListSizeFunctionFactory;
 import org.iolanguage.nodes.functions.lobby.LobbyExitFunctionFactory;
+import org.iolanguage.nodes.functions.number.NumberAddFunctionFactory;
 import org.iolanguage.nodes.functions.number.NumberFloorFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectCloneFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectDoFileFunctionFactory;
@@ -264,6 +265,7 @@ public final class IoState {
         installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
         installBuiltin(DateNowFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
         installBuiltin(NumberFloorFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
+        installBuiltin(NumberAddFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
         installBuiltin(SystemSleepFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");
         installBuiltin(SystemStackTraceFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");
         installBuiltin(SystemRegisterShutdownHookFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");

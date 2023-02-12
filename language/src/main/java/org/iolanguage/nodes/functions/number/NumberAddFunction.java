@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,22 +38,50 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.expression;
+package org.iolanguage.nodes.functions.number;
 
 import java.math.BigInteger;
 
-import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.expression.BinaryNode;
+import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
 
-@NodeChild("leftNode")
-@NodeChild("rightNode")
-public abstract class BinaryNode extends IoNode {
-    public static final Number reduceToLongOrDouble(final BigInteger result) {
-        if (result.bitLength() > Long.SIZE - 1) {
-            return result.doubleValue();
-        } else {
-            return result.longValue();
-        }
+@NodeInfo(shortName = "+")
+public abstract class NumberAddFunction extends FunctionBodyNode {
+    @Specialization(rewriteOn = ArithmeticException.class)
+    protected long add(long left, long right) {
+        return Math.addExact(left, right);
+    }
+
+    @Specialization
+    @TruffleBoundary
+    public static final Object doLongWithOverflow(final long left, final long argument) {
+      return BinaryNode.reduceToLongOrDouble(BigInteger.valueOf(left).add(BigInteger.valueOf(argument)));
+    }
+    
+    @Specialization
+    public static final double doLong(final long left, final double argument) {
+      return doDouble(left, argument);
+    }
+    
+    @Specialization
+    @TruffleBoundary
+    public static final double doDouble(final double left, final long right) {
+      return left + right;
+    }
+  
+    @Specialization
+    public static final double doDouble(final double left, final double right) {
+      return right + left;
+    }
+   
+    @Fallback
+    protected Object typeError(Object left, Object right) {
+        throw IoLanguageException.typeError(this, left, right);
     }
 }
