@@ -46,11 +46,11 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.runtime.objects.IoMethod;
 
-@NodeInfo(shortName = "getPassStops")
-public abstract class BlockGetPassStopsFunction extends FunctionBodyNode {
+@NodeInfo(shortName = "passStops")
+public abstract class BlockPassStopsFunction extends FunctionBodyNode {
 
     @Specialization
-    protected Object setPassStops(IoMethod receiver) {
+    protected Object getPassStops(IoMethod receiver) {
         return receiver.getPassStops();
     }
 }
