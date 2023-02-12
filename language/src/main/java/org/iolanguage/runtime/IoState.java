@@ -110,6 +110,8 @@ import org.iolanguage.nodes.functions.object.ObjectSlotNamesFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectThisContextFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceAtFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceAtPutFunctionFactory;
+import org.iolanguage.nodes.functions.sequence.SequenceItemTypeFunctionFactory;
+import org.iolanguage.nodes.functions.sequence.SequenceSetItemTypeFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemRegisterShutdownHookFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemSleepFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemStackTraceFunctionFactory;
@@ -264,6 +266,8 @@ public final class IoState {
         installBuiltin(ListAtPutFunctionFactory.getInstance(), IoPrototype.LIST, "List");
         installBuiltin(SequenceAtFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(SequenceAtPutFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
+        installBuiltin(SequenceItemTypeFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
+        installBuiltin(SequenceSetItemTypeFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
         installBuiltin(DateNowFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
         installBuiltin(NumberFloorFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
