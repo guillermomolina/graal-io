@@ -89,6 +89,7 @@ message
     | parenExpression messageNext?
     | message messageNext
     | messageNext
+    | operator operation?
     ;
 
 modifiedMessage
@@ -120,15 +121,9 @@ messageNext
     ;
 
 messageInvoke
-    : operator operatorMessageArguments
+    : operator arguments
     | identifier arguments?
     ;
-
-operatorMessageArguments: 
-    OPEN EOL* 
-        left=expression EOL* COMMA EOL* 
-        right=expression EOL* EOL*
-    CLOSE;
 
 arguments: OPEN (EOL* expression (COMMA EOL* expression)*)? CLOSE;
 
