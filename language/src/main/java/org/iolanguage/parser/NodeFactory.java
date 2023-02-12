@@ -721,6 +721,14 @@ public class NodeFactory {
         return result;
     }
 
+    public IoNode createNil(int startPos, int length) {
+        IoNode result;
+        result = new NilLiteralNode();
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+        return result;
+    }
+
     public IoNode createListLiteral(List<IoNode> elementNodes, int startPos, int length) {
         final IoNode result = new ListLiteralNode(
                 elementNodes.toArray(new IoNode[elementNodes.size()]));

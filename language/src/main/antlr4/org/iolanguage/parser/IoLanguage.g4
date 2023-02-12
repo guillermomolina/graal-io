@@ -156,8 +156,7 @@ getSlotMessage:
 
 setSlotMessage:
     (NEW_SLOT|SET_SLOT|UPDATE_SLOT) OPEN EOL* 
-        (name=STRING|expression) COMMA EOL* 
-        value=expression EOL*
+        (name=STRING|expression) (EOL* COMMA EOL* value=expression)? EOL*
     CLOSE;
 
 inlinedMessage

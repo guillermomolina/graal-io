@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.source.Source;
 
 import org.antlr.v4.runtime.BaseErrorListener;
@@ -19,6 +20,7 @@ import org.iolanguage.NotImplementedException;
 import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.nodes.literals.FunctionLiteralNode;
+import org.iolanguage.nodes.literals.MethodLiteralNode;
 import org.iolanguage.nodes.literals.NilLiteralNode;
 import org.iolanguage.parser.IoLanguageParser.ArgumentsContext;
 import org.iolanguage.parser.IoLanguageParser.AssignmentContext;
@@ -58,7 +60,7 @@ import org.iolanguage.parser.IoLanguageParser.WhileMessageContext;
 
 public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
-    //private static final TruffleLogger LOGGER = IoLanguage.getLogger(IoLanguageNodeVisitor.class);
+    private static final TruffleLogger LOGGER = IoLanguage.getLogger(IoLanguageNodeVisitor.class);
 
     private NodeFactory factory;
     private Source source;
@@ -125,7 +127,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
 
     @Override
     public IoNode visitIolanguage(IolanguageContext ctx) {
-        //LOGGER.fine("Started visitIolanguage()");
+        LOGGER.fine("Started parsing io source code");
         factory.enterNewScope(ctx.start.getStartIndex());
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1;
@@ -137,7 +139,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         }
         final IoNode resultNode = factory.createFunction(bodyNode, startPos, length);
         assert resultNode != null;
-        //LOGGER.fine("Ended visitIolanguage()");
+        LOGGER.fine("Ended parsing io source code");
         return resultNode;
     }
 
@@ -223,6 +225,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         assert assignmentNameNode != null;
         IoNode valueNode = visitOperation(ctx.operation());
         assert valueNode != null;
+        if(valueNode instanceof MethodLiteralNode) {
+            LOGGER.fine("Added a method named " + ctx.name.getText());
+        }
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
         IoNode resultNode = factory.createWriteSlot(receiverNode, assignmentNameNode, valueNode, startPos, length,
@@ -495,10 +500,15 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
             nameNode = factory.createStringLiteral(ctx.name, true);
         }
         assert nameNode != null;
-        IoNode valueNode = visitExpression(ctx.value);
-        assert valueNode != null;
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
+        final IoNode valueNode;
+        if(ctx.value == null) {
+            valueNode = factory.createNil(startPos, length);
+        } else {
+            valueNode = visitExpression(ctx.value);
+        }
+        assert valueNode != null;
         IoNode resultNode = factory.createWriteSlot(receiverNode, nameNode, valueNode, startPos, length, initialize);
         assert resultNode != null;
         return resultNode;
@@ -648,10 +658,12 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     @Override
     public IoNode visitListMessage(ListMessageContext ctx) {
         List<IoNode> elementNodes = new ArrayList<>();
-        for (final ExpressionContext expressionCtx : ctx.arguments().expression()) {
-            IoNode elementNode = visitExpression(expressionCtx);
-            assert elementNode != null;
-            elementNodes.add(elementNode);
+        if(ctx.arguments() != null) {
+            for (final ExpressionContext expressionCtx : ctx.arguments().expression()) {
+                IoNode elementNode = visitExpression(expressionCtx);
+                assert elementNode != null;
+                elementNodes.add(elementNode);
+            }    
         }
         return factory.createListLiteral(elementNodes, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);

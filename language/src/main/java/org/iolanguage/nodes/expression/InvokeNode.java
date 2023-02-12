@@ -44,6 +44,7 @@
 package org.iolanguage.nodes.expression;
 
 import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -54,8 +55,10 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.iolanguage.IoLanguage;
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.nodes.slots.ReadNode;
+import org.iolanguage.parser.IoLanguageNodeVisitor;
 import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoBlock;
@@ -71,6 +74,7 @@ import org.iolanguage.runtime.objects.IoMethod;
 @NodeChild(value = "valueNode", type = ReadNode.class)
 @NodeField(name = "argumentNodes", type = IoNode[].class)
 public abstract class InvokeNode extends IoNode {
+    private static final TruffleLogger LOGGER = IoLanguage.getLogger(IoLanguageNodeVisitor.class);
 
     public abstract ReadNode getValueNode();
 
@@ -128,6 +132,7 @@ public abstract class InvokeNode extends IoNode {
     @Specialization
     protected final Object invokeFunction(VirtualFrame frame, IoFunction function) {
         final int argumentsCount = getArgumentNodes().length + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        LOGGER.fine("Invoke function named " + getName());
         return doInvoke(frame, function, getReceiver(), argumentsCount);
     }
 
@@ -143,6 +148,7 @@ public abstract class InvokeNode extends IoNode {
             target = call;
         }
         int argumentsCount = block.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        LOGGER.fine("Invoke block named " + getName());
         return doInvoke(frame, block, target, argumentsCount);
     }
 
@@ -158,6 +164,7 @@ public abstract class InvokeNode extends IoNode {
             target = call;
         }
         int argumentsCount = method.getNumArgs() + IoLocals.FIRST_PARAMETER_ARGUMENT_INDEX;
+        LOGGER.fine("Invoke method named " + getName());
         return doInvoke(frame, method, target, argumentsCount);
     }
 
