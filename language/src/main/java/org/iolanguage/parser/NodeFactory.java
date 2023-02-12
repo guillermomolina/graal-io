@@ -497,9 +497,11 @@ public class NodeFactory {
                 result = LogicalNotNodeGen.create(EqualNodeGen.create(leftUnboxed, rightUnboxed));
                 break;
             case "&&":
+            case "and":
                 result = new LogicalAndNode(leftUnboxed, rightUnboxed);
                 break;
             case "||":
+            case "or":
                 result = new LogicalOrNode(leftUnboxed, rightUnboxed);
                 break;
             case "..":
