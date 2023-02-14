@@ -47,16 +47,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.graalvm.options.OptionDescriptors;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-import org.iolanguage.nodes.root.EvalRootNode;
-import org.iolanguage.parser.IoLanguageNodeVisitor;
-import org.iolanguage.runtime.IoOptions;
-import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.interop.IoLanguageView;
-
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -72,6 +65,14 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.graalvm.options.OptionDescriptors;
+import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.root.EvalRootNode;
+import org.iolanguage.parser.IoLanguageNodeVisitor;
+import org.iolanguage.runtime.IoOptions;
+import org.iolanguage.runtime.IoState;
+import org.iolanguage.runtime.interop.IoLanguageView;
 
 @TruffleLanguage.Registration(id = IoLanguage.ID, name = "IO", defaultMimeType = IoLanguage.MIME_TYPE, characterMimeTypes = IoLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = FileDetector.class, website = "https://iolanguage.org/")
 @ProvidedTags({ StandardTags.CallTag.class, StandardTags.ExpressionTag.class, StandardTags.RootTag.class,
@@ -153,6 +154,11 @@ public final class IoLanguage extends TruffleLanguage<IoState> {
 
     public static IoLanguage get(Node node) {
         return REFERENCE.get(node);
+    }
+
+    public static IoState getCurrentContext() {
+        CompilerAsserts.neverPartOfCompilation("Use getContext() or RubyContext.get(Node) instead in PE code");
+        return IoState.get(null);
     }
 
     private static final List<NodeFactory<? extends FunctionBodyNode>> EXTERNAL_BUILTINS = Collections

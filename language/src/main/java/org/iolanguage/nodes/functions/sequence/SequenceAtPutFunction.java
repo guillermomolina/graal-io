@@ -40,15 +40,19 @@
  */
 package org.iolanguage.nodes.functions.sequence;
 
-import org.iolanguage.NotImplementedException;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-import org.iolanguage.runtime.Symbols;
-
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.runtime.Symbols;
+import org.iolanguage.runtime.exceptions.OutOfBoundsException;
+import org.iolanguage.runtime.exceptions.UndefinedNameException;
 
 @NodeInfo(shortName = "atPut")
 public abstract class SequenceAtPutFunction extends FunctionBodyNode {
@@ -60,14 +64,13 @@ public abstract class SequenceAtPutFunction extends FunctionBodyNode {
     protected Object atArrayPut(Object receiver, Object index, Object value,
                     @CachedLibrary("receiver") InteropLibrary arrays,
                     @CachedLibrary("index") InteropLibrary numbers) {
-                        throw new NotImplementedException();
-        // try {
-        //     arrays.writeArrayElement(receiver, numbers.asLong(index), value);
-        // } catch (UnsupportedMessageException | UnsupportedTypeException e) {
-        //     throw UndefinedNameException.undefinedField(this, index);
-        // } catch (IndexOutOfBoundsException | InvalidArrayIndexException e) {
-        //     throw OutOfBoundsException.outOfBoundsInteger(this, index);
-        // }
-        // return receiver;
+        try {
+            arrays.writeArrayElement(receiver, numbers.asLong(index), value);
+        } catch (UnsupportedMessageException | UnsupportedTypeException e) {
+            throw UndefinedNameException.undefinedField(this, index);
+        } catch (IndexOutOfBoundsException | InvalidArrayIndexException e) {
+            throw OutOfBoundsException.outOfBoundsInteger(this, index);
+        }
+        return receiver;
     }
 }

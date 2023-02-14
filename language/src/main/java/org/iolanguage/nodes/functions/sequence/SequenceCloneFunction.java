@@ -41,21 +41,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.functions.object;
+package org.iolanguage.nodes.functions.sequence;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
-import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.objects.IoBaseObject;
-import org.iolanguage.runtime.objects.IoNil;
 import org.iolanguage.runtime.objects.IoPrototype;
 
 /**
@@ -63,47 +56,15 @@ import org.iolanguage.runtime.objects.IoPrototype;
  */
 @NodeInfo(shortName = "clone")
 @ImportStatic(IoState.class)
-public abstract class ObjectCloneFunction extends FunctionBodyNode {
+public abstract class SequenceCloneFunction extends FunctionBodyNode {
 
-    @Specialization
-    public long cloneLong(long value) {
-        return value;
-    }
-
-    @Specialization
-    public boolean cloneBoolean(boolean value) {
-        return value;
-    }
-
-    @Specialization
-    public Object cloneNil(IoNil value) {
-        return value;
-    }
-
-    @Specialization
+    @Specialization(guards = "isSequencePrototype(proto)")
     public Object cloneIOPrototype(IoPrototype proto) {
-        if(proto == IoPrototype.DATE) {
-            return IoState.get(this).createDate();
-        }
-        if(proto instanceof IoPrototype) {
-            return IoState.get(this).cloneObject(proto);
-        }
-        throw new NotImplementedException();
+        return IoState.get(this).createSequence();
     }
 
-    @Specialization(guards = "!values.isNull(obj)", limit = "3")
-    public Object cloneIOObject(IoBaseObject obj, @CachedLibrary("obj") InteropLibrary values) {
-        return IoState.get(this).cloneObject(obj);
-    }
-
-    @Specialization(guards = "isString(value)")
-    @TruffleBoundary
-    public Object cloneString(Object value) {
-        return value;
-    }
-
-    protected boolean isString(Object value) {
-        return value instanceof TruffleString;
+    protected boolean isSequencePrototype(IoPrototype proto) {
+        return proto == IoPrototype.SEQUENCE;
     }
 
 }

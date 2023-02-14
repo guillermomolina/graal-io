@@ -110,6 +110,7 @@ import org.iolanguage.nodes.functions.object.ObjectSlotNamesFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectThisContextFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceAtFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceAtPutFunctionFactory;
+import org.iolanguage.nodes.functions.sequence.SequenceCloneFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceItemTypeFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceSetItemTypeFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemRegisterShutdownHookFunctionFactory;
@@ -134,6 +135,7 @@ import org.iolanguage.runtime.objects.IoMethod;
 import org.iolanguage.runtime.objects.IoNil;
 import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoPrototype;
+import org.iolanguage.runtime.objects.IoSequence;
 import org.iolanguage.runtime.objects.IoTrue;
 
 public final class IoState {
@@ -266,6 +268,7 @@ public final class IoState {
         installBuiltin(ListAtPutFunctionFactory.getInstance(), IoPrototype.LIST, "List");
         installBuiltin(SequenceAtFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(SequenceAtPutFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
+        installBuiltin(SequenceCloneFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(SequenceItemTypeFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(SequenceSetItemTypeFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
@@ -483,6 +486,13 @@ public final class IoState {
         IoDate date = new IoDate();
         allocationReporter.onReturnValue(date, 0, AllocationReporter.SIZE_UNKNOWN);
         return date;
+    }
+
+    public IoSequence createSequence() {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IoSequence sequence = new IoSequence();
+        allocationReporter.onReturnValue(sequence, 0, AllocationReporter.SIZE_UNKNOWN);
+        return sequence;
     }
 
     public IoBlock createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final boolean callSlotIsUsed,

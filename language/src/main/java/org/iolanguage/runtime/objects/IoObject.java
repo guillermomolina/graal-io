@@ -250,4 +250,14 @@ public class IoObject extends DynamicObject implements IoBaseObject {
             @Cached @Shared("fromJavaStringNode") TruffleString.FromJavaStringNode fromJavaStringNode) {
         IoObjectUtil.put(this, fromJavaStringNode.execute(name, IoLanguage.STRING_ENCODING), value);
     }
+
+    @ExportMessage
+    public final boolean isInstantiable() {
+        return true;
+    }
+
+    @ExportMessage
+    public final Object instantiate(Object[] args) {
+        return IoLanguage.getCurrentContext().cloneObject();
+    }
 }
