@@ -52,16 +52,17 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.interop.IoLanguageView;
+import org.iolanguage.runtime.objects.IoNil;
 
-@NodeInfo(shortName = "print")
-public abstract class ObjectPrintFunction extends FunctionBodyNode {
+@NodeInfo(shortName = "write")
+public abstract class ObjectWriteFunction extends FunctionBodyNode {
 
     @Specialization
     @TruffleBoundary
-    public Object print(Object value,
+    public Object write(Object receiver, Object value,
                     @CachedLibrary(limit = "3") InteropLibrary interop) {
         IoState.get(this).getOutput().print(interop.toDisplayString(IoLanguageView.forValue(value)));
-        return value;
+        return IoNil.SINGLETON;
     }
 
 }

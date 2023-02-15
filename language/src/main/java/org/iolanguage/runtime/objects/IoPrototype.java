@@ -113,7 +113,7 @@ public class IoPrototype extends IoObject {
 
     @Override
     public String toString() {
-        return String.format("%s_0x%08x: %s", getSymbolType(), hashCode(), IoObjectUtil.toString(this));
+        return String.format("%s_0x%08x: %s", getSymbolType(), hashCode(), IoObjectUtil.toStringInner(this));
      }
 
     @Override

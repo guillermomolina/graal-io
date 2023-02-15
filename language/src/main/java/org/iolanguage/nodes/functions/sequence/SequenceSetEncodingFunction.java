@@ -1,8 +1,5 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
- */
-/*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,27 +38,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.functions.object;
+package org.iolanguage.nodes.functions.sequence;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.iolanguage.nodes.expression.FunctionBodyNode;
-import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.interop.IoLanguageView;
+import org.iolanguage.nodes.util.ToTruffleStringNode;
+import org.iolanguage.runtime.objects.IoSequence;
 
-@NodeInfo(shortName = "print")
-public abstract class ObjectPrintFunction extends FunctionBodyNode {
-
+@NodeInfo(shortName = "setEncoding")
+public abstract class SequenceSetEncodingFunction extends FunctionBodyNode {
     @Specialization
-    @TruffleBoundary
-    public Object print(Object value,
-                    @CachedLibrary(limit = "3") InteropLibrary interop) {
-        IoState.get(this).getOutput().print(interop.toDisplayString(IoLanguageView.forValue(value)));
-        return value;
+    protected Object setEncoding(IoSequence receiver, Object value,
+            @Cached ToTruffleStringNode toTruffleStringNodeRight) {
+        receiver.setEncoding(toTruffleStringNodeRight.execute(value));
+        return receiver;
     }
-
 }

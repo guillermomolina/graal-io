@@ -126,10 +126,10 @@ public class IoSequence extends IoObject {
             return size;
         }
 
-        public static ItemType fromTruffleString(TruffleString name) {
-            for (ItemType itemType : ItemType.values()) {
-                if (itemType.name.equals(name)) {
-                    return itemType;
+        public static Encoding fromTruffleString(TruffleString name) {
+            for (Encoding encoding : Encoding.values()) {
+                if (encoding.name.equals(name)) {
+                    return encoding;
                 }
             }
             return null;
@@ -198,6 +198,14 @@ public class IoSequence extends IoObject {
             setSize(newCapacity / itemType.getSize());
         }
         itemType = newItemType;
+    }
+
+    public void setEncoding(TruffleString encodingName) {
+        Encoding newEncoding = Encoding.fromTruffleString(encodingName);
+        if (newEncoding == null) {
+            throw new NotImplementedException();
+        }
+        encoding = newEncoding;       
     }
 
     public long getInt8(int position) {

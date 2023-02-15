@@ -52,16 +52,28 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.interop.IoLanguageView;
+import org.iolanguage.runtime.objects.IoNil;
 
-@NodeInfo(shortName = "print")
-public abstract class ObjectPrintFunction extends FunctionBodyNode {
+/**
+ * Builtin function to write a value to the {@link IoState#getOutput() standard output}. The
+ * different specialization leverage the typed {@code println} methods available in Java, i.e.,
+ * primitive values are printed without converting them to a {@link String} first.
+ * <p>
+ * Printing involves a lot of Java code, so we need to tell the optimizing system that it should not
+ * unconditionally inline everything reachable from the println() method. This is done via the
+ * {@link TruffleBoundary} annotations.
+ */
+@NodeInfo(shortName = "writeln")
+public abstract class ObjectWritelnFunction extends FunctionBodyNode {
 
     @Specialization
     @TruffleBoundary
-    public Object print(Object value,
+    public Object println(Object receiver, Object value,
                     @CachedLibrary(limit = "3") InteropLibrary interop) {
-        IoState.get(this).getOutput().print(interop.toDisplayString(IoLanguageView.forValue(value)));
-        return value;
+        Object languageView = IoLanguageView.forValue(value);
+        Object displayString = interop.toDisplayString(languageView);
+        IoState.get(this).getOutput().println(displayString);
+        return IoNil.SINGLETON;
     }
 
 }

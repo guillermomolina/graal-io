@@ -354,7 +354,7 @@ Object do(
 	)
 
 	//doc Object println Same as print, but also prints a new line. Returns self.
-	println := method(getSlot("self") print; write("\n"); self)
+	//println := method(getSlot("self") print; write("\n"); self)
 
 	/*doc Object ?(aMessage)
 	description: Sends the message aMessage to the receiver if it can respond to it. Example:
@@ -461,7 +461,7 @@ Object do(
 	Object print := method(write(getSlot("self") asString); getSlot("self"))
 
 	//doc Object println Same as print, but also prints a new line. Returns self.
-	println := method(getSlot("self") print; write("\n"); getSlot("self"))
+	//println := method(getSlot("self") print; write("\n"); getSlot("self"))
 
 	//doc Object in(aList) Same as: aList contains(self)
 	in := method(aList, aList contains(self))

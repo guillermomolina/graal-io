@@ -54,10 +54,10 @@ import org.iolanguage.NotImplementedException;
 import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoDate;
-import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoFalse;
 import org.iolanguage.runtime.objects.IoLocals;
 import org.iolanguage.runtime.objects.IoNil;
+import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoPrototype;
 import org.iolanguage.runtime.objects.IoTrue;
 
@@ -202,7 +202,7 @@ public final class IoObjectUtil {
 
     public static String toString(Object object) {
         if (object instanceof IoBaseObject) {
-            return toString((IoBaseObject) object);
+            return ((IoBaseObject) object).toString();
         }
         return toStringInner(object);
     }
