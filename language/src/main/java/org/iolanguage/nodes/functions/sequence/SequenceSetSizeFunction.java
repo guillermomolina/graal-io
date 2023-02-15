@@ -42,46 +42,33 @@ package org.iolanguage.nodes.functions.sequence;
 
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.InvalidArrayIndexException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.runtime.Symbols;
 import org.iolanguage.runtime.exceptions.IoLanguageException;
-import org.iolanguage.runtime.exceptions.OutOfBoundsException;
-import org.iolanguage.runtime.exceptions.UndefinedNameException;
 
-@NodeInfo(shortName = "atPut")
-public abstract class SequenceAtPutFunction extends FunctionBodyNode {
+@NodeInfo(shortName = "setSize")
+public abstract class SequenceSetSizeFunction extends FunctionBodyNode {
 
-    static final TruffleString SYMBOL_AT_PUT = Symbols.constant("at");
+    static final TruffleString SYMBOL_SET_SIZE = Symbols.constant("setSize");
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(guards = "isString(receiver)")
-    protected TruffleString atStringPut(Object receiver, Object index, Object value) {
-        throw new IoLanguageException("'atPut' cannot be called on an immutable Sequence", this);
+    protected TruffleString setSizeString(Object receiver, Object size) {
+        throw new IoLanguageException("'setSize' cannot be called on an immutable Sequence", this);
     }
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object atArrayPut(Object receiver, Object index, Object value,
-            @CachedLibrary("receiver") InteropLibrary arrays,
-            @CachedLibrary("index") InteropLibrary numbers) {
-        try {
-            arrays.writeArrayElement(receiver, numbers.asLong(index), value);
-        } catch (UnsupportedMessageException | UnsupportedTypeException e) {
-            throw UndefinedNameException.undefinedField(this, SYMBOL_AT_PUT);
-        } catch (IndexOutOfBoundsException | InvalidArrayIndexException e) {
-            throw OutOfBoundsException.outOfBoundsInteger(this, index);
-        }
-        return receiver;
+    protected long sizeArray(Object receiver, Object size, @CachedLibrary("receiver") InteropLibrary arrays,
+            @CachedLibrary("size") InteropLibrary numbers) {
+        throw new NotImplementedException();
     }
 
     protected boolean isString(Object a) {
         return a instanceof TruffleString;
     }
-
 }

@@ -54,7 +54,6 @@ import com.oracle.truffle.api.strings.TruffleString;
 import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.Symbols;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoNil;
 import org.iolanguage.runtime.objects.IoPrototype;
@@ -87,7 +86,7 @@ public abstract class ObjectCloneFunction extends FunctionBodyNode {
             return IoState.get(this).createDate();
         }
         if(proto == IoPrototype.SEQUENCE) {
-            return Symbols._EMPTY_;
+            return IoState.get(this).createSequence();
         }
         if(proto instanceof IoPrototype) {
             return IoState.get(this).cloneObject(proto);

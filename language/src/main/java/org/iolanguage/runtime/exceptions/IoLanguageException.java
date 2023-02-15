@@ -43,10 +43,6 @@
  */
 package org.iolanguage.runtime.exceptions;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.runtime.interop.IoLanguageView;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.exception.AbstractTruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -54,6 +50,10 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
+
+import org.iolanguage.IoLanguage;
+import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.runtime.interop.IoLanguageView;
 
 /**
  * IO does not need a sophisticated error checking and reporting mechanism, so all unexpected

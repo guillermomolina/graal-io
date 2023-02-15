@@ -66,7 +66,7 @@ public abstract class SequenceAtFunction extends FunctionBodyNode {
 
     @Specialization(guards = "isString(receiver)", limit = "LIBRARY_LIMIT")
     @TruffleBoundary
-    protected TruffleString concatString(Object receiver, Object index,
+    protected TruffleString atObject(Object receiver, Object index,
             @Cached ToTruffleStringNode toTruffleStringNode, @CachedLibrary("index") InteropLibrary numbers) {
         throw new NotImplementedException();
     }

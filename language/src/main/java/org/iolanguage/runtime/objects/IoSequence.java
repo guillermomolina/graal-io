@@ -45,6 +45,7 @@ package org.iolanguage.runtime.objects;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -59,23 +60,23 @@ import org.iolanguage.runtime.Symbols;
 @ExportLibrary(InteropLibrary.class)
 public class IoSequence extends IoObject {
     enum ItemType {
-        UINT8(Symbols.constant("uint8"), Byte.BYTES, (byte) 0),
-        INT8(Symbols.constant("int8"), Byte.BYTES, (byte) 0),
-        UINT16(Symbols.constant("uint16"), Short.BYTES, (short) 0),
-        INT16(Symbols.constant("int16"), Short.BYTES, (short) 0),
-        UINT32(Symbols.constant("uint32"), Integer.BYTES, 0),
-        INT32(Symbols.constant("int32"), Integer.BYTES, 0),
-        UINT64(Symbols.constant("uint64"), Long.BYTES, 0L),
-        INT64(Symbols.constant("int64"), Long.BYTES, 0L),
-        FLOAT32(Symbols.constant("float32"), Float.BYTES, 0.0f),
-        FLOAT64(Symbols.constant("float64"), Double.BYTES, 0.0);
+        UINT8("uint8", Byte.BYTES, (byte) 0),
+        INT8("int8", Byte.BYTES, (byte) 0),
+        UINT16("uint16", Short.BYTES, (short) 0),
+        INT16("int16", Short.BYTES, (short) 0),
+        UINT32("uint32", Integer.BYTES, 0),
+        INT32("int32", Integer.BYTES, 0),
+        UINT64("uint64", Long.BYTES, 0L),
+        INT64("int64", Long.BYTES, 0L),
+        FLOAT32("float32", Float.BYTES, 0.0f),
+        FLOAT64("float64", Double.BYTES, 0.0);
 
         private final TruffleString name;
         private final int size;
         private final Object initValue;
 
-        ItemType(TruffleString str, int size, Object value) {
-            this.name = str;
+        ItemType(String name, int size, Object value) {
+            this.name = Symbols.constant(name);
             this.size = size;
             this.initValue = value;
         }
@@ -102,16 +103,51 @@ public class IoSequence extends IoObject {
         }
     }
 
+    enum Encoding {
+        ASCII("ascii", 1),
+        UTF8("utf8", 1),
+        UCS2("ucs2", 2),
+        UCS4("ucs4", 4),
+        NUMBER("number", 4);
+
+        private final TruffleString name;
+        private final int size;
+
+        Encoding(String name, int size) {
+            this.name = Symbols.constant(name);
+            this.size = size;
+        }
+
+        protected TruffleString getName() {
+            return name;
+        }
+
+        protected int getSize() {
+            return size;
+        }
+
+        public static ItemType fromTruffleString(TruffleString name) {
+            for (ItemType itemType : ItemType.values()) {
+                if (itemType.name.equals(name)) {
+                    return itemType;
+                }
+            }
+            return null;
+        }
+    }
+
     private ItemType itemType;
+    private Encoding encoding;
     private ByteBuffer byteBuffer;
 
     public IoSequence() {
-        this(ItemType.UINT8, 0);
+        this(ItemType.UINT8, Encoding.ASCII, 0);
     }
 
-    public IoSequence(ItemType itemType, int size) {
+    public IoSequence(ItemType itemType, Encoding encoding, int size) {
         super(IoPrototype.SEQUENCE);
         this.itemType = itemType;
+        this.encoding = encoding;
         this.byteBuffer = ByteBuffer.allocate(size * itemType.getSize());
     }
 
@@ -145,16 +181,23 @@ public class IoSequence extends IoObject {
         return itemType.getName();
     }
 
+    public TruffleString getEncoding() {
+        return encoding.getName();
+    }
+
     public void setItemType(TruffleString itemTypeName) {
         ItemType newItemType = ItemType.fromTruffleString(itemTypeName);
         if (newItemType == null) {
             throw new NotImplementedException();
         }
         int currentCapacity = byteBuffer.capacity();
-        itemType = newItemType;
-        if (currentCapacity % newItemType.getSize() != 0) {
-            setSize((int) Math.ceil((double) currentCapacity) / newItemType.getSize());
+        int newItemSize = newItemType.getSize();
+        if (currentCapacity % newItemSize != 0) {
+            int quot = currentCapacity / newItemSize;
+            int newCapacity = (quot + 1) * newItemSize;
+            setSize(newCapacity / itemType.getSize());
         }
+        itemType = newItemType;
     }
 
     public long getInt8(int position) {
@@ -259,7 +302,7 @@ public class IoSequence extends IoObject {
 
     @Override
     public String toString() {
-        throw new NotImplementedException();
+        return StandardCharsets.UTF_8.decode(byteBuffer).toString();
     }
 
     @Override

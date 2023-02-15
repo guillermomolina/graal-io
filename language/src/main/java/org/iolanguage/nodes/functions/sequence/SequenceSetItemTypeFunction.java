@@ -43,20 +43,18 @@ package org.iolanguage.nodes.functions.sequence;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
-import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.objects.IoSequence;
 
 @NodeInfo(shortName = "setItemType")
 public abstract class SequenceSetItemTypeFunction extends FunctionBodyNode {
 
     @Specialization
-    protected Object setItemType(IoSequence receiver, TruffleString value,
-            @Cached TruffleString.ToJavaStringNode toJavaStringNode) {
-        throw new NotImplementedException();
-        // receiver.setItemType(toJavaStringNode(value));
-        // return value;
+    protected Object setItemType(IoSequence receiver, Object value,
+            @Cached ToTruffleStringNode toTruffleStringNodeRight) {
+        receiver.setItemType(toTruffleStringNodeRight.execute(value));
+        return receiver;
     }
 }

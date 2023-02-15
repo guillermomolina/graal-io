@@ -40,22 +40,24 @@
  */
 package org.iolanguage.nodes.functions.exception;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.ImportStatic;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.util.ToTruffleStringNode;
+import org.iolanguage.runtime.IoState;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
+
 @NodeInfo(shortName = "raise")
 @ImportStatic(IoState.class)
 public abstract class ExceptionRaiseFunction extends FunctionBodyNode {
 
     @Specialization
-    public Object raise(Object obj, TruffleString message, @Cached TruffleString.ToJavaStringNode toJavaStringNode) {
-        throw new IoLanguageException(toJavaStringNode.execute(message), this);
+    public Object raise(Object obj, Object message, @Cached ToTruffleStringNode toTruffleStringNodeRight,
+            @Cached TruffleString.ToJavaStringNode toJavaStringNode) {
+        throw new IoLanguageException(toJavaStringNode.execute(toTruffleStringNodeRight.execute(message)), this);
     }
 }
