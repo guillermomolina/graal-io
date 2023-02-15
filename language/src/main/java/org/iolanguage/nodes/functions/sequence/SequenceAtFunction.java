@@ -40,19 +40,22 @@
  */
 package org.iolanguage.nodes.functions.sequence;
 
-import org.iolanguage.NotImplementedException;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-import org.iolanguage.runtime.Symbols;
-import org.iolanguage.runtime.exceptions.OutOfBoundsException;
-import org.iolanguage.runtime.exceptions.UndefinedNameException;
-
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.NotImplementedException;
+import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.util.ToTruffleStringNode;
+import org.iolanguage.runtime.Symbols;
+import org.iolanguage.runtime.exceptions.OutOfBoundsException;
+import org.iolanguage.runtime.exceptions.UndefinedNameException;
 
 @NodeInfo(shortName = "at")
 public abstract class SequenceAtFunction extends FunctionBodyNode {
@@ -60,31 +63,42 @@ public abstract class SequenceAtFunction extends FunctionBodyNode {
     static final TruffleString SYMBOL_AT = Symbols.constant("at");
     static final int LIBRARY_LIMIT = 3;
 
-    @Specialization(limit = "LIBRARY_LIMIT")
-    protected long atString(TruffleString receiver, Object index,
-            @Cached TruffleString.ReadCharUTF16Node readByteNode,
-            @CachedLibrary("index") InteropLibrary numbers) {
-        try {
-            return (long) readByteNode.execute(receiver, (int) numbers.asInt(index));
-        } catch (UnsupportedMessageException e) {
-            throw UndefinedNameException.undefinedField(this, SYMBOL_AT);
-        } catch (IndexOutOfBoundsException e) {
-            throw OutOfBoundsException.outOfBoundsInteger(this, index);
-        }
+
+    @Specialization(guards = "isString(receiver)", limit = "LIBRARY_LIMIT")
+    @TruffleBoundary
+    protected TruffleString concatString(Object receiver, Object index,
+            @Cached ToTruffleStringNode toTruffleStringNode, @CachedLibrary("index") InteropLibrary numbers) {
+        throw new NotImplementedException();
     }
+
+    // @Specialization(limit = "LIBRARY_LIMIT")
+    // protected long atString(TruffleString receiver, Object index,
+    //         @Cached TruffleString.ReadCharUTF16Node readByteNode,
+    //         @CachedLibrary("index") InteropLibrary numbers) {
+    //     try {
+    //         return (long) readByteNode.execute(receiver, (int) numbers.asInt(index));
+    //     } catch (UnsupportedMessageException e) {
+    //         throw UndefinedNameException.undefinedField(this, SYMBOL_AT);
+    //     } catch (IndexOutOfBoundsException e) {
+    //         throw OutOfBoundsException.outOfBoundsInteger(this, index);
+    //     }
+    // }
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
     protected Object atArray(Object receiver, Object index,
             @CachedLibrary("receiver") InteropLibrary arrays,
             @CachedLibrary("index") InteropLibrary numbers) {
-        throw new NotImplementedException();
-        // try {
-        //     long indexasLong = numbers.asLong(index);
-        //     return arrays.readArrayElement(receiver, indexasLong);
-        // } catch (UnsupportedMessageException e) {
-        //     throw UndefinedNameException.undefinedField(this, AT);
-        // } catch (InvalidArrayIndexException e) {
-        //     throw OutOfBoundsException.outOfBoundsInteger(this, index);
-        // }
+        try {
+            long indexasLong = numbers.asLong(index);
+            return arrays.readArrayElement(receiver, indexasLong);
+        } catch (UnsupportedMessageException e) {
+            throw UndefinedNameException.undefinedField(this, SYMBOL_AT);
+        } catch (InvalidArrayIndexException e) {
+            throw OutOfBoundsException.outOfBoundsInteger(this, index);
+        }
+    }
+
+    protected boolean isString(Object a) {
+        return a instanceof TruffleString;
     }
 }

@@ -54,7 +54,7 @@ import org.iolanguage.nodes.root.FunctionRootNode;
 
 public final class Symbols {
 
-    public static final TruffleString EMPTY_SYMBOL = constant("");
+    public static final TruffleString _EMPTY_ = constant("");
 
     public static final TruffleString NIL = constant("nil");
     public static final TruffleString TRUE = constant("true");
