@@ -302,6 +302,7 @@ public class IoSequence extends IoObject {
 
     @Override
     public String toString() {
+        // UCS reader : http://www.java2s.com/Code/Java/I18N/ReaderforUCS2andUCS4encodingsieencodingsfromISO10646UCS24.htm
         return StandardCharsets.UTF_8.decode(byteBuffer).toString();
     }
 
