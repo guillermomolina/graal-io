@@ -41,60 +41,61 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.arithmetic;
+package org.iolanguage.nodes.binary;
 
 import java.math.BigInteger;
-
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.iolanguage.nodes.expression.BinaryNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
+
 /**
  * This class is similar to the extensively documented {@link AddNode}.
  */
-@NodeInfo(shortName = "-")
-public abstract class SubNode extends BinaryNode {
+@NodeInfo(shortName = "*")
+public abstract class MulNode extends BinaryNode {
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected long sub(long left, long right) {
-        return Math.subtractExact(left, right);
+    protected long mul(long left, long right) {
+        return Math.multiplyExact(left, right);
     }
 
     @Specialization(rewriteOn = ArithmeticException.class)
     public static final long doLong(final long left, final long right) {
-      return Math.subtractExact(left, right);
+      return Math.multiplyExact(left, right);
     }
   
     @Specialization
     @TruffleBoundary
     public static final Object doLongWithOverflow(final long left, final long right) {
       return reduceToLongOrDouble(
-          BigInteger.valueOf(left).subtract(BigInteger.valueOf(right)));
+          BigInteger.valueOf(left).multiply(BigInteger.valueOf(right)));
     }
-    
+  
     @Specialization
-    public static final double doLong(final long left, final double right) {
-      return left - right;
+    @TruffleBoundary
+    public static final double doDouble(final long left, final double right) {
+      return left * right;
     }
       
     @Specialization
     @TruffleBoundary
     public static final double doDouble(final double left, final long right) {
-      return left - right;
+      return left * right;
+    }
+
+    @Specialization
+    @TruffleBoundary
+    public static final double doDouble(final double left, final double right) {
+      return left * right;
     }
   
-    @Specialization
-    public static final double doDouble(final double left, final double right) {
-      return left - right;
-    }
-      
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw IoLanguageException.typeError(this, left, right);
     }
-
 }

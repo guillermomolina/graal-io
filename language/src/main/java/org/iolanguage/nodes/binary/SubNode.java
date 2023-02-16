@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,46 +41,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.arithmetic;
+package org.iolanguage.nodes.binary;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.nodes.util.ToTruffleStringNode;
-import org.iolanguage.runtime.interop.IoLanguageView;
+import java.math.BigInteger;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
 
-@NodeInfo(shortName = "..")
-public abstract class ConcatNode extends BinaryNode {
-  @Specialization(guards = "isString(left, right)")
-  @TruffleBoundary
-  protected TruffleString concatString(Object left, Object right,
-      @Cached ToTruffleStringNode toTruffleStringNodeLeft,
-      @Cached ToTruffleStringNode toTruffleStringNodeRight,
-      @Cached TruffleString.ConcatNode concatNode) {
-    return concatNode.execute(toTruffleStringNodeLeft.execute(left), toTruffleStringNodeRight.execute(right),
-        IoLanguage.STRING_ENCODING, true);
-  }
+import org.iolanguage.nodes.expression.BinaryNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
 
-  @Specialization
-  public Object concatObject(Object left, Object right,
-      @CachedLibrary(limit = "3") InteropLibrary interopLeft,
-      @CachedLibrary(limit = "3") InteropLibrary interopRight,
-      @Cached ToTruffleStringNode toTruffleStringNodeLeft,
-      @Cached ToTruffleStringNode toTruffleStringNodeRight,
-      @Cached TruffleString.ConcatNode concatNode) {
-    return concatString(interopLeft.toDisplayString(IoLanguageView.forValue(left)),
-        interopRight.toDisplayString(IoLanguageView.forValue(right)), toTruffleStringNodeLeft, toTruffleStringNodeRight,
-        concatNode);
-  }
+/**
+ * This class is similar to the extensively documented {@link AddNode}.
+ */
+@NodeInfo(shortName = "-")
+public abstract class SubNode extends BinaryNode {
 
-  protected boolean isString(Object a, Object b) {
-    return a instanceof TruffleString || b instanceof TruffleString;
-  }
+    @Specialization(rewriteOn = ArithmeticException.class)
+    protected long sub(long left, long right) {
+        return Math.subtractExact(left, right);
+    }
+
+    @Specialization(rewriteOn = ArithmeticException.class)
+    public static final long doLong(final long left, final long right) {
+      return Math.subtractExact(left, right);
+    }
+  
+    @Specialization
+    @TruffleBoundary
+    public static final Object doLongWithOverflow(final long left, final long right) {
+      return reduceToLongOrDouble(
+          BigInteger.valueOf(left).subtract(BigInteger.valueOf(right)));
+    }
+    
+    @Specialization
+    public static final double doLong(final long left, final double right) {
+      return left - right;
+    }
+      
+    @Specialization
+    @TruffleBoundary
+    public static final double doDouble(final double left, final long right) {
+      return left - right;
+    }
+  
+    @Specialization
+    public static final double doDouble(final double left, final double right) {
+      return left - right;
+    }
+      
+    @Fallback
+    protected Object typeError(Object left, Object right) {
+        throw IoLanguageException.typeError(this, left, right);
+    }
+
 }

@@ -43,14 +43,14 @@
  */
 package org.iolanguage.nodes.logic;
 
-import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.arithmetic.AddNode;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
-
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.binary.AddNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 /**
  * Example of a simple unary node that uses type specialization. See {@link AddNode} for

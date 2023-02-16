@@ -43,12 +43,6 @@
  */
 package org.iolanguage.nodes.logic;
 
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.arithmetic.AddNode;
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.nodes.util.ToTruffleStringNode;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -56,6 +50,12 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.nodes.binary.AddNode;
+import org.iolanguage.nodes.expression.BinaryNode;
+import org.iolanguage.nodes.util.ToTruffleStringNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 /**
  * This class is similar to the extensively documented {@link AddNode}. The only difference: the

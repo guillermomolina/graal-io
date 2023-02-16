@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,59 +41,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.arithmetic;
+package org.iolanguage.nodes.binary;
 
 import java.math.BigInteger;
-
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * This class is similar to the extensively documented {@link AddNode}.
- */
-@NodeInfo(shortName = "*")
-public abstract class MulNode extends BinaryNode {
+import org.iolanguage.nodes.expression.BinaryNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
+
+@NodeInfo(shortName = "+")
+public abstract class AddNode extends BinaryNode {
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected long mul(long left, long right) {
-        return Math.multiplyExact(left, right);
+    protected long add(long left, long right) {
+        return Math.addExact(left, right);
     }
 
-    @Specialization(rewriteOn = ArithmeticException.class)
-    public static final long doLong(final long left, final long right) {
-      return Math.multiplyExact(left, right);
-    }
-  
     @Specialization
     @TruffleBoundary
-    public static final Object doLongWithOverflow(final long left, final long right) {
-      return reduceToLongOrDouble(
-          BigInteger.valueOf(left).multiply(BigInteger.valueOf(right)));
+    public static final Object doLongWithOverflow(final long left, final long argument) {
+      return reduceToLongOrDouble(BigInteger.valueOf(left).add(BigInteger.valueOf(argument)));
     }
-  
+    
     @Specialization
-    @TruffleBoundary
-    public static final double doDouble(final long left, final double right) {
-      return left * right;
+    public static final double doLong(final long left, final double argument) {
+      return doDouble(left, argument);
     }
-      
+    
     @Specialization
     @TruffleBoundary
     public static final double doDouble(final double left, final long right) {
-      return left * right;
-    }
-
-    @Specialization
-    @TruffleBoundary
-    public static final double doDouble(final double left, final double right) {
-      return left * right;
+      return left + right;
     }
   
+    @Specialization
+    public static final double doDouble(final double left, final double right) {
+      return right + left;
+    }
+   
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw IoLanguageException.typeError(this, left, right);
