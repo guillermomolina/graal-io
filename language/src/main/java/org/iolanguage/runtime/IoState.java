@@ -119,6 +119,7 @@ import org.iolanguage.nodes.functions.sequence.SequenceSetEncodingFunctionFactor
 import org.iolanguage.nodes.functions.sequence.SequenceSetItemTypeFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceSetSizeFunctionFactory;
 import org.iolanguage.nodes.functions.sequence.SequenceSizeFunctionFactory;
+import org.iolanguage.nodes.functions.sequence.SequenceSplitFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemRegisterShutdownHookFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemSleepFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemStackTraceFunctionFactory;
@@ -284,6 +285,7 @@ public final class IoState {
         installBuiltin(SequenceSetItemTypeFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(SequenceSizeFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(SequenceSetSizeFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
+        installBuiltin(SequenceSplitFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
         installBuiltin(DateNowFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
         installBuiltin(NumberFloorFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
@@ -485,6 +487,14 @@ public final class IoState {
         IoBaseObject object = new IoObject(prototype);
         allocationReporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
+    }
+
+    public IoList createList(final String[] strings) {
+        TruffleString[] stringsTS = new TruffleString[strings.length];
+        for(int i = 0; i < strings.length; i++) {
+            stringsTS[i] = Symbols.constant(strings[i]);
+        }
+        return createList(stringsTS);
     }
 
     public IoList createList(final Object[] data) {
