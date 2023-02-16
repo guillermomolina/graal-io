@@ -93,6 +93,8 @@ import org.iolanguage.nodes.functions.list.ListAtFunctionFactory;
 import org.iolanguage.nodes.functions.list.ListAtPutFunctionFactory;
 import org.iolanguage.nodes.functions.list.ListSizeFunctionFactory;
 import org.iolanguage.nodes.functions.lobby.LobbyExitFunctionFactory;
+import org.iolanguage.nodes.functions.map.MapAtFunctionFactory;
+import org.iolanguage.nodes.functions.map.MapAtPutFunctionFactory;
 import org.iolanguage.nodes.functions.number.NumberAddFunctionFactory;
 import org.iolanguage.nodes.functions.number.NumberFloorFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectCloneFunctionFactory;
@@ -137,6 +139,7 @@ import org.iolanguage.runtime.objects.IoFunction;
 import org.iolanguage.runtime.objects.IoInvokable;
 import org.iolanguage.runtime.objects.IoList;
 import org.iolanguage.runtime.objects.IoLocals;
+import org.iolanguage.runtime.objects.IoMap;
 import org.iolanguage.runtime.objects.IoMessage;
 import org.iolanguage.runtime.objects.IoMethod;
 import org.iolanguage.runtime.objects.IoNil;
@@ -297,6 +300,8 @@ public final class IoState {
         installBuiltin(ExceptionRaiseFunctionFactory.getInstance(), IoPrototype.EXCEPTION, "Exception");
         installBuiltin(BlockPassStopsFunctionFactory.getInstance(), IoPrototype.BLOCK, "Block");
         installBuiltin(BlockSetPassStopsFunctionFactory.getInstance(), IoPrototype.BLOCK, "Block");
+        installBuiltin(MapAtFunctionFactory.getInstance(), IoPrototype.MAP, "Map");
+        installBuiltin(MapAtPutFunctionFactory.getInstance(), IoPrototype.MAP, "Map");
     }
 
     public void installBuiltin(NodeFactory<? extends FunctionBodyNode> factory) {
@@ -516,6 +521,13 @@ public final class IoState {
         IoSequence sequence = new IoSequence();
         allocationReporter.onReturnValue(sequence, 0, AllocationReporter.SIZE_UNKNOWN);
         return sequence;
+    }
+
+    public IoMap createMap() {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IoMap map = new IoMap();
+        allocationReporter.onReturnValue(map, 0, AllocationReporter.SIZE_UNKNOWN);
+        return map;
     }
 
     public IoBlock createBlock(RootCallTarget callTarget, final TruffleString[] argNames, final boolean callSlotIsUsed,
