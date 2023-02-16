@@ -600,7 +600,7 @@ public class NodeFactory {
         throw new NotImplementedException();
     }
 
-    public IoNode createForSlot(IoNode receiverNode, IoNode nameNode, IoNode initializationNode, IoNode startValueNode,
+    public IoNode createFor(IoNode receiverNode, IoNode nameNode, IoNode initializationNode, IoNode startValueNode,
             IoNode endValueNode, IoNode stepValueNode, IoNode bodyNode, int startPos, int length) {
         if (nameNode != null && startValueNode != null && endValueNode != null && bodyNode != null) {
             IoNode readValueNode = createReadSlot(receiverNode, nameNode, startPos, length);
@@ -620,6 +620,22 @@ public class NodeFactory {
             return result;
         }
         return null;
+    }
+
+    public IoNode createForeach(IoNode receiverNode, IoNode nameNode, IoNode initializationNode, IoNode bodyNode, int startPos, int length) {
+        throw new NotImplementedException();
+        // if (nameNode != null && bodyNode != null) {
+        //     IoNode readValueNode = createReadSlot(receiverNode, nameNode, startPos, length);
+        //     nextValueNode.setSourceSection(startPos, length);
+        //     nextValueNode.addExpressionTag();
+        //     IoNode stepNode = createWriteSlot(receiverNode, nameNode, nextValueNode, startPos, length, false);
+        //     final IoNode result = new ForeachNode(initializationNode, stepNode, readValueNode, startValueNode, endValueNode,
+        //             stepValueNode, bodyNode);
+        //     result.setSourceSection(startPos, length);
+        //     result.addExpressionTag();
+        //     return result;
+        // }
+        // return null;
     }
 
     public ReadNode createReadSelf(int startPos, int length) {

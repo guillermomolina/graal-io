@@ -1,10 +1,13 @@
 /*
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
+ */
+/*
+ * Copyright (c) 2012, 2019, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
  *
- * Subject to the condition set forth below, permission is hereby granted to any
+ * Subject to the counter set forth below, permission is hereby granted to any
  * person obtaining a copy of this software, associated documentation and/or
  * data (collectively the "Software"), free of charge and under any and all
  * copyright rights in the Software, and any and all patent rights owned or
@@ -24,7 +27,7 @@
  * Software and the Larger Work(s), and to sublicense the foregoing rights on
  * either these or other terms.
  *
- * This license is subject to the following condition:
+ * This license is subject to the following counter:
  *
  * The above copyright notice and either this complete permission notice or at a
  * minimum a reference to the UPL must be included in all copies or substantial
@@ -38,30 +41,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.functions.map;
+package org.iolanguage.nodes.controlflow;
 
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-import org.iolanguage.nodes.util.ToTruffleStringNode;
-import org.iolanguage.runtime.objects.IoMap;
+import org.iolanguage.NotImplementedException;
+import org.iolanguage.nodes.IoNode;
 
-@NodeInfo(shortName = "atPut")
-public abstract class MapAtPutFunction extends FunctionBodyNode {
+@NodeInfo(shortName = "foreach", description = "The node implementing a foreach loop")
+public final class ForEachNode extends IoNode {
 
-    @Specialization
-    protected Object atPutMap(IoMap receiver, Object key, Object value,
-            @Cached ToTruffleStringNode toTruffleStringNode) {
-        receiver.putMapElement(toTruffleStringNode.execute(key), value);
-        return receiver;
+    @Child
+    private IoNode receiverNode;
+    @Child
+    private IoNode writeValueNode;
+    @Child
+    private IoNode bodyNode;
+
+    public ForEachNode(IoNode receiverNode, IoNode writeValueNode, IoNode bodyNode) {
+        this.receiverNode = receiverNode;
+        this.writeValueNode = writeValueNode;
+        this.bodyNode = bodyNode;
     }
 
-    @Fallback
-    protected Object atPut(Object receiver, Object key, Object value) {
-        throw new ShouldNotBeHereException();
+    @Override
+    public Object executeGeneric(VirtualFrame frame) {
+        throw new NotImplementedException();
     }
+
 }

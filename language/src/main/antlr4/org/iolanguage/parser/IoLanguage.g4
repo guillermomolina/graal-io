@@ -110,6 +110,7 @@ modifiedMessageNext
 
 messageNext
     : repeatMessage
+    | foreachMessage
     | forMessage
     | doMessage
     | getSlotMessage
@@ -137,6 +138,12 @@ forMessage:
         startPart=expression EOL* COMMA EOL* 
         endPart=expression EOL* COMMA EOL* 
         (stepPart=expression EOL* COMMA EOL*)?
+        body=expression EOL* 
+    CLOSE;
+
+foreachMessage: 
+    FOREACH OPEN EOL* 
+        counter=identifier EOL* COMMA EOL* 
         body=expression EOL* 
     CLOSE;
 
@@ -289,6 +296,7 @@ identifier
     | ELSEIF
     | ELSE
     | FALSE
+    | FOREACH
     | FOR
     | GET_SLOT
     | IF
@@ -319,6 +327,7 @@ ELSEIF: 'elseif';
 ELSE: 'else';
 FALSE: 'false';
 FOR: 'for';
+FOREACH: 'foreach';
 GET_SLOT: 'getSlot';
 IF: 'if';
 LIST: 'list';

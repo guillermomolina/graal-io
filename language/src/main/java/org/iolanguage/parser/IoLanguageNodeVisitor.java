@@ -30,6 +30,7 @@ import org.iolanguage.parser.IoLanguageParser.DoMessageContext;
 import org.iolanguage.parser.IoLanguageParser.ElseMessageVariantsContext;
 import org.iolanguage.parser.IoLanguageParser.ExpressionContext;
 import org.iolanguage.parser.IoLanguageParser.ForMessageContext;
+import org.iolanguage.parser.IoLanguageParser.ForeachMessageContext;
 import org.iolanguage.parser.IoLanguageParser.GetSlotMessageContext;
 import org.iolanguage.parser.IoLanguageParser.IdentifierContext;
 import org.iolanguage.parser.IoLanguageParser.IfMessageVariantsContext;
@@ -358,6 +359,9 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         if (ctx.forMessage() != null) {
             return visitForMessage(ctx.forMessage(), receiverNode);
         }
+        if (ctx.foreachMessage() != null) {
+            return visitForeachMessage(ctx.foreachMessage(), receiverNode);
+        }
         if (ctx.doMessage() != null) {
             return visitDoMessage(ctx.doMessage(), receiverNode);
         }
@@ -549,9 +553,23 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         IoNode initializationNode = factory.createWriteSlot(receiverNode, nameNode, startValueNode, startPos, length,
                 true);
         IoNode bodyNode = visitExpression(ctx.body);
-        IoNode resultNode = factory.createForSlot(receiverNode, nameNode, initializationNode, startValueNode,
+        IoNode resultNode = factory.createFor(receiverNode, nameNode, initializationNode, startValueNode,
                 endValueNode, stepValueNode, bodyNode,
                 startPos, length);
+        assert resultNode != null;
+        return factory.createLoopExpression(resultNode, startPos, length);
+    }
+
+    public IoNode visitForeachMessage(ForeachMessageContext ctx, IoNode receiverNode) {
+        factory.startLoop();
+        IoNode nameNode = visitIdentifier(ctx.identifier());
+        int startPos = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - startPos + 1;
+        IoNode startValueNode = factory.createNil(startPos, length);
+        IoNode initializationNode = factory.createWriteSlot(receiverNode, nameNode, startValueNode, startPos, length,
+        true);
+        IoNode bodyNode = visitExpression(ctx.body);
+        IoNode resultNode = factory.createForeach(receiverNode, nameNode, initializationNode, bodyNode,startPos, length);
         assert resultNode != null;
         return factory.createLoopExpression(resultNode, startPos, length);
     }
