@@ -50,7 +50,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.Symbols;
@@ -63,26 +62,20 @@ public abstract class SequenceAtFunction extends FunctionBodyNode {
     static final TruffleString SYMBOL_AT = Symbols.constant("at");
     static final int LIBRARY_LIMIT = 3;
 
-
     @Specialization(guards = "isString(receiver)", limit = "LIBRARY_LIMIT")
     @TruffleBoundary
-    protected TruffleString atObject(Object receiver, Object index,
-            @Cached ToTruffleStringNode toTruffleStringNode, @CachedLibrary("index") InteropLibrary numbers) {
-        throw new NotImplementedException();
+    protected long atString(Object receiver, Object index,
+            @Cached ToTruffleStringNode toTruffleStringNode, 
+            @Cached TruffleString.ReadCharUTF16Node readByteNode,
+            @CachedLibrary("index") InteropLibrary numbers) {
+        try {
+            return (long) readByteNode.execute(toTruffleStringNode.execute(receiver), (int) numbers.asInt(index));
+        } catch (UnsupportedMessageException e) {
+            throw UndefinedNameException.undefinedField(this, SYMBOL_AT);
+        } catch (IndexOutOfBoundsException e) {
+            throw OutOfBoundsException.outOfBoundsInteger(this, index);
+        }
     }
-
-    // @Specialization(limit = "LIBRARY_LIMIT")
-    // protected long atString(TruffleString receiver, Object index,
-    //         @Cached TruffleString.ReadCharUTF16Node readByteNode,
-    //         @CachedLibrary("index") InteropLibrary numbers) {
-    //     try {
-    //         return (long) readByteNode.execute(receiver, (int) numbers.asInt(index));
-    //     } catch (UnsupportedMessageException e) {
-    //         throw UndefinedNameException.undefinedField(this, SYMBOL_AT);
-    //     } catch (IndexOutOfBoundsException e) {
-    //         throw OutOfBoundsException.outOfBoundsInteger(this, index);
-    //     }
-    // }
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
     protected Object atArray(Object receiver, Object index,
