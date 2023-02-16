@@ -161,7 +161,7 @@ public final class IoState {
     private static final String LF = System.getProperty("line.separator");
 
     private final IoBaseObject lobby;
-    private final IoBaseObject protos;
+    private final IoBaseObject coreProtos;
     private final IoCoroutine currentCoroutine;
 
     public IoState(IoLanguage language, TruffleLanguage.Env env,
@@ -172,8 +172,8 @@ public final class IoState {
         this.language = language;
         this.allocationReporter = env.lookup(AllocationReporter.class);
 
-        this.protos = cloneObject();
-        this.lobby = cloneObject(protos);
+        this.coreProtos = cloneObject();
+        this.lobby = cloneObject(coreProtos);
         this.currentCoroutine = createCoroutine();
         this.options = new IoContextOptions(env);
         setupLobby();
@@ -232,27 +232,28 @@ public final class IoState {
     private void setupLobby() {
         IoPrototype.OBJECT.setPrototype(lobby);
 
-        IoObjectUtil.put(protos, Symbols.OBJECT, IoPrototype.OBJECT);
-        IoObjectUtil.put(protos, Symbols.NUMBER, IoPrototype.NUMBER);
-        IoObjectUtil.put(protos, Symbols.SEQUENCE, IoPrototype.SEQUENCE);
-        IoObjectUtil.put(protos, Symbols.LIST, IoPrototype.LIST);
-        IoObjectUtil.put(protos, Symbols.DATE, IoPrototype.DATE);
-        IoObjectUtil.put(protos, Symbols.SYSTEM, IoPrototype.SYSTEM);
-        IoObjectUtil.put(protos, Symbols.CALL, IoPrototype.CALL);
-        IoObjectUtil.put(protos, Symbols.MESSAGE, IoPrototype.MESSAGE);
-        IoObjectUtil.put(protos, Symbols.BLOCK, IoPrototype.BLOCK);
-        IoObjectUtil.put(protos, Symbols.COROUTINE, IoPrototype.COROUTINE);
-        IoObjectUtil.put(protos, Symbols.EXCEPTION, IoPrototype.EXCEPTION);
-        IoObjectUtil.put(protos, Symbols.MAP, IoPrototype.MAP);
+        IoObjectUtil.put(coreProtos, Symbols.OBJECT, IoPrototype.OBJECT);
+        IoObjectUtil.put(coreProtos, Symbols.NUMBER, IoPrototype.NUMBER);
+        IoObjectUtil.put(coreProtos, Symbols.SEQUENCE, IoPrototype.SEQUENCE);
+        IoObjectUtil.put(coreProtos, Symbols.LIST, IoPrototype.LIST);
+        IoObjectUtil.put(coreProtos, Symbols.DATE, IoPrototype.DATE);
+        IoObjectUtil.put(coreProtos, Symbols.SYSTEM, IoPrototype.SYSTEM);
+        IoObjectUtil.put(coreProtos, Symbols.CALL, IoPrototype.CALL);
+        IoObjectUtil.put(coreProtos, Symbols.MESSAGE, IoPrototype.MESSAGE);
+        IoObjectUtil.put(coreProtos, Symbols.BLOCK, IoPrototype.BLOCK);
+        IoObjectUtil.put(coreProtos, Symbols.COROUTINE, IoPrototype.COROUTINE);
+        IoObjectUtil.put(coreProtos, Symbols.EXCEPTION, IoPrototype.EXCEPTION);
+        IoObjectUtil.put(coreProtos, Symbols.MAP, IoPrototype.MAP);
 
-        IoObjectUtil.put(protos, Symbols.NIL, IoNil.SINGLETON);
-        IoObjectUtil.put(protos, Symbols.TRUE, IoTrue.SINGLETON);
-        IoObjectUtil.put(protos, Symbols.FALSE, IoFalse.SINGLETON);
+        IoObjectUtil.put(coreProtos, Symbols.NIL, IoNil.SINGLETON);
+        IoObjectUtil.put(coreProtos, Symbols.TRUE, IoTrue.SINGLETON);
+        IoObjectUtil.put(coreProtos, Symbols.FALSE, IoFalse.SINGLETON);
 
         IoObjectUtil.put(lobby, Symbols.LOBBY, lobby);
-        IoObjectUtil.put(lobby, Symbols.PROTOS, protos);
-
-        IoObjectUtil.put(lobby, Symbols.PROTOS, protos);
+        IoBaseObject protos = cloneObject();
+        IoObjectUtil.put(protos, Symbols.constant("Core"), coreProtos);
+        IoObjectUtil.put(protos, Symbols.constant("Addons"), cloneObject());
+        IoObjectUtil.put(lobby, Symbols.constant("Protos"), protos);
     }
 
     private void installBuiltins() {

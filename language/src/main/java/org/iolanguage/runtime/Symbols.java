@@ -72,7 +72,6 @@ public final class Symbols {
     public static final TruffleString MESSAGE = constant("Message");
     public static final TruffleString NUMBER = constant("Number");
     public static final TruffleString OBJECT = constant("Object");
-    public static final TruffleString PROTOS = constant("Protos");
     public static final TruffleString SEQUENCE = constant("Sequence");
     public static final TruffleString SYSTEM = constant("System");
 
