@@ -205,7 +205,7 @@ public class IoSequence extends IoObject {
         if (newEncoding == null) {
             throw new NotImplementedException();
         }
-        encoding = newEncoding;       
+        encoding = newEncoding;
     }
 
     public long getInt8(int position) {
@@ -219,7 +219,6 @@ public class IoSequence extends IoObject {
     public void putInt8(int position, long value) {
         byteBuffer.put(position, (byte) value);
     }
-
 
     public void putUInt8(int position, long value) {
         byteBuffer.put(position, (byte) (value & 0xff));
@@ -285,25 +284,26 @@ public class IoSequence extends IoObject {
             byteBuffer.putLong(position, value);
         }
     }
-  
+
     public void putUInt64(int position, double value) {
         if (value >= 0.0) {
             throw new NotImplementedException();
         }
     }
-  
+
     public double getFloat32(int position) {
         return (double) byteBuffer.getFloat(position);
     }
-  
+
     public void putFloat32(int position, double value) {
-        byteBuffer.putFloat(position, (float) value);
+        float v = (float) value;
+        byteBuffer.putFloat(position, v);
     }
 
     public double getFloat64(int position) {
         return (double) byteBuffer.getDouble(position);
     }
- 
+
     public void putFloat64(int position, double value) {
         byteBuffer.putDouble(position, value);
     }
@@ -345,98 +345,98 @@ public class IoSequence extends IoObject {
     }
 
     @ExportMessage
-    Object readArrayElement(long indexAsLong) throws InvalidArrayIndexException {
-        int index = (int) indexAsLong;
-        if (index < 0) {
-            throw InvalidArrayIndexException.create(index);
+    Object readArrayElement(long index) throws InvalidArrayIndexException {
+        int position = (int) index * itemType.getSize();
+        if (position < 0) {
+            throw InvalidArrayIndexException.create(position);
         }
-        if (index >= getSize()) {
-            setSize((int) index + 1);
+        if (position >= getSize()) {
+            setSize((int) position + 1);
         }
         switch (itemType) {
             case INT8:
-                return getInt8(index);
+                return getInt8(position);
             case UINT8:
-                return getUInt8(index);
+                return getUInt8(position);
             case INT16:
-                return getInt16(index);
+                return getInt16(position);
             case UINT16:
-                return getUInt16(index);
+                return getUInt16(position);
             case INT32:
-                return getInt32(index);
+                return getInt32(position);
             case UINT32:
-                return getUInt32(index);
+                return getUInt32(position);
             case INT64:
-                return getInt64(index);
+                return getInt64(position);
             case UINT64:
                 try {
-                    return getUInt64(index);
+                    return getUInt64(position);
                 } catch (ArithmeticException e) {
-                    return getUInt64AsDouble(index);
+                    return getUInt64AsDouble(position);
                 }
             case FLOAT32:
-                return getFloat32(index);
+                return getFloat32(position);
             case FLOAT64:
-                return getFloat64(index);
+                return getFloat64(position);
             default:
                 throw new ShouldNotBeHereException();
         }
     }
 
     @ExportMessage
-    public void writeArrayElement(long indexAsLong, Object value) throws InvalidArrayIndexException {
-        int index = (int) indexAsLong;
-        if (index < 0) {
-            throw InvalidArrayIndexException.create(index);
+    public void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
+        int position = (int) index * itemType.getSize();
+        if (position < 0) {
+            throw InvalidArrayIndexException.create(position);
         }
-        if (index >= getSize()) {
-            setSize((int) index + 1);
+        if (position >= getSize()) {
+            setSize((int) position + 1);
         }
         final long valueAsLong;
         final double valueAsDouble;
-        if(value instanceof Long) {
-            valueAsLong = ((Long)value).longValue();
-            valueAsDouble = ((Long)value).doubleValue();
-        } else if(value instanceof Double) {
-            valueAsLong = ((Double)value).longValue();
-            valueAsDouble = ((Double)value).doubleValue();
+        if (value instanceof Long) {
+            valueAsLong = ((Long) value).longValue();
+            valueAsDouble = ((Long) value).doubleValue();
+        } else if (value instanceof Double) {
+            valueAsLong = ((Double) value).longValue();
+            valueAsDouble = ((Double) value).doubleValue();
         } else {
             throw new NotImplementedException();
         }
         switch (itemType) {
             case INT8:
-                putInt8(index, valueAsLong);
+                putInt8(position, valueAsLong);
                 break;
             case UINT8:
-                putUInt8(index, valueAsLong);
+                putUInt8(position, valueAsLong);
                 break;
             case INT16:
-                putInt16(index, valueAsLong);
+                putInt16(position, valueAsLong);
                 break;
             case UINT16:
-                putUInt16(index, valueAsLong);
+                putUInt16(position, valueAsLong);
                 break;
             case INT32:
-                putInt32(index, valueAsLong);
+                putInt32(position, valueAsLong);
                 break;
             case UINT32:
-                putUInt32(index, valueAsLong);
+                putUInt32(position, valueAsLong);
                 break;
             case INT64:
-                putInt64(index, valueAsLong);
+                putInt64(position, valueAsLong);
                 break;
             case UINT64:
-                putUInt64(index, valueAsLong);
+                putUInt64(position, valueAsLong);
                 break;
             case FLOAT32:
-                putFloat32(index, valueAsDouble);
+                putFloat32(position, valueAsDouble);
                 break;
             case FLOAT64:
-                putFloat64(index, valueAsDouble);
+                putFloat64(position, valueAsDouble);
                 break;
             default:
                 throw new ShouldNotBeHereException();
-        }    
- }
+        }
+    }
 
 }

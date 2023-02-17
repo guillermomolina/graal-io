@@ -226,7 +226,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         assert assignmentNameNode != null;
         IoNode valueNode = visitOperation(ctx.operation());
         assert valueNode != null;
-        if(valueNode instanceof MethodLiteralNode) {
+        if (valueNode instanceof MethodLiteralNode) {
             LOGGER.fine("Added a method named " + ctx.name.getText());
         }
         int startPos = ctx.start.getStartIndex();
@@ -507,7 +507,7 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
         final IoNode valueNode;
-        if(ctx.value == null) {
+        if (ctx.value == null) {
             valueNode = factory.createNil(startPos, length);
         } else {
             valueNode = visitExpression(ctx.value);
@@ -561,15 +561,20 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     }
 
     public IoNode visitForeachMessage(ForeachMessageContext ctx, IoNode receiverNode) {
-        factory.startLoop();
-        IoNode nameNode = visitIdentifier(ctx.identifier());
+        int blockStartPos;
+        if (ctx.expression() == null) {
+            blockStartPos = ctx.CLOSE().getSymbol().getStartIndex();
+        } else {
+            blockStartPos = ctx.expression().start.getStartIndex();
+        }
+        factory.enterNewLocalsScope(blockStartPos);
+        factory.addFormalParameter(ctx.identifier().start);
+        IoNode bodyNode = visitExpression(ctx.body);
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
-        IoNode startValueNode = factory.createNil(startPos, length);
-        IoNode initializationNode = factory.createWriteSlot(receiverNode, nameNode, startValueNode, startPos, length,
-        true);
-        IoNode bodyNode = visitExpression(ctx.body);
-        IoNode resultNode = factory.createForeach(receiverNode, nameNode, initializationNode, bodyNode,startPos, length);
+        IoNode methodNode = factory.createMethod(bodyNode, startPos, length);
+        factory.startLoop();
+        IoNode resultNode = factory.createForeach(receiverNode, methodNode, startPos, length);
         assert resultNode != null;
         return factory.createLoopExpression(resultNode, startPos, length);
     }
@@ -676,12 +681,12 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     @Override
     public IoNode visitListMessage(ListMessageContext ctx) {
         List<IoNode> elementNodes = new ArrayList<>();
-        if(ctx.arguments() != null) {
+        if (ctx.arguments() != null) {
             for (final ExpressionContext expressionCtx : ctx.arguments().expression()) {
                 IoNode elementNode = visitExpression(expressionCtx);
                 assert elementNode != null;
                 elementNodes.add(elementNode);
-            }    
+            }
         }
         return factory.createListLiteral(elementNodes, ctx.start.getStartIndex(),
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex() + 1);

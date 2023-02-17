@@ -65,6 +65,7 @@ import org.iolanguage.nodes.controlflow.BreakNode;
 import org.iolanguage.nodes.controlflow.ContinueNode;
 import org.iolanguage.nodes.controlflow.DebuggerNode;
 import org.iolanguage.nodes.controlflow.ForNode;
+import org.iolanguage.nodes.controlflow.ForeachNodeGen;
 import org.iolanguage.nodes.controlflow.IfNode;
 import org.iolanguage.nodes.controlflow.RepeatNode;
 import org.iolanguage.nodes.controlflow.ReturnNode;
@@ -622,20 +623,14 @@ public class NodeFactory {
         return null;
     }
 
-    public IoNode createForeach(IoNode receiverNode, IoNode nameNode, IoNode initializationNode, IoNode bodyNode, int startPos, int length) {
-        throw new NotImplementedException();
-        // if (nameNode != null && bodyNode != null) {
-        //     IoNode readValueNode = createReadSlot(receiverNode, nameNode, startPos, length);
-        //     nextValueNode.setSourceSection(startPos, length);
-        //     nextValueNode.addExpressionTag();
-        //     IoNode stepNode = createWriteSlot(receiverNode, nameNode, nextValueNode, startPos, length, false);
-        //     final IoNode result = new ForeachNode(initializationNode, stepNode, readValueNode, startValueNode, endValueNode,
-        //             stepValueNode, bodyNode);
-        //     result.setSourceSection(startPos, length);
-        //     result.addExpressionTag();
-        //     return result;
-        // }
-        // return null;
+    public IoNode createForeach(IoNode receiverNode, IoNode methodNode, int startPos, int length) {
+        if (receiverNode == null) {
+            throw new NotImplementedException();
+        }
+        final IoNode result = ForeachNodeGen.create(receiverNode, methodNode);
+        result.setSourceSection(startPos, length);
+        result.addExpressionTag();
+        return result;
     }
 
     public ReadNode createReadSelf(int startPos, int length) {
