@@ -109,6 +109,7 @@ import org.iolanguage.nodes.functions.object.ObjectPrintFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectPrintlnFunction;
 import org.iolanguage.nodes.functions.object.ObjectPrintlnFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectProtoFunctionFactory;
+import org.iolanguage.nodes.functions.object.ObjectRemoveSlotFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectSlotNamesFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectThisContextFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectWriteFunctionFactory;
@@ -266,6 +267,7 @@ public final class IoState {
         installBuiltin(ObjectDoFileFunctionFactory.getInstance());
         installBuiltin(ObjectDoStringFunctionFactory.getInstance());
         installBuiltin(ObjectGetSlotFunctionFactory.getInstance());
+        installBuiltin(ObjectRemoveSlotFunctionFactory.getInstance());
         installBuiltin(ObjectHasProtoFunctionFactory.getInstance());
         installBuiltin(ObjectIsActivatableFunctionFactory.getInstance());
         installBuiltin(ObjectIsNilFunctionFactory.getInstance());
