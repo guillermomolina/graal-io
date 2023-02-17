@@ -97,9 +97,13 @@ public class IoList extends IoObject {
 
     @ExportMessage(name = "isArrayElementReadable")
     @ExportMessage(name = "isArrayElementModifiable")
-    @ExportMessage(name = "isArrayElementInsertable")
     boolean isValidIndex(long index) {
         return index >= 0;
+    }
+
+    @ExportMessage
+    boolean isArrayElementInsertable(long index) {
+        return index == list.size();
     }
 
     @ExportMessage
