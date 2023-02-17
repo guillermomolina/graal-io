@@ -323,20 +323,11 @@ public class IoSequence extends IoObject {
     boolean hasArrayElements() {
         return true;
     }
-
-    @ExportMessage
-    boolean isArrayElementReadable(long index) {
-        return true;
-    }
-
-    @ExportMessage
-    boolean isArrayElementModifiable(long index) {
-        return true;
-    }
-
-    @ExportMessage
-    boolean isArrayElementInsertable(long index) {
-        return true;
+    @ExportMessage(name = "isArrayElementReadable")
+    @ExportMessage(name = "isArrayElementModifiable")
+    @ExportMessage(name = "isArrayElementInsertable")
+    boolean isValidIndex(long index) {
+        return index >= 0;
     }
 
     @ExportMessage
@@ -346,10 +337,10 @@ public class IoSequence extends IoObject {
 
     @ExportMessage
     Object readArrayElement(long index) throws InvalidArrayIndexException {
-        int position = (int) index * itemType.getSize();
-        if (position < 0) {
-            throw InvalidArrayIndexException.create(position);
+        if (!isValidIndex(index)) {
+            throw InvalidArrayIndexException.create(index);
         }
+        int position = (int) index * itemType.getSize();
         if (position >= getSize()) {
             setSize((int) position + 1);
         }
@@ -385,10 +376,10 @@ public class IoSequence extends IoObject {
 
     @ExportMessage
     public void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
-        int position = (int) index * itemType.getSize();
-        if (position < 0) {
-            throw InvalidArrayIndexException.create(position);
+        if (!isValidIndex(index)) {
+            throw InvalidArrayIndexException.create(index);
         }
+        int position = (int) index * itemType.getSize();
         if (position >= getSize()) {
             setSize((int) position + 1);
         }

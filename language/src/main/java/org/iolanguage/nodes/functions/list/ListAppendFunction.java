@@ -49,27 +49,26 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.runtime.Symbols;
-import org.iolanguage.runtime.exceptions.OutOfBoundsException;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;
 
-@NodeInfo(shortName = "atPut")
-public abstract class ListAtPutFunction extends FunctionBodyNode {
+@NodeInfo(shortName = "append")
+public abstract class ListAppendFunction extends FunctionBodyNode {
 
-    static final TruffleString SYMBOL_AT_PUT = Symbols.constant("atPut");
+    static final TruffleString SYMBOL_APPEND = Symbols.constant("append");
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object atArrayPut(Object receiver, Object index, Object value,
-                    @CachedLibrary("receiver") InteropLibrary arrays,
-                    @CachedLibrary("index") InteropLibrary numbers) {
+    protected Object atArrayPut(Object receiver, Object value,
+            @CachedLibrary("receiver") InteropLibrary arrays) {
         try {
-            arrays.writeArrayElement(receiver, numbers.asLong(index), value);
+            arrays.writeArrayElement(receiver, arrays.getArraySize(receiver), value);
         } catch (UnsupportedMessageException | UnsupportedTypeException e) {
-            throw UndefinedNameException.undefinedField(this, SYMBOL_AT_PUT);
+            throw UndefinedNameException.undefinedField(this, SYMBOL_APPEND);
         } catch (IndexOutOfBoundsException | InvalidArrayIndexException e) {
-            throw OutOfBoundsException.outOfBoundsInteger(this, index);
+            throw new ShouldNotBeHereException();
         }
         return receiver;
     }

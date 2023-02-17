@@ -40,9 +40,10 @@
  */
 package org.iolanguage.runtime.objects;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.library.ExportLibrary;
@@ -52,35 +53,28 @@ import org.iolanguage.runtime.IoObjectUtil;
 
 @ExportLibrary(InteropLibrary.class)
 public class IoList extends IoObject {
-    private Object[] list;
+    private List<Object> list;
 
-    public IoList(int size) {
+    public IoList() {
         super(IoPrototype.LIST);
-        this.list = new Object[size];
+        this.list = new ArrayList<>();
     }
 
     public IoList(Object[] list) {
         super(IoPrototype.LIST);
-        this.list = list;
-    }
-
-    public static IoList create(Object[] list) {
-        return new IoList(list);
-    }
-
-    @TruffleBoundary
-    public static IoList create(List<? extends Object> list) {
-        return new IoList(list.toArray(new Object[0]));
+        this.list = new ArrayList<Object>(Arrays.asList(list));;
     }
 
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("list(");
-        for (int i = 0; i < list.length; i++) {
-            if (i > 0) {
+        boolean first = true;
+        for (Object value: list) {
+            if(first) {
+                first = false;
+            } else {
                 sb.append(", ");
              }
-            Object value = list[i];
             if (value == null) {
                 sb.append("<UNKNOWN>");
             } else {
@@ -101,40 +95,36 @@ public class IoList extends IoObject {
         return true;
     }
 
-    @ExportMessage
-    Object readArrayElement(long index) throws InvalidArrayIndexException {
-        if (!isArrayElementReadable(index)) {
-            throw InvalidArrayIndexException.create(index);
-        }
-        return list[(int) index];
-    }
-
-    @ExportMessage
-    boolean isArrayElementReadable(long index) {
-        return index >= 0 && index < list.length;
-    }
-
-    @ExportMessage
-    boolean isArrayElementModifiable(long index) {
-        return index >= 0 && index < list.length;
-    }
-
-    @ExportMessage
-    boolean isArrayElementInsertable(long index) {
-        return false;
+    @ExportMessage(name = "isArrayElementReadable")
+    @ExportMessage(name = "isArrayElementModifiable")
+    @ExportMessage(name = "isArrayElementInsertable")
+    boolean isValidIndex(long index) {
+        return index >= 0;
     }
 
     @ExportMessage
     long getArraySize() {
-        return list.length;
+        return list.size();
+    }
+
+    @ExportMessage
+    Object readArrayElement(long index) throws InvalidArrayIndexException {
+        if (!isValidIndex(index)) {
+            throw InvalidArrayIndexException.create(index);
+        }
+        return list.get((int)index);
     }
 
     @ExportMessage
     public void writeArrayElement(long index, Object value) throws InvalidArrayIndexException {
-        if (!isArrayElementReadable(index)) {
+        if (!isValidIndex(index)) {
             throw InvalidArrayIndexException.create(index);
         }
-        list[(int) index] = value;
+        int aditional = (int)index  + 1 - list.size();
+        while(aditional-- > 0) {
+            list.add(IoNil.SINGLETON); 
+        }
+        list.set((int)index,value);
     }
 
 }

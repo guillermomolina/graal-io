@@ -89,6 +89,7 @@ import org.iolanguage.nodes.functions.block.BlockSetPassStopsFunctionFactory;
 import org.iolanguage.nodes.functions.date.DateNowFunctionFactory;
 import org.iolanguage.nodes.functions.date.DateSecondsSinceFunctionFactory;
 import org.iolanguage.nodes.functions.exception.ExceptionRaiseFunctionFactory;
+import org.iolanguage.nodes.functions.list.ListAppendFunctionFactory;
 import org.iolanguage.nodes.functions.list.ListAtFunctionFactory;
 import org.iolanguage.nodes.functions.list.ListAtPutFunctionFactory;
 import org.iolanguage.nodes.functions.list.ListSizeFunctionFactory;
@@ -277,6 +278,7 @@ public final class IoState {
         installBuiltin(ObjectWriteFunctionFactory.getInstance());
         installBuiltin(ObjectWritelnFunctionFactory.getInstance());
         installBuiltin(ListSizeFunctionFactory.getInstance(), IoPrototype.LIST, "List");
+        installBuiltin(ListAppendFunctionFactory.getInstance(), IoPrototype.LIST, "List");
         installBuiltin(ListAtFunctionFactory.getInstance(), IoPrototype.LIST, "List");
         installBuiltin(ListAtPutFunctionFactory.getInstance(), IoPrototype.LIST, "List");
         installBuiltin(SequenceAppendSeqFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
