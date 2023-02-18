@@ -43,9 +43,6 @@
  */
 package org.iolanguage.nodes.slots;
 
-import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.interop.NodeObjectDescriptor;
-
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -57,6 +54,9 @@ import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.interop.NodeObjectDescriptor;
 
 /**
  * Node to write a local variable to a function's {@link VirtualFrame frame}. The Truffle frame API
@@ -94,6 +94,20 @@ public abstract class WriteLocalSlotNode extends IoNode {
         frame.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Long);
 
         frame.setLong(getSlot(), value);
+        return value;
+    }
+
+    /**
+     * Specialized method to write a primitive {@code double} value. This is only possible if the
+     * local variable also has currently the type {@code double} or was never written before,
+     * therefore a Truffle DSL {@link #isDoubleOrIllegal(VirtualFrame) custom guard} is specified.
+     */
+    @Specialization(guards = "isDoubleOrIllegal(frame)")
+    protected double writeDouble(VirtualFrame frame, double value) {
+        /* Initialize type on first write of the local variable. No-op if kind is already Double. */
+        frame.getFrameDescriptor().setSlotKind(getSlot(), FrameSlotKind.Double);
+
+        frame.setDouble(getSlot(), value);
         return value;
     }
 
@@ -144,6 +158,11 @@ public abstract class WriteLocalSlotNode extends IoNode {
     protected boolean isLongOrIllegal(VirtualFrame frame) {
         final FrameSlotKind kind = frame.getFrameDescriptor().getSlotKind(getSlot());
         return kind == FrameSlotKind.Long || kind == FrameSlotKind.Illegal;
+    }
+
+    protected boolean isDoubleOrIllegal(VirtualFrame frame) {
+        final FrameSlotKind kind = frame.getFrameDescriptor().getSlotKind(getSlot());
+        return kind == FrameSlotKind.Double || kind == FrameSlotKind.Illegal;
     }
 
     protected boolean isBooleanOrIllegal(VirtualFrame frame) {
