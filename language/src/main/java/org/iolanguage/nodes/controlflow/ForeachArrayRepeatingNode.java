@@ -43,72 +43,77 @@
  */
 package org.iolanguage.nodes.controlflow;
 
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.StopIterationException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
-import com.oracle.truffle.api.strings.TruffleStringIterator;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RepeatingNode;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
-import org.iolanguage.IoLanguage;
 import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.util.ToTruffleStringNodeGen;
+import org.iolanguage.nodes.slots.WriteNode;
+import org.iolanguage.runtime.exceptions.BreakException;
+import org.iolanguage.runtime.exceptions.ContinueException;
 
-@NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
-public final class ForeachNode extends IoNode {
+public final class ForeachArrayRepeatingNode extends Node implements RepeatingNode {
 
-    @Child
-    private IoNode receiverNode;
     @Child
     private IoNode writeValueNode;
     @Child
     private IoNode bodyNode;
 
-    public ForeachNode(IoNode receiverNode, IoNode writeValueNode, IoNode bodyNode) {
-        this.receiverNode = receiverNode;
+    private final Object iterator;
+    private final InteropLibrary interop;
+    private final BranchProfile continueTaken = BranchProfile.create();
+    private final BranchProfile breakTaken = BranchProfile.create();
+
+    public ForeachArrayRepeatingNode(Object iterator, InteropLibrary interop, IoNode writeValueNode, IoNode bodyNode) {
+        this.iterator = iterator;
+        this.interop = interop;
         this.writeValueNode = writeValueNode;
         this.bodyNode = bodyNode;
     }
 
     @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        Object receiver = receiverNode.executeGeneric(frame);
-        if (receiver instanceof TruffleString) {
-            return forEachString(frame, receiver);
-        }
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached(receiver);
-        if (interop.hasIterator(receiver)) {
-            return forEachArray(frame, receiver, interop);
-        }
-        throw new NotImplementedException();
-    }
-
-    public Object forEachString(VirtualFrame frame, Object receiver) {
-        var tstring = ToTruffleStringNodeGen.create().execute(receiver);
-        var tencoding = IoLanguage.STRING_ENCODING;
-        var iterator = TruffleString.CreateCodePointIteratorNode.getUncached().execute(tstring, tencoding,
-                ErrorHandling.RETURN_NEGATIVE);
-        var nextNode = TruffleStringIterator.NextNode.create();
-
-        ForeachStringRepeatingNode repeatingNode = new ForeachStringRepeatingNode(iterator, nextNode, writeValueNode,
-                bodyNode);
-        Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
-        return receiver;
-    }
-
-    public Object forEachArray(VirtualFrame frame, Object receiver, InteropLibrary interop) {
+    public boolean executeRepeating(VirtualFrame frame) {
         try {
-            var iterator = interop.getIterator(receiver);
-            ForeachArrayRepeatingNode repeatingNode = new ForeachArrayRepeatingNode(iterator, interop, writeValueNode,
-                    bodyNode);
-            Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
-            return receiver;
-        } catch (UnsupportedMessageException e) {
+            if (!interop.hasIteratorNextElement(iterator)) {
+                return false;
+            }
+
+            Object value = interop.getIteratorNextElement(iterator);
+
+            if (value == null) {
+                throw new NotImplementedException();
+                //return false;
+            }
+
+            assert writeValueNode instanceof WriteNode;
+            ((WriteNode) writeValueNode).executeWrite(frame, value);
+
+            try {
+                bodyNode.executeGeneric(frame);
+                return true;
+
+            } catch (ContinueException ex) {
+                continueTaken.enter();
+                return true;
+
+            } catch (BreakException ex) {
+                breakTaken.enter();
+                return false;
+            }
+
+        } catch (UnsupportedMessageException | StopIterationException e) {
             throw new NotImplementedException();
         }
+    }
+
+    @Override
+    public String toString() {
+        return IoNode.formatSourceSection(this);
     }
 
 }

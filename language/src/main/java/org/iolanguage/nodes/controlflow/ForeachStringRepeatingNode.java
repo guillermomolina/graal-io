@@ -43,72 +43,71 @@
  */
 package org.iolanguage.nodes.controlflow;
 
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RepeatingNode;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.TruffleStringIterator;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.util.ToTruffleStringNodeGen;
+import org.iolanguage.nodes.slots.WriteNode;
+import org.iolanguage.runtime.exceptions.BreakException;
+import org.iolanguage.runtime.exceptions.ContinueException;
 
-@NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
-public final class ForeachNode extends IoNode {
+public final class ForeachStringRepeatingNode extends Node implements RepeatingNode {
 
     @Child
-    private IoNode receiverNode;
+    private TruffleStringIterator.NextNode nextNode;
     @Child
     private IoNode writeValueNode;
     @Child
     private IoNode bodyNode;
 
-    public ForeachNode(IoNode receiverNode, IoNode writeValueNode, IoNode bodyNode) {
-        this.receiverNode = receiverNode;
+    private final TruffleStringIterator iterator;
+    private final BranchProfile invalidCodePointProfile = BranchProfile.create();
+    private final BranchProfile continueTaken = BranchProfile.create();
+    private final BranchProfile breakTaken = BranchProfile.create();
+
+    public ForeachStringRepeatingNode(TruffleStringIterator iterator, TruffleStringIterator.NextNode nextNode, IoNode writeValueNode, IoNode bodyNode) {
+        this.iterator = iterator;
+        this.nextNode = nextNode;
         this.writeValueNode = writeValueNode;
         this.bodyNode = bodyNode;
     }
 
     @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        Object receiver = receiverNode.executeGeneric(frame);
-        if (receiver instanceof TruffleString) {
-            return forEachString(frame, receiver);
+    public boolean executeRepeating(VirtualFrame frame) {
+        if (!iterator.hasNext()) {
+            return false;
         }
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached(receiver);
-        if (interop.hasIterator(receiver)) {
-            return forEachArray(frame, receiver, interop);
+
+        int codePoint = nextNode.execute(iterator);
+
+        if (codePoint == -1) {
+            invalidCodePointProfile.enter();
+            return false;
         }
-        throw new NotImplementedException();
-    }
 
-    public Object forEachString(VirtualFrame frame, Object receiver) {
-        var tstring = ToTruffleStringNodeGen.create().execute(receiver);
-        var tencoding = IoLanguage.STRING_ENCODING;
-        var iterator = TruffleString.CreateCodePointIteratorNode.getUncached().execute(tstring, tencoding,
-                ErrorHandling.RETURN_NEGATIVE);
-        var nextNode = TruffleStringIterator.NextNode.create();
+        assert writeValueNode instanceof WriteNode;
+        ((WriteNode)writeValueNode).executeWrite(frame, codePoint);
 
-        ForeachStringRepeatingNode repeatingNode = new ForeachStringRepeatingNode(iterator, nextNode, writeValueNode,
-                bodyNode);
-        Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
-        return receiver;
-    }
-
-    public Object forEachArray(VirtualFrame frame, Object receiver, InteropLibrary interop) {
         try {
-            var iterator = interop.getIterator(receiver);
-            ForeachArrayRepeatingNode repeatingNode = new ForeachArrayRepeatingNode(iterator, interop, writeValueNode,
-                    bodyNode);
-            Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
-            return receiver;
-        } catch (UnsupportedMessageException e) {
-            throw new NotImplementedException();
+            bodyNode.executeGeneric(frame);
+            return true;
+
+        } catch (ContinueException ex) {
+            continueTaken.enter();
+            return true;
+
+        } catch (BreakException ex) {
+            breakTaken.enter();
+            return false;
         }
+    }
+
+    @Override
+    public String toString() {
+        return IoNode.formatSourceSection(this);
     }
 
 }
