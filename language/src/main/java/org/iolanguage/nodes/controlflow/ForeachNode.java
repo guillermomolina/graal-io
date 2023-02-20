@@ -43,11 +43,16 @@
  */
 package org.iolanguage.nodes.controlflow;
 
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
+import com.oracle.truffle.api.strings.TruffleStringIterator;
 
-import org.iolanguage.NotImplementedException;
+import org.iolanguage.IoLanguage;
 import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.util.ToTruffleStringNodeGen;
 
 @NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
 public final class ForeachNode extends IoNode {
@@ -67,6 +72,14 @@ public final class ForeachNode extends IoNode {
 
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        throw new NotImplementedException();
+        Object receiver = receiverNode.executeGeneric(frame);
+        var tstring =  ToTruffleStringNodeGen.create().execute(receiver);
+        var tencoding = IoLanguage.STRING_ENCODING;
+        var iterator = TruffleString.CreateCodePointIteratorNode.getUncached().execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
+        var nextNode = TruffleStringIterator.NextNode.create();
+
+        ForeachRepeatingNode repeatingNode = new ForeachRepeatingNode(iterator, nextNode, writeValueNode, bodyNode);
+        Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
+        return receiver;
     }
 }
