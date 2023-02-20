@@ -45,8 +45,6 @@ package org.iolanguage.nodes.slots;
 
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -67,22 +65,31 @@ import org.iolanguage.runtime.exceptions.UndefinedNameException;
 import org.iolanguage.runtime.objects.IoBaseObject;
 
 @NodeInfo(shortName = "setSlot")
-@NodeChild("valueNode")
-@NodeChild("receiverNode")
-@NodeChild("nameNode")
-@NodeField(name = "initialize", type = Boolean.class)
-public abstract class WriteMemberNode extends IoNode implements WriteNode {
+public final class WriteMemberNode extends IoNode /*implements WriteNode*/ {
 
     static final int LIBRARY_LIMIT = 3;
 
-    protected abstract boolean getInitialize();
+    @Child 
+    IoNode receiverNode;
+    @Child 
+    IoNode nameNode;
+    @Child 
+    IoNode valueNode;
+    private boolean initialize;    
+
+    public WriteMemberNode(final IoNode receiverNode, final IoNode nameNode, final IoNode valueNode, final boolean initialize) {
+        this.receiverNode = receiverNode;
+        this.nameNode = nameNode;
+        this.valueNode = valueNode;
+        this.initialize = initialize;
+    }
 
     @Specialization
-    protected Object writeIOObject(Object value, IoBaseObject receiver, Object name,
+    protected Object writeIOObject(IoBaseObject receiver, Object name, Object value,
             @Cached ToTruffleStringNode toTruffleStringNode) {
         TruffleString nameTS = toTruffleStringNode.execute(name);
         final IoBaseObject slotOwner;
-        if (getInitialize()) {
+        if (initialize) {
             slotOwner = receiver;
         } else {
             slotOwner = IoObjectUtil.lookupSlot(receiver, nameTS);
@@ -95,7 +102,7 @@ public abstract class WriteMemberNode extends IoNode implements WriteNode {
     }
 
     @Specialization(guards = "!isIoBaseObject(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object writeObject(Object value, Object receiver, Object name,
+    protected Object writeObject(Object receiver, Object name, Object value,
             @CachedLibrary("receiver") InteropLibrary objectLibrary,
             @Cached ToMemberNode asMember) {
         try {
@@ -104,7 +111,7 @@ public abstract class WriteMemberNode extends IoNode implements WriteNode {
             ToTruffleStringNode toTruffleStringNode = ToTruffleStringNodeGen.create();
             TruffleString nameTS = toTruffleStringNode.execute(name);
             final IoBaseObject slotOwner;
-            if (getInitialize()) {
+            if (initialize) {
                 slotOwner = IoObjectUtil.getPrototype(receiver);
             } else {
                 slotOwner = IoObjectUtil.lookupSlot(receiver, nameTS);
@@ -126,7 +133,18 @@ public abstract class WriteMemberNode extends IoNode implements WriteNode {
         return receiver instanceof IoBaseObject;
     }
 
+    public Object eW(VirtualFrame frame, Object value) {
+        Object receiver = receiverNode.executeGeneric(frame);
+        Object name = nameNode.executeGeneric(frame);
+        return writeObject(receiver, name, value);
+    }
+
     @Override
-    public abstract Object executeWrite(VirtualFrame frame, Object value);
+    public Object executeGeneric(VirtualFrame frame) {
+        Object receiver = receiverNode.executeGeneric(frame);
+        Object name = nameNode.executeGeneric(frame);
+        Object value = valueNode.executeGeneric(frame);
+        return writeObject(receiver, name, value);
+    }
 
 }

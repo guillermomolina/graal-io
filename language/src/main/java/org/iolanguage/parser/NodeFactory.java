@@ -563,7 +563,7 @@ public class NodeFactory {
             return null;
         }
 
-        final IoNode result = WriteMemberNodeGen.create(receiverNode, nameNode, valueNode, initialize);
+        final IoNode result = WriteMemberNodeGen.create(valueNode, receiverNode, nameNode, initialize);
         result.setSourceSection(startPos, length);
         result.addExpressionTag();
 
@@ -623,14 +623,17 @@ public class NodeFactory {
         return null;
     }
 
-    public IoNode createForeach(IoNode receiverNode, IoNode methodNode, int startPos, int length) {
-        if (receiverNode == null) {
-            throw new NotImplementedException();
+    public IoNode createForeach(IoNode receiverNode, IoNode writeValueNode, IoNode bodyNode, int startPos, int length) {
+        if (writeValueNode != null && bodyNode != null) {
+            if(receiverNode == null) {
+                throw new NotImplementedException();
+            }
+            final IoNode result = ForeachNodeGen.create(receiverNode, writeValueNode, bodyNode);
+            result.setSourceSection(startPos, length);
+            result.addExpressionTag();
+            return result;
         }
-        final IoNode result = ForeachNodeGen.create(receiverNode, methodNode);
-        result.setSourceSection(startPos, length);
-        result.addExpressionTag();
-        return result;
+        return null;
     }
 
     public ReadNode createReadSelf(int startPos, int length) {

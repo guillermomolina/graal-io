@@ -43,15 +43,6 @@
  */
 package org.iolanguage.nodes;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.NotImplementedException;
-import org.iolanguage.nodes.expression.ExpressionNode;
-import org.iolanguage.nodes.root.FunctionRootNode;
-import org.iolanguage.nodes.slots.WriteLocalSlotNode;
-import org.iolanguage.runtime.IoState;
-import org.iolanguage.runtime.Symbols;
-import org.iolanguage.runtime.objects.IoNil;
-
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -72,6 +63,15 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.IoLanguage;
+import org.iolanguage.NotImplementedException;
+import org.iolanguage.nodes.expression.ExpressionNode;
+import org.iolanguage.nodes.root.FunctionRootNode;
+import org.iolanguage.nodes.slots.WriteLocalSlotNode;
+import org.iolanguage.runtime.IoState;
+import org.iolanguage.runtime.Symbols;
+import org.iolanguage.runtime.objects.IoNil;
 
 @ExportLibrary(value = NodeLibrary.class)
 public abstract class ScopedNode extends Node {

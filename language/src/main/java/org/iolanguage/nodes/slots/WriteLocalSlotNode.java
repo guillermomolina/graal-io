@@ -65,7 +65,7 @@ import org.iolanguage.nodes.interop.NodeObjectDescriptor;
 @NodeChild("valueNode")
 @NodeField(name = "slot", type = int.class)
 @NodeField(name = "nameNode", type = IoNode.class)
-public abstract class WriteLocalSlotNode extends IoNode {
+public abstract class WriteLocalSlotNode extends IoNode implements WriteNode {
 
     /**
      * Returns the descriptor of the accessed local variable. The implementation of this method is
@@ -145,7 +145,8 @@ public abstract class WriteLocalSlotNode extends IoNode {
         return value;
     }
 
-    public abstract void executeWrite(VirtualFrame frame, Object value);
+    @Override
+    public abstract Object executeWrite(VirtualFrame frame, Object value);
 
     /**
      * Guard function that the local variable has the type {@code long}.

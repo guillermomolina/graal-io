@@ -561,20 +561,14 @@ public class IoLanguageNodeVisitor extends IoLanguageBaseVisitor<IoNode> {
     }
 
     public IoNode visitForeachMessage(ForeachMessageContext ctx, IoNode receiverNode) {
-        int blockStartPos;
-        if (ctx.expression() == null) {
-            blockStartPos = ctx.CLOSE().getSymbol().getStartIndex();
-        } else {
-            blockStartPos = ctx.expression().start.getStartIndex();
-        }
-        factory.enterNewLocalsScope(blockStartPos);
-        factory.addFormalParameter(ctx.identifier().start);
-        IoNode bodyNode = visitExpression(ctx.body);
+        factory.startLoop();
+        IoNode nameNode = visitIdentifier(ctx.identifier());
         int startPos = ctx.start.getStartIndex();
         int length = ctx.stop.getStopIndex() - startPos + 1;
-        IoNode methodNode = factory.createMethod(bodyNode, startPos, length);
-        factory.startLoop();
-        IoNode resultNode = factory.createForeach(receiverNode, methodNode, startPos, length);
+        IoNode nilNode = factory.createNil(startPos, length);
+        IoNode writeValueNode = factory.createWriteSlot(null, nameNode, nilNode, startPos, length, true);
+        IoNode bodyNode = visitExpression(ctx.body);
+        IoNode resultNode = factory.createForeach(receiverNode, writeValueNode, bodyNode, startPos, length);
         assert resultNode != null;
         return factory.createLoopExpression(resultNode, startPos, length);
     }
