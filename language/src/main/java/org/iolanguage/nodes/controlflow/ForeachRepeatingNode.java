@@ -92,7 +92,7 @@ public final class ForeachRepeatingNode extends Node implements RepeatingNode {
         ((WriteNode)writeValueNode).executeWrite(frame, codePoint);
 
         try {
-            //bodyNode.executeGeneric(frame);
+            bodyNode.executeGeneric(frame);
             return true;
 
         } catch (ContinueException ex) {

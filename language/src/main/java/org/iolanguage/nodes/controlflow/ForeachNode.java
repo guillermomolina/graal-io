@@ -43,79 +43,30 @@
  */
 package org.iolanguage.nodes.controlflow;
 
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.dsl.Cached;
-import com.oracle.truffle.api.dsl.NodeChild;
-import com.oracle.truffle.api.dsl.NodeField;
-import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.library.CachedLibrary;
-import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.strings.TruffleString;
-import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
-import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
-import com.oracle.truffle.api.strings.TruffleStringIterator;
 
-import org.iolanguage.IoLanguage;
 import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.util.ToTruffleStringNode;
-import org.iolanguage.runtime.Symbols;
 
-@NodeInfo(shortName = "foreach", description = "The node implementing a foreach loop")
-@NodeChild("receiver")
-@NodeField(name = "writeValueNode", type = IoNode.class)
-@NodeField(name = "bodyNode", type = IoNode.class)
-public abstract class ForeachNode extends IoNode {
+@NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
+public final class ForeachNode extends IoNode {
 
-    public abstract IoNode getBodyNode();
+    @Child
+    private IoNode receiverNode;
+    @Child
+    private IoNode writeValueNode;
+    @Child
+    private IoNode bodyNode;
 
-    public abstract IoNode getWriteValueNode();
-
-    static final TruffleString SYMBOL_FOREACH = Symbols.constant("foreach");
-    static final int LIBRARY_LIMIT = 3;
-
-    @Specialization(guards = "isString(receiver)")
-    protected Object foreachString(VirtualFrame frame, Object receiver,
-            @Cached ToTruffleStringNode toTruffleStringNode,
-            @Cached CreateCodePointIteratorNode createCodePointIteratorNode,
-            @Cached TruffleStringIterator.NextNode nextNode) {
-        var tstring = toTruffleStringNode.execute(receiver);
-        var tencoding = IoLanguage.STRING_ENCODING;
-        var iterator = createCodePointIteratorNode.execute(tstring, tencoding, ErrorHandling.RETURN_NEGATIVE);
-
-        ForeachRepeatingNode repeatingNode = new ForeachRepeatingNode(iterator, nextNode, getWriteValueNode(), getBodyNode());
-        LoopNode loopNode = Truffle.getRuntime().createLoopNode(repeatingNode);
-
-        loopNode.execute(frame);
-
-        return receiver;
+    public ForeachNode(IoNode receiverNode, IoNode writeValueNode, IoNode bodyNode) {
+        this.receiverNode = receiverNode;
+        this.writeValueNode = writeValueNode;
+        this.bodyNode = bodyNode;
     }
 
-    @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object foreachArray(VirtualFrame frame, Object receiver,
-            @CachedLibrary("receiver") InteropLibrary arrays) {
+    @Override
+    public Object executeGeneric(VirtualFrame frame) {
         throw new NotImplementedException();
-        // try {
-        //     long receiverLength = arrays.getArraySize(receiver);
-        //     for (long i = 0; i < receiverLength; i++) {
-        //         Object value = arrays.readArrayElement(receiver, i);
-        //         assert getWriteValueNode() instanceof WriteNode;
-        //         WriteNode writeValueNode = (WriteNode) getWriteValueNode();
-        //         writeValueNode.executeWrite(frame, value);
-        //     }
-        // } catch (UnsupportedMessageException e) {
-        //     throw UndefinedNameException.undefinedField(this, SYMBOL_FOREACH);
-        // } catch (InvalidArrayIndexException e) {
-        //     throw new ShouldNotBeHereException();
-        // }
-        // return receiver;
     }
-
-    protected boolean isString(Object a) {
-        return a instanceof TruffleString;
-    }
-
 }
