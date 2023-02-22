@@ -102,7 +102,8 @@ public final class ForeachNode extends IoNode {
     public Object forEachArray(VirtualFrame frame, Object receiver, InteropLibrary interop) {
         try {
             var iterator = interop.getIterator(receiver);
-            ForeachArrayRepeatingNode repeatingNode = new ForeachArrayRepeatingNode(iterator, interop, writeValueNode,
+            var iteratorInterop = InteropLibrary.getFactory().getUncached(iterator);
+            ForeachArrayRepeatingNode repeatingNode = new ForeachArrayRepeatingNode(iterator, iteratorInterop, writeValueNode,
                     bodyNode);
             Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
             return receiver;

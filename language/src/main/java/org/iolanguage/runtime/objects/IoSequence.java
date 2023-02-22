@@ -47,10 +47,17 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.StopIterationException;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.NotImplementedException;
@@ -85,7 +92,7 @@ public class IoSequence extends IoObject {
             return name;
         }
 
-        protected int getSize() {
+        protected int getTypeSize() {
             return size;
         }
 
@@ -122,7 +129,7 @@ public class IoSequence extends IoObject {
             return name;
         }
 
-        protected int getSize() {
+        protected int getCharacterSize() {
             return size;
         }
 
@@ -148,22 +155,24 @@ public class IoSequence extends IoObject {
         super(IoPrototype.SEQUENCE);
         this.itemType = itemType;
         this.encoding = encoding;
-        this.byteBuffer = ByteBuffer.allocate(size * itemType.getSize());
+        this.byteBuffer = ByteBuffer.allocate(size * itemType.getTypeSize());
     }
 
-    public int getSize() {
+    
+    @ExportMessage
+    long getArraySize() {
         int capacity = byteBuffer.capacity();
-        assert capacity % itemType.getSize() == 0;
-        return capacity / itemType.getSize();
+        assert capacity % itemType.getTypeSize() == 0;
+        return capacity / itemType.getTypeSize();
     }
 
-    public void setSize(int newSize) {
+    void setArraySize(long newSize) {
         if (newSize < 0) {
             throw new NotImplementedException();
         }
-        int currentSize = getSize();
+        long currentSize = getArraySize();
         if (newSize != currentSize) {
-            int newCapacity = newSize * itemType.getSize();
+            int newCapacity = (int)newSize * itemType.getTypeSize();
             ByteBuffer newByteBuffer = ByteBuffer.allocate(newCapacity);
             if (byteBuffer != null) {
                 int currentCapacity = byteBuffer.capacity();
@@ -174,7 +183,7 @@ public class IoSequence extends IoObject {
             }
             byteBuffer = newByteBuffer;
         }
-        assert newSize == getSize();
+        assert newSize == getArraySize();
     }
 
     public TruffleString getItemType() {
@@ -191,11 +200,11 @@ public class IoSequence extends IoObject {
             throw new NotImplementedException();
         }
         int currentCapacity = byteBuffer.capacity();
-        int newItemSize = newItemType.getSize();
+        int newItemSize = newItemType.getTypeSize();
         if (currentCapacity % newItemSize != 0) {
             int quot = currentCapacity / newItemSize;
             int newCapacity = (quot + 1) * newItemSize;
-            setSize(newCapacity / itemType.getSize());
+            setArraySize(newCapacity / itemType.getTypeSize());
         }
         itemType = newItemType;
     }
@@ -323,6 +332,7 @@ public class IoSequence extends IoObject {
     boolean hasArrayElements() {
         return true;
     }
+
     @ExportMessage(name = "isArrayElementReadable")
     @ExportMessage(name = "isArrayElementModifiable")
     @ExportMessage(name = "isArrayElementInsertable")
@@ -331,19 +341,14 @@ public class IoSequence extends IoObject {
     }
 
     @ExportMessage
-    long getArraySize() {
-        return getSize();
-    }
-
-    @ExportMessage
     Object readArrayElement(long index) throws InvalidArrayIndexException {
         if (!isValidIndex(index)) {
             throw InvalidArrayIndexException.create(index);
         }
-        int position = (int) index * itemType.getSize();
-        if (position >= getSize()) {
-            setSize((int) position + 1);
+        if (index >= getArraySize()) {
+            setArraySize((int) index + 1);
         }
+        int position = (int) index * itemType.getTypeSize();
         switch (itemType) {
             case INT8:
                 return getInt8(position);
@@ -379,10 +384,10 @@ public class IoSequence extends IoObject {
         if (!isValidIndex(index)) {
             throw InvalidArrayIndexException.create(index);
         }
-        int position = (int) index * itemType.getSize();
-        if (position >= getSize()) {
-            setSize((int) position + 1);
+        if (index >= getArraySize()) {
+            setArraySize((int) index + 1);
         }
+        int position = (int) index * itemType.getTypeSize();
         final long valueAsLong;
         final double valueAsDouble;
         if (value instanceof Long) {
@@ -427,6 +432,63 @@ public class IoSequence extends IoObject {
                 break;
             default:
                 throw new ShouldNotBeHereException();
+        }
+    }
+
+    @ExportMessage
+    public boolean hasIterator() {
+        return true;
+    }
+
+    @ExportMessage
+    public SequenceIterator getIterator() {
+        return new SequenceIterator(this);
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    static final class SequenceIterator implements TruffleObject {
+
+        final IoSequence sequence;
+        private long currentItemIndex;
+
+        SequenceIterator(IoSequence sequence) {
+            this.sequence = sequence;
+        }
+
+        @ExportMessage
+        boolean isIterator() {
+            return true;
+        }
+
+        @ExportMessage
+        boolean hasIteratorNextElement(
+                @CachedLibrary("this.sequence") InteropLibrary arrays) {
+            try {
+                return currentItemIndex < arrays.getArraySize(sequence);
+            } catch (UnsupportedMessageException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
+
+        @ExportMessage
+        Object getIteratorNextElement(
+                @CachedLibrary("this.sequence") InteropLibrary arrays,
+                @Cached BranchProfile concurrentModification) throws StopIterationException {
+            try {
+                final long size = arrays.getArraySize(sequence);
+                if (currentItemIndex >= size) {
+                    throw StopIterationException.create();
+                }
+
+                final Object element = arrays.readArrayElement(sequence, currentItemIndex);
+                currentItemIndex++;
+                return element;
+            } catch (InvalidArrayIndexException e) {
+                concurrentModification.enter();
+                throw StopIterationException.create();
+            } catch (UnsupportedMessageException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
         }
     }
 

@@ -44,10 +44,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.StopIterationException;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 import org.iolanguage.runtime.IoObjectUtil;
 
@@ -129,6 +136,63 @@ public class IoList extends IoObject {
             list.add(IoNil.SINGLETON); 
         }
         list.set((int)index,value);
+    }
+
+    @ExportMessage
+    public boolean hasIterator() {
+        return true;
+    }
+
+    @ExportMessage
+    public ListIterator getIterator() {
+        return new ListIterator(this);
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    static final class ListIterator implements TruffleObject {
+
+        final IoList sequence;
+        private long currentItemIndex;
+
+        ListIterator(IoList sequence) {
+            this.sequence = sequence;
+        }
+
+        @ExportMessage
+        boolean isIterator() {
+            return true;
+        }
+
+        @ExportMessage
+        boolean hasIteratorNextElement(
+                @CachedLibrary("this.sequence") InteropLibrary arrays) {
+            try {
+                return currentItemIndex < arrays.getArraySize(sequence);
+            } catch (UnsupportedMessageException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
+
+        @ExportMessage
+        Object getIteratorNextElement(
+                @CachedLibrary("this.sequence") InteropLibrary arrays,
+                @Cached BranchProfile concurrentModification) throws StopIterationException {
+            try {
+                final long size = arrays.getArraySize(sequence);
+                if (currentItemIndex >= size) {
+                    throw StopIterationException.create();
+                }
+
+                final Object element = arrays.readArrayElement(sequence, currentItemIndex);
+                currentItemIndex++;
+                return element;
+            } catch (InvalidArrayIndexException e) {
+                concurrentModification.enter();
+                throw StopIterationException.create();
+            } catch (UnsupportedMessageException e) {
+                throw CompilerDirectives.shouldNotReachHere(e);
+            }
+        }
     }
 
 }
