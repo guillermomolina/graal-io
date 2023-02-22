@@ -79,11 +79,7 @@ public final class ForeachNode extends IoNode {
         if (receiver instanceof TruffleString) {
             return forEachString(frame, receiver);
         }
-        InteropLibrary interop = InteropLibrary.getFactory().getUncached(receiver);
-        if (interop.hasIterator(receiver)) {
-            return forEachArray(frame, receiver, interop);
-        }
-        throw new NotImplementedException();
+        return forEachArray(frame, receiver);
     }
 
     public Object forEachString(VirtualFrame frame, Object receiver) {
@@ -99,8 +95,25 @@ public final class ForeachNode extends IoNode {
         return receiver;
     }
 
-    public Object forEachArray(VirtualFrame frame, Object receiver, InteropLibrary interop) {
+    public Object forEachString2(VirtualFrame frame, Object receiver) {
+        var tstring = ToTruffleStringNodeGen.create().execute(receiver);
+        var tencoding = IoLanguage.STRING_ENCODING;
+        var iterator = TruffleString.CreateCodePointIteratorNode.getUncached().execute(tstring, tencoding,
+                ErrorHandling.RETURN_NEGATIVE);
+        
+        var iteratorInterop = InteropLibrary.getFactory().getUncached(iterator);
+        ForeachArrayRepeatingNode repeatingNode = new ForeachArrayRepeatingNode(iterator, iteratorInterop, writeValueNode,
+                bodyNode);
+        Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
+        return receiver;
+    }
+
+    public Object forEachArray(VirtualFrame frame, Object receiver) {
         try {
+            InteropLibrary interop = InteropLibrary.getFactory().getUncached(receiver);
+            if(!interop.hasIterator(receiver)) {
+                throw UnsupportedMessageException.create();
+            }
             var iterator = interop.getIterator(receiver);
             var iteratorInterop = InteropLibrary.getFactory().getUncached(iterator);
             ForeachArrayRepeatingNode repeatingNode = new ForeachArrayRepeatingNode(iterator, iteratorInterop, writeValueNode,
