@@ -97,6 +97,8 @@ import org.iolanguage.nodes.functions.lobby.LobbyExitFunctionFactory;
 import org.iolanguage.nodes.functions.map.MapAtFunctionFactory;
 import org.iolanguage.nodes.functions.map.MapAtPutFunctionFactory;
 import org.iolanguage.nodes.functions.number.NumberAddFunctionFactory;
+import org.iolanguage.nodes.functions.number.NumberAsLowercaseFunctionFactory;
+import org.iolanguage.nodes.functions.number.NumberAsUppercaseFunctionFactory;
 import org.iolanguage.nodes.functions.number.NumberFloorFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectCloneFunctionFactory;
 import org.iolanguage.nodes.functions.object.ObjectDoFileFunctionFactory;
@@ -295,6 +297,8 @@ public final class IoState {
         installBuiltin(SequenceSplitFunctionFactory.getInstance(), IoPrototype.SEQUENCE, "Sequence");
         installBuiltin(DateSecondsSinceFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
         installBuiltin(DateNowFunctionFactory.getInstance(), IoPrototype.DATE, "Date");
+        installBuiltin(NumberAsLowercaseFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
+        installBuiltin(NumberAsUppercaseFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
         installBuiltin(NumberFloorFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
         installBuiltin(NumberAddFunctionFactory.getInstance(), IoPrototype.NUMBER, "Number");
         installBuiltin(SystemSleepFunctionFactory.getInstance(), IoPrototype.SYSTEM, "System");
