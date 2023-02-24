@@ -64,12 +64,6 @@ import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.nodes.util.ToTruffleStringNode;
 
-/*
-This should work but it doesn't
-Throws: java.lang.AssertionError: Node must be adopted by a RootNode to be pushed as encapsulating node.
-************************************
-*/
-
 @NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
 @NodeChild("receiverNode")
 @NodeField(name = "writeValueNode", type = IoNode.class)
@@ -120,62 +114,3 @@ public abstract class ForeachNode extends IoNode {
     }
 
 }
-
-/* 
-@NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
-public final class ForeachNode extends IoNode {
-
-    @Child
-    private IoNode receiverNode;
-    @Child
-    private IoNode writeValueNode;
-    @Child
-    private IoNode bodyNode;
-
-    public ForeachNode(IoNode receiverNode, IoNode writeValueNode, IoNode bodyNode) {
-        this.receiverNode = receiverNode;
-        this.writeValueNode = writeValueNode;
-        this.bodyNode = bodyNode;
-    }
-
-    @Override
-    public Object executeGeneric(VirtualFrame frame) {
-        Object receiver = receiverNode.executeGeneric(frame);
-        if (receiver instanceof TruffleString) {
-            return forEachString(frame, receiver);
-        }
-        return forEachArray(frame, receiver);
-    }
-
-    public Object forEachString(VirtualFrame frame, Object receiver) {
-        var tstring = ToTruffleStringNodeGen.create().execute(receiver);
-        var tencoding = IoLanguage.STRING_ENCODING;
-        var iterator = TruffleString.CreateCodePointIteratorNode.getUncached().execute(tstring, tencoding,
-                ErrorHandling.RETURN_NEGATIVE);
-        var nextNode = TruffleStringIterator.NextNode.create();
-
-        ForeachStringRepeatingNode repeatingNode = new ForeachStringRepeatingNode(iterator, nextNode, writeValueNode,
-                bodyNode);
-        Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
-        return receiver;
-    }
-
-    public Object forEachArray(VirtualFrame frame, Object receiver) {
-        try {
-            InteropLibrary interop = InteropLibrary.getFactory().getUncached(receiver);
-            if(!interop.hasIterator(receiver)) {
-                throw UnsupportedMessageException.create();
-            }
-            var iterator = interop.getIterator(receiver);
-            var iteratorInterop = InteropLibrary.getFactory().getUncached(iterator);
-            ForeachArrayRepeatingNode repeatingNode = new ForeachArrayRepeatingNode(iterator, iteratorInterop, writeValueNode,
-                    bodyNode);
-            Truffle.getRuntime().createLoopNode(repeatingNode).execute(frame);
-            return receiver;
-        } catch (UnsupportedMessageException e) {
-            throw new NotImplementedException();
-        }
-    }
-
-}
-*/
