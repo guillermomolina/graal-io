@@ -43,15 +43,19 @@
  */
 package org.iolanguage.nodes;
 
+import java.math.BigInteger;
+
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeCast;
 import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
-import org.iolanguage.runtime.objects.IoObject;
+import org.iolanguage.runtime.objects.IoBigInteger;
 import org.iolanguage.runtime.objects.IoFalse;
 import org.iolanguage.runtime.objects.IoLocals;
 import org.iolanguage.runtime.objects.IoNil;
+import org.iolanguage.runtime.objects.IoObject;
 import org.iolanguage.runtime.objects.IoTrue;
 
 @TypeSystem({boolean.class, long.class, double.class, IoObject.class, IoLocals.class})
@@ -96,6 +100,12 @@ public abstract class IoTypes {
     }
 
     @ImplicitCast
+    @TruffleBoundary
+    public static IoBigInteger castIntToBigInt(long value) {
+        return new IoBigInteger(BigInteger.valueOf(value));
+    }
+
+    @ImplicitCast
     public static double castSmallFloatToFloat(float value) {
         return value;
     }
@@ -109,4 +119,11 @@ public abstract class IoTypes {
     public static double castIntToFloat(long value) {
         return value;
     }
+
+    @ImplicitCast
+    @TruffleBoundary
+    public static double castBigIntToFloat(IoBigInteger value) {
+        return value.getValue().doubleValue();
+    }
+
 }

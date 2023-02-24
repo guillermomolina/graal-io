@@ -43,13 +43,6 @@
  */
 package org.iolanguage.nodes.util;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.IoTypes;
-import org.iolanguage.runtime.objects.IoMethod;
-import org.iolanguage.runtime.objects.IoNil;
-
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -58,6 +51,14 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.IoLanguage;
+import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.nodes.IoNode;
+import org.iolanguage.nodes.IoTypes;
+import org.iolanguage.runtime.objects.IoBigInteger;
+import org.iolanguage.runtime.objects.IoMethod;
+import org.iolanguage.runtime.objects.IoNil;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
@@ -87,6 +88,11 @@ public abstract class UnboxNode extends IoNode {
 
     @Specialization
     protected static long fromLong(long value) {
+        return value;
+    }
+
+    @Specialization
+    protected static IoBigInteger fromBigInteger(IoBigInteger value) {
         return value;
     }
 

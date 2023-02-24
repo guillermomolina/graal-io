@@ -43,14 +43,6 @@
  */
 package org.iolanguage.nodes.logic;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.runtime.objects.IoFalse;
-import org.iolanguage.runtime.objects.IoInvokable;
-import org.iolanguage.runtime.objects.IoNil;
-import org.iolanguage.runtime.objects.IoTrue;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -59,6 +51,15 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.IoLanguage;
+import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.nodes.binary.BinaryNode;
+import org.iolanguage.runtime.objects.IoBigInteger;
+import org.iolanguage.runtime.objects.IoFalse;
+import org.iolanguage.runtime.objects.IoInvokable;
+import org.iolanguage.runtime.objects.IoNil;
+import org.iolanguage.runtime.objects.IoTrue;
 
 /**
  * The {@code ==} operator of IO is defined on all types. Therefore, we need a
@@ -72,36 +73,27 @@ import com.oracle.truffle.api.strings.TruffleString;
 public abstract class EqualNode extends BinaryNode {
 
     @Specialization
-    public static final boolean doBoolean(final boolean left, final boolean right) {
+    protected boolean doBoolean(final boolean left, final boolean right) {
       return left == right;
     }
 
     @Specialization
-    public static final boolean doLong(final long left, final long right) {
-      return left == right;
+    protected boolean doLong(long left, long right) {
+        return left == right;
     }
-  
-    @Specialization
-    public static final boolean doLong(final long left, final double right) {
-      return left == right;
-    }
-    
-    @Specialization
-    public static final boolean doLong(final long left, final String right) {
-      return false;
-    }
-    
+
     @Specialization
     @TruffleBoundary
-    public static final boolean doDouble(final double left, final long right) {
-      return left == right;
+    protected boolean doBigInteger(IoBigInteger left, IoBigInteger right) {
+        return left.equals(right);
     }
-  
+
     @Specialization
-    public static final boolean doDouble(final double left, final double right) {
+    @TruffleBoundary
+    protected boolean doDouble(final double left, final double right) {
       return left == right;
     }
-  
+    
     @Specialization
     protected boolean doString(String left, String right) {
         return left.equals(right);
@@ -146,6 +138,8 @@ public abstract class EqualNode extends BinaryNode {
                 return true;
             } else if (leftInterop.fitsInLong(left) && rightInterop.fitsInLong(right)) {
                 return doLong(leftInterop.asLong(left), (rightInterop.asLong(right)));
+            } else if (left instanceof IoBigInteger && right instanceof IoBigInteger) {
+                return doBigInteger((IoBigInteger) left, (IoBigInteger) right);
             } else if (leftInterop.fitsInDouble(left) && rightInterop.fitsInDouble(right)) {
                 return doDouble(leftInterop.asDouble(left), (rightInterop.asDouble(right)));
             } else if (leftInterop.hasIdentity(left) && rightInterop.hasIdentity(right)) {

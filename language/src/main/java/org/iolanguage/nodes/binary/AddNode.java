@@ -43,44 +43,32 @@
  */
 package org.iolanguage.nodes.binary;
 
-import java.math.BigInteger;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.iolanguage.nodes.expression.BinaryNode;
 import org.iolanguage.runtime.exceptions.IoLanguageException;
+import org.iolanguage.runtime.objects.IoBigInteger;
 
 @NodeInfo(shortName = "+")
 public abstract class AddNode extends BinaryNode {
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected long add(long left, long right) {
+    protected long doLong(long left, long right) {
         return Math.addExact(left, right);
     }
 
     @Specialization
     @TruffleBoundary
-    public static final Object doLongWithOverflow(final long left, final long argument) {
-      return reduceToLongOrDouble(BigInteger.valueOf(left).add(BigInteger.valueOf(argument)));
-    }
-    
-    @Specialization
-    public static final double doLong(final long left, final double argument) {
-      return doDouble(left, argument);
+    protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
+        return new IoBigInteger(left.getValue().add(right.getValue()));
     }
     
     @Specialization
     @TruffleBoundary
-    public static final double doDouble(final double left, final long right) {
+    protected double doDouble(final double left, final long right) {
       return left + right;
-    }
-  
-    @Specialization
-    public static final double doDouble(final double left, final double right) {
-      return right + left;
     }
    
     @Fallback

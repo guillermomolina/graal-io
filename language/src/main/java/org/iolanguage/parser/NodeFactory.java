@@ -43,6 +43,7 @@
  */
 package org.iolanguage.parser;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,6 +79,7 @@ import org.iolanguage.nodes.expression.InvokeNodeGen;
 import org.iolanguage.nodes.expression.MethodBodyNode;
 import org.iolanguage.nodes.expression.ParenExpressionNode;
 import org.iolanguage.nodes.expression.ThisLocalContextNodeGen;
+import org.iolanguage.nodes.literals.BigIntegerLiteralNode;
 import org.iolanguage.nodes.literals.BlockLiteralNode;
 import org.iolanguage.nodes.literals.BooleanLiteralNode;
 import org.iolanguage.nodes.literals.DoubleLiteralNode;
@@ -709,11 +711,15 @@ public class NodeFactory {
         IoNode result;
         try {
             result = new LongLiteralNode(Long.parseLong(literalToken.getText()));
-        } catch (NumberFormatException ex) {
+        } catch (NumberFormatException e1) {
             try {
-                result = new DoubleLiteralNode(Double.parseDouble(literalToken.getText()));
-            } catch (NumberFormatException e) {
-                throw new RuntimeException("can not parse number: " + literalToken.getText());
+                result = new BigIntegerLiteralNode(new BigInteger(literalToken.getText()));
+            } catch (NumberFormatException e2) {
+                try {
+                    result = new DoubleLiteralNode(Double.parseDouble(literalToken.getText()));
+                } catch (NumberFormatException e3) {
+                    throw new RuntimeException("can not parse number: " + literalToken.getText());
+                } 
             }
         }
         srcFromToken(result, literalToken);

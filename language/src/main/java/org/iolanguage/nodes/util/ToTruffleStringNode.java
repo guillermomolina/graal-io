@@ -43,12 +43,6 @@
  */
 package org.iolanguage.nodes.util;
 
-import org.iolanguage.IoLanguage;
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.IoTypes;
-import org.iolanguage.runtime.Symbols;
-import org.iolanguage.runtime.objects.IoNil;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -59,6 +53,13 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.IoLanguage;
+import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.nodes.IoTypes;
+import org.iolanguage.runtime.Symbols;
+import org.iolanguage.runtime.objects.IoBigInteger;
+import org.iolanguage.runtime.objects.IoNil;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
@@ -104,8 +105,15 @@ public abstract class ToTruffleStringNode extends Node {
 
     @Specialization
     @TruffleBoundary
+    protected static TruffleString fromBigInteger(IoBigInteger value,
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+        return fromJavaStringNode.execute(value.toString(), IoLanguage.STRING_ENCODING);
+    }
+
+    @Specialization
+    @TruffleBoundary
     protected static TruffleString fromDouble(double value,
-                    @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
+            @Cached TruffleString.FromJavaStringNode fromJavaStringNode) {
         return fromJavaStringNode.execute(String.valueOf(value), IoLanguage.STRING_ENCODING);
     }
 

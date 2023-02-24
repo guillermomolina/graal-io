@@ -43,15 +43,13 @@
  */
 package org.iolanguage.nodes.binary;
 
-import java.math.BigInteger;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.iolanguage.nodes.expression.BinaryNode;
 import org.iolanguage.runtime.exceptions.IoLanguageException;
+import org.iolanguage.runtime.objects.IoBigInteger;
 
 /**
  * This class is similar to the extensively documented {@link AddNode}.
@@ -60,37 +58,19 @@ import org.iolanguage.runtime.exceptions.IoLanguageException;
 public abstract class MulNode extends BinaryNode {
 
     @Specialization(rewriteOn = ArithmeticException.class)
-    protected long mul(long left, long right) {
+    protected long doLong(long left, long right) {
         return Math.multiplyExact(left, right);
     }
 
-    @Specialization(rewriteOn = ArithmeticException.class)
-    public static final long doLong(final long left, final long right) {
-      return Math.multiplyExact(left, right);
-    }
-  
     @Specialization
     @TruffleBoundary
-    public static final Object doLongWithOverflow(final long left, final long right) {
-      return reduceToLongOrDouble(
-          BigInteger.valueOf(left).multiply(BigInteger.valueOf(right)));
-    }
-  
-    @Specialization
-    @TruffleBoundary
-    public static final double doDouble(final long left, final double right) {
-      return left * right;
-    }
-      
-    @Specialization
-    @TruffleBoundary
-    public static final double doDouble(final double left, final long right) {
-      return left * right;
+    protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
+        return new IoBigInteger(left.getValue().multiply(right.getValue()));
     }
 
     @Specialization
     @TruffleBoundary
-    public static final double doDouble(final double left, final double right) {
+    protected double doDouble(final double left, final double right) {
       return left * right;
     }
   

@@ -43,9 +43,6 @@
  */
 package org.iolanguage.nodes.util;
 
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.IoTypes;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.GenerateUncached;
@@ -57,6 +54,10 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.strings.TruffleString;
+
+import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.nodes.IoTypes;
+import org.iolanguage.runtime.objects.IoBigInteger;
 
 /**
  * The node to normalize any value to an IO value. This is useful to reduce the number of values
@@ -94,6 +95,12 @@ public abstract class ToMemberNode extends Node {
 
     @Specialization
     @TruffleBoundary
+    protected static String fromBigInteger(IoBigInteger value) {
+        return value.toString();
+    }
+
+    @Specialization
+    @TruffleBoundary
     protected static String fromDouble(double value) {
         return String.valueOf(value);
     }
@@ -103,6 +110,8 @@ public abstract class ToMemberNode extends Node {
         try {
             if (interop.fitsInLong(value)) {
                 return longToString(interop.asLong(value));
+            } else if (interop.isNumber(value) && value instanceof IoBigInteger) {
+                return bigIntegerToString((IoBigInteger) value);
             } else if (interop.fitsInDouble(value)) {
                 return doubleToString(interop.asDouble(value));
             } else if (interop.isString(value)) {
@@ -123,6 +132,11 @@ public abstract class ToMemberNode extends Node {
     @TruffleBoundary
     private static String doubleToString(double doubleValue) {
         return String.valueOf(doubleValue);
+    }
+
+    @TruffleBoundary
+    private static String bigIntegerToString(IoBigInteger value) {
+        return value.toString();
     }
 
     @TruffleBoundary

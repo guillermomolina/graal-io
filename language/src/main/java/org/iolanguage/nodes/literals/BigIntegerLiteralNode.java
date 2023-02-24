@@ -2,7 +2,7 @@
  * Copyright (c) 2022, 2023, Guillermo Adrián Molina. All rights reserved.
  */
 /*
- * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2022, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -41,22 +41,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.expression;
+package org.iolanguage.nodes.literals;
 
 import java.math.BigInteger;
 
-import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.iolanguage.nodes.IoNode;
+import org.iolanguage.runtime.objects.IoBigInteger;
 
-@NodeChild("leftNode")
-@NodeChild("rightNode")
-public abstract class BinaryNode extends IoNode {
-    public static final Number reduceToLongOrDouble(final BigInteger result) {
-        if (result.bitLength() > Long.SIZE - 1) {
-            return result.doubleValue();
-        } else {
-            return result.longValue();
-        }
+/**
+ * Constant literal for a arbitrary-precision number that exceeds the range of
+ * {@link SLLongLiteralNode}.
+ */
+@NodeInfo(shortName = "const")
+public final class BigIntegerLiteralNode extends IoNode {
+
+    private final IoBigInteger value;
+
+    public BigIntegerLiteralNode(BigInteger value) {
+        this.value = new IoBigInteger(value);
+    }
+
+    @Override
+    public IoBigInteger executeGeneric(VirtualFrame frame) {
+        return value;
     }
 }

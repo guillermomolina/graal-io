@@ -43,12 +43,8 @@
  */
 package org.iolanguage.nodes.binary;
 
-import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 /**
  * This class is similar to the extensively documented {@link AddNode}. Divisions by 0 throw the
@@ -57,12 +53,11 @@ import org.iolanguage.runtime.exceptions.IoLanguageException;
  */
 @NodeInfo(shortName = "/")
 public abstract class DivNode extends BinaryNode {
-
   // otherwise, explicitly check for cornercase
   protected static boolean isCornercase(long a, long b) {
     return a != 0 && !(b == -1 && a == Long.MIN_VALUE);
   }
-
+  
   // when b is positive, the result will fit long (if without remainder)
   @Specialization(rewriteOn = ArithmeticException.class, guards = "b > 0")
   protected long doLong1(long a, long b) {
@@ -71,7 +66,7 @@ public abstract class DivNode extends BinaryNode {
     }
     throw new ArithmeticException();
   }
-
+  
   // otherwise, ensure a > 0 (this also excludes two cornercases):
   // when a == 0, result would be NegativeZero
   // when a == Long.MIN_VALUE && b == -1, result does not fit into long
@@ -79,19 +74,21 @@ public abstract class DivNode extends BinaryNode {
   protected long doLong2(long a, long b) {
     return doLong1(a, b);
   }
-
+  
   @Specialization(rewriteOn = ArithmeticException.class, guards = "isCornercase(a, b)")
   protected long doLong3(long a, long b) {
     return doLong1(a, b);
   }
-
+/*  
+  @Specialization
+  @TruffleBoundary
+  protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
+      return new IoBigInteger(left.getValue().divide(right.getValue()));
+  }
+*/ 
   @Specialization(replaces = { "doLong1", "doLong2", "doLong3" })
   protected double doDouble(double a, double b) {
     return a / b;
   }
 
-  @Fallback
-  protected Object typeError(Object left, Object right) {
-    throw IoLanguageException.typeError(this, left, right);
-  }
 }

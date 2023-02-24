@@ -45,11 +45,6 @@ package org.iolanguage.nodes.logic;
 
 import java.math.BigInteger;
 
-import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.nodes.util.ToTruffleStringNode;
-import org.iolanguage.runtime.exceptions.IoLanguageException;
-
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -58,77 +53,62 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.iolanguage.ShouldNotBeHereException;
+import org.iolanguage.nodes.binary.BinaryNode;
+import org.iolanguage.nodes.util.ToTruffleStringNode;
+import org.iolanguage.runtime.exceptions.IoLanguageException;
+import org.iolanguage.runtime.objects.IoBigInteger;
+
 @NodeInfo(shortName = "<=")
 public abstract class LessOrEqualNode extends BinaryNode {
 
   @Specialization
-  public static final boolean doLong(final long left, final long right) {
+  protected boolean doLong(final long left, final long right) {
     return left <= right;
   }
 
   @Specialization
-  public static final boolean doLong(final long left, final double right) {
-    return doDouble(left, right);
-  }
-
-  @Specialization
   @TruffleBoundary
-  public static final boolean doLong(final long left, final BigInteger right) {
-    return doBigInteger(BigInteger.valueOf(left), right);
-  }
-
-  @Specialization
-  @TruffleBoundary
-  public static final boolean doBigInteger(final BigInteger left, final BigInteger right) {
+  protected boolean doBigInteger(IoBigInteger left, IoBigInteger right) {
     return left.compareTo(right) <= 0;
   }
 
   @Specialization
-  @TruffleBoundary
-  public static final boolean doBigInteger(final BigInteger left, final long right) {
-    return doBigInteger(left, BigInteger.valueOf(right));
-  }
-
-  @Specialization
-  @TruffleBoundary
-  public static final boolean doDouble(final double left, final long right) {
-    return doDouble(left, (double) right);
-  }
-
-  @Specialization
-  public static final boolean doDouble(final double left, final double right) {
+  protected boolean doDouble(final double left, final double right) {
     return left <= right;
   }
 
-
   @Specialization(limit = "4")
   public final Object doGeneric(Object left, Object right,
-                  @CachedLibrary("left") InteropLibrary leftInterop,
-                  @Cached ToTruffleStringNode toTruffleStringNodeRight) {
-      try {
-          Object rightAsNumber = StringToNumber(toTruffleStringNodeRight.execute(right).toJavaStringUncached());
-          if (leftInterop.fitsInLong(left) && rightAsNumber instanceof Long) {
-              return doLong(leftInterop.asLong(left), (Long)rightAsNumber);  
-          } else if (leftInterop.fitsInDouble(left) && rightAsNumber instanceof Double) {
-              return doDouble(leftInterop.asDouble(left), (Double)rightAsNumber);
-          } else {
-              throw IoLanguageException.typeError(this, left, right);
-          }
-      } catch (UnsupportedMessageException e) {
-          throw new ShouldNotBeHereException(e);
+      @CachedLibrary("left") InteropLibrary leftInterop,
+      @Cached ToTruffleStringNode toTruffleStringNodeRight) {
+    try {
+      Object rightAsNumber = StringToNumber(toTruffleStringNodeRight.execute(right).toJavaStringUncached());
+      if (leftInterop.fitsInLong(left) && rightAsNumber instanceof Long) {
+        return doLong(leftInterop.asLong(left), (Long) rightAsNumber);
+      } else if (leftInterop.fitsInDouble(left) && rightAsNumber instanceof Double) {
+        return doDouble(leftInterop.asDouble(left), (Double) rightAsNumber);
+      } else {
+        throw IoLanguageException.typeError(this, left, right);
       }
+    } catch (UnsupportedMessageException e) {
+      throw new ShouldNotBeHereException(e);
+    }
   }
 
   public static final Object StringToNumber(String string) {
     try {
       return Long.parseLong(string);
-    } catch(NumberFormatException e1) {
+    } catch (NumberFormatException e1) {
       try {
-        return Double.parseDouble(string);
-      } catch(NumberFormatException e2) {
-        return null;
+        return new BigInteger(string);
+      } catch (NumberFormatException e2) {
+        try {
+          return Double.parseDouble(string);
+        } catch (NumberFormatException e3) {
+          return null;
+        }
       }
     }
   }
-
 }
