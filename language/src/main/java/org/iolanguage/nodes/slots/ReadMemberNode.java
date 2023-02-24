@@ -57,11 +57,45 @@ import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;
 import org.iolanguage.runtime.objects.IoBaseObject;
+import org.iolanguage.runtime.objects.IoFalse;
+import org.iolanguage.runtime.objects.IoPrototype;
+import org.iolanguage.runtime.objects.IoTrue;
 
 @NodeChild(value = "receiverNode", type = IoNode.class)
 @NodeChild(value = "nameNode", type = IoNode.class)
 public abstract class ReadMemberNode extends ReadNode {
     static final int LIBRARY_LIMIT = 3;
+
+    @Specialization
+    protected Object readLong(long receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        setReceiver(receiver);
+        setName(toTruffleStringNode.execute(name));
+        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(IoPrototype.NUMBER, getName());
+        setPrototype(slotOwner);
+        return getMember();
+    }
+
+    @Specialization
+    protected Object readDouble(double receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        setReceiver(receiver);
+        setName(toTruffleStringNode.execute(name));
+        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(IoPrototype.NUMBER, getName());
+        setPrototype(slotOwner);
+        return getMember();
+    }
+
+    @Specialization
+    protected Object readBoolean(boolean receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        setReceiver(receiver);
+        setName(toTruffleStringNode.execute(name));
+        IoPrototype proto = receiver? IoTrue.SINGLETON: IoFalse.SINGLETON;
+        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(proto, getName());
+        setPrototype(slotOwner);
+        return getMember();
+    }
 
     @Specialization
     public Object readIoObject(IoBaseObject receiver, Object name,
