@@ -46,7 +46,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.exceptions.IoLanguageException;

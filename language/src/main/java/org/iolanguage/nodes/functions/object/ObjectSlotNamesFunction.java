@@ -44,7 +44,7 @@
 package org.iolanguage.nodes.functions.object;
 
 import org.iolanguage.NotImplementedException;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.IoState;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

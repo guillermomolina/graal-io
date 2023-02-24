@@ -67,7 +67,7 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.strings.TruffleString;
 
 import org.graalvm.options.OptionDescriptors;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.nodes.root.EvalRootNode;
 import org.iolanguage.parser.IoLanguageNodeVisitor;
 import org.iolanguage.runtime.IoOptions;

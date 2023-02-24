@@ -83,7 +83,7 @@ import org.graalvm.polyglot.Context;
 import org.iolanguage.IoLanguage;
 import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.nodes.functions.block.BlockPassStopsFunctionFactory;
 import org.iolanguage.nodes.functions.block.BlockSetPassStopsFunctionFactory;
 import org.iolanguage.nodes.functions.date.DateNowFunctionFactory;

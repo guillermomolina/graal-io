@@ -50,7 +50,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoNil;

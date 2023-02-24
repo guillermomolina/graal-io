@@ -43,7 +43,7 @@ package org.iolanguage.nodes.functions.block;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.objects.IoMethod;
 
 @NodeInfo(shortName = "passStops")

@@ -40,7 +40,7 @@
  */
 package org.iolanguage.nodes.functions.number;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 import com.oracle.truffle.api.dsl.Fallback;

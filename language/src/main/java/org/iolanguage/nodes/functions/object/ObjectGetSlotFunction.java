@@ -43,7 +43,7 @@
  */
 package org.iolanguage.nodes.functions.object;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.nodes.util.ToTruffleStringNode;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.objects.IoNil;

@@ -44,7 +44,7 @@
 package org.iolanguage.nodes.functions.object;
 
 import org.iolanguage.ShouldNotBeHereException;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.IoObjectUtil;
 
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;

@@ -41,7 +41,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package org.iolanguage.nodes.expression;
+package org.iolanguage.nodes.functions;
 
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.runtime.exceptions.IoLanguageException;

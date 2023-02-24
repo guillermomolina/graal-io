@@ -84,7 +84,7 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.InitializationError;
 import org.iolanguage.IoLanguage;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.test.TestRunner.TestCase;
 
 import com.oracle.truffle.api.dsl.NodeFactory;

@@ -45,8 +45,8 @@ package org.iolanguage.nodes.root;
 
 import org.iolanguage.IoLanguage;
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
 import org.iolanguage.nodes.expression.MethodBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.nodes.NodeInfo;

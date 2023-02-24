@@ -47,7 +47,7 @@ import java.nio.file.Paths;
 
 import org.iolanguage.IoLanguage;
 import org.iolanguage.NotImplementedException;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.IoState;
 
 import com.oracle.truffle.api.dsl.Specialization;

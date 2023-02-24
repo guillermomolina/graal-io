@@ -43,7 +43,7 @@
  */
 package org.iolanguage.nodes.functions.lobby;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.objects.IoNil;
 

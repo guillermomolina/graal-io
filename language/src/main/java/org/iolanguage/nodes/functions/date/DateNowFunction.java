@@ -42,7 +42,7 @@ package org.iolanguage.nodes.functions.date;
 
 import java.util.Date;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.exceptions.IoLanguageException;
 import org.iolanguage.runtime.objects.IoDate;
 

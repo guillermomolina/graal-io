@@ -43,12 +43,12 @@
  */
 package org.iolanguage.nodes.functions.object;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 
 /**
  * Built-in function that queries if the foreign object is a null value. See

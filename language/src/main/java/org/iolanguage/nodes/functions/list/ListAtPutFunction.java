@@ -49,7 +49,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.strings.TruffleString;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.Symbols;
 import org.iolanguage.runtime.exceptions.OutOfBoundsException;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;

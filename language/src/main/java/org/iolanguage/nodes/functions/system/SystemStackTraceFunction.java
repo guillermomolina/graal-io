@@ -44,7 +44,7 @@
 package org.iolanguage.nodes.functions.system;
 
 import org.iolanguage.IoLanguage;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.nodes.root.EvalRootNode;
 import org.iolanguage.nodes.root.FunctionRootNode;
 import org.iolanguage.runtime.Symbols;

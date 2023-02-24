@@ -48,7 +48,7 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.iolanguage.nodes.expression.BinaryNode;
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.exceptions.IoLanguageException;
 
 @NodeInfo(shortName = "+")

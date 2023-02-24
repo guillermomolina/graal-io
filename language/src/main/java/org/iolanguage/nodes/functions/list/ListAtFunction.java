@@ -40,7 +40,7 @@
  */
 package org.iolanguage.nodes.functions.list;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.Symbols;
 import org.iolanguage.runtime.exceptions.OutOfBoundsException;
 import org.iolanguage.runtime.exceptions.UndefinedNameException;

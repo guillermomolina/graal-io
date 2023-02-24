@@ -43,10 +43,10 @@
  */
 package org.iolanguage.nodes.functions.object;
 
-import org.iolanguage.nodes.expression.FunctionBodyNode;
-
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.nodes.functions.FunctionBodyNode;
 
 @NodeInfo(shortName = "thisContext")
 public abstract class ObjectThisContextFunction extends FunctionBodyNode {
