@@ -49,17 +49,21 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.nodes.functions.FunctionBodyNode;
 import org.iolanguage.runtime.IoObjectUtil;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoNil;
+import org.iolanguage.runtime.objects.IoPrototype;
 
 @NodeInfo(shortName = "proto")
 public abstract class ObjectProtoFunction extends FunctionBodyNode {
 
+    static final int LIBRARY_LIMIT = 3;
+
     // This does not work, it allways assume the cached value
-    @Specialization(limit = "3", guards = "metaLib.hasMetaObject(value)")
+    @Specialization(guards = "metaLib.hasMetaObject(value)", limit = "LIBRARY_LIMIT")
     @TruffleBoundary
     public Object protoWithMeta(Object value,
             @CachedLibrary("value") InteropLibrary metaLib) {
@@ -71,10 +75,20 @@ public abstract class ObjectProtoFunction extends FunctionBodyNode {
         }
     }
 
+    @Specialization(guards = "isString(value)")
+    @TruffleBoundary
+    public Object protoString(Object value) {
+        return IoPrototype.SEQUENCE;
+    }
+
     @Specialization
     public Object proto(Object value) {
         IoBaseObject prototype = IoObjectUtil.getPrototype(value);
         return prototype;
+    }
+
+    protected boolean isString(Object value) {
+        return value instanceof TruffleString;
     }
 
 }
