@@ -112,7 +112,7 @@ public abstract class ReadMemberNode extends ReadNode {
             @Cached ToTruffleStringNode toTruffleStringNode) {
         setReceiver(receiver);
         setName(toTruffleStringNode.execute(name));
-        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(IoPrototype.SEQUENCE, getName());
+        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(IoPrototype.IMMUTABLE_SEQUENCE, getName());
         setPrototype(slotOwner);
         return getMember();
     }

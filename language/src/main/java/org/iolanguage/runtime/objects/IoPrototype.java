@@ -61,6 +61,7 @@ public class IoPrototype extends IoObject {
     public static final IoPrototype OBJECT = new IoPrototype(null, Symbols.OBJECT);
     public static final IoPrototype NUMBER = new IoPrototype(OBJECT, Symbols.NUMBER);
     public static final IoPrototype SEQUENCE = new IoPrototype(OBJECT, Symbols.SEQUENCE);
+    public static final IoPrototype IMMUTABLE_SEQUENCE = new IoPrototype(SEQUENCE, Symbols.IMMUTABLE_SEQUENCE);
     public static final IoPrototype BLOCK = new IoPrototype(OBJECT, Symbols.BLOCK);
     public static final IoPrototype LIST = new IoPrototype(OBJECT, Symbols.LIST);
     public static final IoPrototype DATE = new IoPrototype(OBJECT, Symbols.DATE);

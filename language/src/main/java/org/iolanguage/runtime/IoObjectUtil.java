@@ -154,10 +154,10 @@ public final class IoObjectUtil {
     public static IoBaseObject getPrototype(Object object) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(object);
         if (object instanceof String) {
-            return IoPrototype.SEQUENCE;
+            return IoPrototype.IMMUTABLE_SEQUENCE;
         }
         if (object instanceof TruffleString) {
-            return IoPrototype.SEQUENCE;
+            return IoPrototype.IMMUTABLE_SEQUENCE;
         }
         if (interop.fitsInLong(object)) {
             return IoPrototype.NUMBER;

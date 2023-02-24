@@ -73,6 +73,7 @@ public final class Symbols {
     public static final TruffleString NUMBER = constant("Number");
     public static final TruffleString OBJECT = constant("Object");
     public static final TruffleString SEQUENCE = constant("Sequence");
+    public static final TruffleString IMMUTABLE_SEQUENCE = constant("ImmutableSequence");
     public static final TruffleString SYSTEM = constant("System");
 
     public static TruffleString constant(String s) {
