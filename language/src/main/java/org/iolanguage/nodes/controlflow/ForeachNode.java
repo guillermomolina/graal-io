@@ -44,24 +44,31 @@
 package org.iolanguage.nodes.controlflow;
 
 import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.dsl.Cached;
+import com.oracle.truffle.api.dsl.NodeChild;
+import com.oracle.truffle.api.dsl.NodeField;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
+import com.oracle.truffle.api.strings.TruffleString.CreateCodePointIteratorNode;
 import com.oracle.truffle.api.strings.TruffleString.ErrorHandling;
 import com.oracle.truffle.api.strings.TruffleStringIterator;
 
 import org.iolanguage.IoLanguage;
 import org.iolanguage.NotImplementedException;
 import org.iolanguage.nodes.IoNode;
-import org.iolanguage.nodes.util.ToTruffleStringNodeGen;
-
+import org.iolanguage.nodes.util.ToTruffleStringNode;
 
 /*
 This should work but it doesn't
 Throws: java.lang.AssertionError: Node must be adopted by a RootNode to be pushed as encapsulating node.
 ************************************
+*/
 
 @NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
 @NodeChild("receiverNode")
@@ -113,9 +120,8 @@ public abstract class ForeachNode extends IoNode {
     }
 
 }
- */
 
-
+/* 
 @NodeInfo(shortName = "foreach", description = "The node implementing a for loop")
 public final class ForeachNode extends IoNode {
 
@@ -172,3 +178,4 @@ public final class ForeachNode extends IoNode {
     }
 
 }
+*/

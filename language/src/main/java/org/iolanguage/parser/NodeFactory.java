@@ -65,7 +65,7 @@ import org.iolanguage.nodes.controlflow.BreakNode;
 import org.iolanguage.nodes.controlflow.ContinueNode;
 import org.iolanguage.nodes.controlflow.DebuggerNode;
 import org.iolanguage.nodes.controlflow.ForNode;
-import org.iolanguage.nodes.controlflow.ForeachNode;
+import org.iolanguage.nodes.controlflow.ForeachNodeGen;
 import org.iolanguage.nodes.controlflow.IfNode;
 import org.iolanguage.nodes.controlflow.RepeatNode;
 import org.iolanguage.nodes.controlflow.ReturnNode;
@@ -628,7 +628,7 @@ public class NodeFactory {
             if(receiverNode == null) {
                 throw new NotImplementedException();
             }
-            final IoNode result = new ForeachNode(receiverNode, writeValueNode, bodyNode);
+            final IoNode result = ForeachNodeGen.create(receiverNode, writeValueNode, bodyNode);
             result.setSourceSection(startPos, length);
             result.addExpressionTag();
             return result;

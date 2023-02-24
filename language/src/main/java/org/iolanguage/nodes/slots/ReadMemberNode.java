@@ -50,6 +50,7 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
+import com.oracle.truffle.api.strings.TruffleString;
 
 import org.iolanguage.nodes.IoNode;
 import org.iolanguage.nodes.util.ToMemberNode;
@@ -106,6 +107,16 @@ public abstract class ReadMemberNode extends ReadNode {
         return getMember();
     }
 
+    @Specialization(guards = "isString(receiver)")
+    protected Object readString(Object receiver, Object name,
+            @Cached ToTruffleStringNode toTruffleStringNode) {
+        setReceiver(receiver);
+        setName(toTruffleStringNode.execute(name));
+        IoBaseObject slotOwner = IoObjectUtil.lookupSlot(IoPrototype.SEQUENCE, getName());
+        setPrototype(slotOwner);
+        return getMember();
+    }
+
     @Specialization(guards = { "!isIoBaseObject(receiver)", "objects.hasMembers(receiver)" }, limit = "LIBRARY_LIMIT")
     public Object readObject(Object receiver, Object name,
             @CachedLibrary("receiver") InteropLibrary objects,
@@ -141,6 +152,10 @@ public abstract class ReadMemberNode extends ReadNode {
         IoBaseObject slotOwner = IoObjectUtil.lookupSlot(receiver, getName());
         setPrototype(slotOwner);
         return getMember();
+    }
+
+    static boolean isString(Object a) {
+        return a instanceof TruffleString;
     }
 
     static boolean isIoBaseObject(Object receiver) {
