@@ -109,7 +109,7 @@ public abstract class IoTypes {
     public static double castSmallFloatToFloat(float value) {
         return value;
     }
-
+/* 
     @ImplicitCast
     public static double castSmallIntToFloat(int value) {
         return value;
@@ -125,5 +125,5 @@ public abstract class IoTypes {
     public static double castBigIntToFloat(IoBigInteger value) {
         return value.getValue().doubleValue();
     }
-
+*/
 }
