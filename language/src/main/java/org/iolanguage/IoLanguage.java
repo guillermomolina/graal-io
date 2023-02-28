@@ -156,8 +156,8 @@ public final class IoLanguage extends TruffleLanguage<IoState> {
         return REFERENCE.get(node);
     }
 
-    public static IoState getCurrentContext() {
-        CompilerAsserts.neverPartOfCompilation("Use getContext() or RubyContext.get(Node) instead in PE code");
+    public static IoState getState() {
+        CompilerAsserts.neverPartOfCompilation("Use getContext() or IoState.get(Node) instead in PE code");
         return IoState.get(null);
     }
 

@@ -40,6 +40,7 @@
  */
 package org.iolanguage.runtime;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -50,6 +51,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.iolanguage.IoLanguage;
 import org.iolanguage.NotImplementedException;
 import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.runtime.objects.IoBaseObject;
@@ -224,43 +226,65 @@ public final class IoObjectUtil {
             return ((IoBaseObject) object).toStringInner();
         }
         if (object instanceof Double) {
-            Double doubleValue = (Double) object;
-            if (Double.valueOf(doubleValue.intValue()).compareTo(doubleValue) == 0) {
-                return String.format("%d", doubleValue.intValue());
-            }
-            if (doubleValue.doubleValue() > Integer.MAX_VALUE || doubleValue.doubleValue() < Integer.MIN_VALUE) {
-                return String.format("%e", doubleValue.doubleValue());
-            } else {
-                String stringValue = String.format("%.16f", doubleValue.doubleValue());
-
-                int l = stringValue.length() - 1;
-                while (l > 0) {
-                    if (stringValue.charAt(l) == '0') {
-                        l--;
-                        continue;
-                    }
-                    if (stringValue.charAt(l) == '.') {
-                        l--;
-                        break;
-                    }
-                    break;
-                }
-                String output = stringValue.substring(0, l + 1);
-                return output;
-
-            }
+            return doubleToString((Double) object);
+        }
+        if (object instanceof BigInteger) {
+            return bigIntegerToString((BigInteger) object);
         }
         if (object instanceof Long) {
-            Long longValue = (Long) object;
-            if (Long.valueOf(longValue.intValue()).compareTo(longValue) == 0) {
-                return String.format("%d", longValue.intValue());
-            }
-            return String.format("%e", longValue.doubleValue());
+            return longToString((Long) object);
         }
         if (object instanceof IoLocals) {
             throw new NotImplementedException();
         }
         return object.toString();
+    }
+
+    public static String bigIntegerToString(BigInteger value) {
+        if(!IoLanguage.getState().getStateOptions().numberLegacyFormat) {
+            return value.toString();
+        }
+        throw new NotImplementedException();
+    }
+
+    public static String doubleToString(Double value) {
+        if(!IoLanguage.getState().getStateOptions().numberLegacyFormat) {
+            return String.valueOf(value);
+        }
+        if (Double.valueOf(value.intValue()).compareTo(value) == 0) {
+            return String.format("%d", value.intValue());
+        }
+        if (value.doubleValue() > Integer.MAX_VALUE || value.doubleValue() < Integer.MIN_VALUE) {
+            return String.format("%e", value.doubleValue());
+        } else {
+            String stringValue = String.format("%.16f", value.doubleValue());
+
+            int l = stringValue.length() - 1;
+            while (l > 0) {
+                if (stringValue.charAt(l) == '0') {
+                    l--;
+                    continue;
+                }
+                if (stringValue.charAt(l) == '.') {
+                    l--;
+                    break;
+                }
+                break;
+            }
+            String output = stringValue.substring(0, l + 1);
+            return output;
+
+        }
+    }
+
+    public static String longToString(Long value) {
+        if(!IoLanguage.getState().getStateOptions().numberLegacyFormat) {
+            return String.valueOf(value);
+        }
+        if (Long.valueOf(value.intValue()).compareTo(value) == 0) {
+            return String.format("%d", value.intValue());
+        }
+        return String.format("%e", value.doubleValue());
     }
 
     public static Date getDate(IoDate date) {

@@ -39,26 +39,28 @@
  * SOFTWARE.
  */
 
- package org.iolanguage.runtime;
-
- 
-import org.graalvm.options.OptionCategory;
-import org.graalvm.options.OptionDescriptors;
-import org.graalvm.options.OptionKey;
-import org.graalvm.options.OptionStability;
-import org.graalvm.options.OptionValues;
-import org.iolanguage.IoLanguage;
+package org.iolanguage.runtime;
 
 import com.oracle.truffle.api.Option;
 import com.oracle.truffle.api.TruffleLanguage.Env;
 
+import org.graalvm.options.OptionCategory;
+import org.graalvm.options.OptionDescriptors;
+import org.graalvm.options.OptionKey;
+import org.graalvm.options.OptionValues;
+import org.iolanguage.IoLanguage;
+
 @Option.Group(IoLanguage.ID)
 public class IoOptions {
-    public static final String IO_LIB_PATH = "io-lib-path";
+    public static final String IO_LIB_PATH_NAME = "io-lib-path";
     public static final String IO_LIB_PATH_HELP = "Path ':'-separated list of directories prefixed to the default lib search path.";
-
-    @Option(name = IO_LIB_PATH, category = OptionCategory.USER, stability = OptionStability.STABLE, help = IO_LIB_PATH_HELP)//
+    @Option(name = IO_LIB_PATH_NAME, category = OptionCategory.USER, help = IO_LIB_PATH_HELP) //
     public static final OptionKey<String> IoLibPath = new OptionKey<>("./io");
+
+    public static final String IO_NUMBER_LEGACY_FORMAT_NAME = "io-number-legacy-format";
+    public static final String IO_NUMBER_LEGACY_FORMAT_HELP = "Boolean ':'-Show numbers as original io does.";
+    @Option(name = IO_NUMBER_LEGACY_FORMAT_NAME, category = OptionCategory.USER, help = IO_NUMBER_LEGACY_FORMAT_HELP) //
+    public static final OptionKey<Boolean> IoNumberLegacyFormat = new OptionKey<>(false);
 
     private IoOptions() { // no instances
     }
@@ -67,12 +69,14 @@ public class IoOptions {
         return new IoOptionsOptionDescriptors();
     }
 
-    public static final class IoContextOptions {
-        public final String[] ioLibPath;
+    public static final class IoStateOptions {
+        public final String[] libPath;
+        public final boolean numberLegacyFormat;
 
-        public IoContextOptions(final Env env) {
+        public IoStateOptions(final Env env) {
             final OptionValues options = env.getOptions();
-            ioLibPath = options.get(IoLibPath).isEmpty() ? new String[0] : options.get(IoLibPath).split(":");
+            libPath = options.get(IoLibPath).isEmpty() ? new String[0] : options.get(IoLibPath).split(":");
+            numberLegacyFormat = options.get(IoNumberLegacyFormat);
         }
     }
 }

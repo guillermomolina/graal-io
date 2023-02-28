@@ -258,6 +258,6 @@ public class IoObject extends DynamicObject implements IoBaseObject {
 
     @ExportMessage
     public final Object instantiate(Object[] args) {
-        return IoLanguage.getCurrentContext().cloneObject();
+        return IoLanguage.getState().cloneObject();
     }
 }

@@ -131,7 +131,7 @@ import org.iolanguage.nodes.functions.system.SystemSleepFunctionFactory;
 import org.iolanguage.nodes.functions.system.SystemStackTraceFunctionFactory;
 import org.iolanguage.nodes.root.IoRootNode;
 import org.iolanguage.nodes.slots.ReadArgumentNode;
-import org.iolanguage.runtime.IoOptions.IoContextOptions;
+import org.iolanguage.runtime.IoOptions.IoStateOptions;
 import org.iolanguage.runtime.objects.IoBaseObject;
 import org.iolanguage.runtime.objects.IoBlock;
 import org.iolanguage.runtime.objects.IoCall;
@@ -162,7 +162,7 @@ public final class IoState {
     private final PrintWriter output;
     private final AllocationReporter allocationReporter;
     private final List<IoInvokable> shutdownHooks = new ArrayList<>();
-    public final IoContextOptions options;
+    public final IoStateOptions options;
 
     private static final Source BUILTIN_SOURCE = Source.newBuilder(IoLanguage.ID, "", "IO builtin").build();
     private static final String SOURCE_SUFFIX = ".io";
@@ -183,7 +183,7 @@ public final class IoState {
         this.coreProtos = cloneObject();
         this.lobby = cloneObject(coreProtos);
         this.currentCoroutine = createCoroutine();
-        this.options = new IoContextOptions(env);
+        this.options = new IoStateOptions(env);
         setupLobby();
         installBuiltins();
         for (NodeFactory<? extends FunctionBodyNode> builtin : externalBuiltins) {
@@ -231,6 +231,10 @@ public final class IoState {
 
     public IoBaseObject getLobby() {
         return lobby;
+    }
+
+    public IoStateOptions getStateOptions() {
+        return options;
     }
 
     public IoCoroutine getCurrentCoroutine() {
@@ -358,7 +362,7 @@ public final class IoState {
 
     public void initialize() {
         Path rootPath = null;
-        for (String path : options.ioLibPath) {
+        for (String path : options.libPath) {
             Path candidate = FileSystems.getDefault().getPath(path, "bootstrap");
             if (Files.exists(candidate)) {
                 rootPath = candidate;
