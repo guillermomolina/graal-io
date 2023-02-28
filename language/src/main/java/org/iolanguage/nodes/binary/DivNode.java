@@ -48,6 +48,7 @@ import java.math.BigInteger;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.objects.IoBigInteger;
 
 /**
@@ -92,7 +93,7 @@ public abstract class DivNode extends BinaryNode {
   @Specialization(rewriteOn = ArithmeticException.class)
   protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
     if (left.getValue().remainder(right.getValue()) == BigInteger.ZERO) {
-      return new IoBigInteger(left.getValue().divide(right.getValue()));
+      return IoState.get(this).createBigInteger(left.getValue().divide(right.getValue()));
     }
     throw new ArithmeticException();
   }

@@ -48,6 +48,7 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.exceptions.IoLanguageException;
 import org.iolanguage.runtime.objects.IoBigInteger;
 
@@ -62,7 +63,7 @@ public abstract class AddNode extends BinaryNode {
     @Specialization
     @TruffleBoundary
     protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
-        return new IoBigInteger(left.getValue().add(right.getValue()));
+        return IoState.get(this).createBigInteger(left.getValue().add(right.getValue()));
     }
     
     @Specialization

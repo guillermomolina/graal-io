@@ -60,6 +60,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 import com.oracle.truffle.api.strings.TruffleString;
 
+import org.iolanguage.IoLanguage;
 import org.iolanguage.NotImplementedException;
 import org.iolanguage.ShouldNotBeHereException;
 import org.iolanguage.runtime.Symbols;
@@ -277,11 +278,14 @@ public class IoSequence extends IoObject {
         return value;
     }
 
-    public double getUInt64AsDouble(int position) throws ArithmeticException {
-        byte[] buffer = new byte[5];
-        System.arraycopy(byteBuffer, position, buffer, 1, 4);
+    public IoBigInteger getUInt64AsBigInteger(int position) {
+        byte[] buffer = new byte[9];
+        int oldPosition = byteBuffer.position();
+        byteBuffer.position(position);
+        byteBuffer.get(buffer, 1, 8);
+        byteBuffer.position(oldPosition);
         BigInteger bigInteger = new BigInteger(buffer);
-        return bigInteger.doubleValue();
+        return IoLanguage.getState().createBigInteger(bigInteger);
     }
 
     public void putInt64(int position, long value) {
@@ -368,7 +372,7 @@ public class IoSequence extends IoObject {
                 try {
                     return getUInt64(position);
                 } catch (ArithmeticException e) {
-                    return getUInt64AsDouble(position);
+                    return getUInt64AsBigInteger(position);
                 }
             case FLOAT32:
                 return getFloat32(position);

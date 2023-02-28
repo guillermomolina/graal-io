@@ -49,6 +49,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 import org.iolanguage.nodes.IoNode;
+import org.iolanguage.runtime.IoState;
 import org.iolanguage.runtime.objects.IoBigInteger;
 
 /**
@@ -61,7 +62,7 @@ public final class BigIntegerLiteralNode extends IoNode {
     private final IoBigInteger value;
 
     public BigIntegerLiteralNode(BigInteger value) {
-        this.value = new IoBigInteger(value);
+        this.value = IoState.get(this).createBigInteger(value);
     }
 
     @Override

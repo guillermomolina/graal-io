@@ -47,6 +47,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -133,6 +134,7 @@ import org.iolanguage.nodes.root.IoRootNode;
 import org.iolanguage.nodes.slots.ReadArgumentNode;
 import org.iolanguage.runtime.IoOptions.IoStateOptions;
 import org.iolanguage.runtime.objects.IoBaseObject;
+import org.iolanguage.runtime.objects.IoBigInteger;
 import org.iolanguage.runtime.objects.IoBlock;
 import org.iolanguage.runtime.objects.IoCall;
 import org.iolanguage.runtime.objects.IoCoroutine;
@@ -520,6 +522,21 @@ public final class IoState {
         allocationReporter.onReturnValue(list, 0, AllocationReporter.SIZE_UNKNOWN);
         return list;
     }
+
+    public IoBigInteger createBigInteger(long value) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IoBigInteger biginteger = new IoBigInteger(value);
+        allocationReporter.onReturnValue(biginteger, 0, AllocationReporter.SIZE_UNKNOWN);
+        return biginteger;
+    }
+
+    public IoBigInteger createBigInteger(BigInteger value) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        IoBigInteger biginteger = new IoBigInteger(value);
+        allocationReporter.onReturnValue(biginteger, 0, AllocationReporter.SIZE_UNKNOWN);
+        return biginteger;
+    }
+
 
     public IoDate createDate() {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
