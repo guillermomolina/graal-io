@@ -40,7 +40,6 @@
  */
 package org.iolanguage.runtime;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -228,9 +227,6 @@ public final class IoObjectUtil {
         if (object instanceof Double) {
             return doubleToString((Double) object);
         }
-        if (object instanceof BigInteger) {
-            return bigIntegerToString((BigInteger) object);
-        }
         if (object instanceof Long) {
             return longToString((Long) object);
         }
@@ -238,13 +234,6 @@ public final class IoObjectUtil {
             throw new NotImplementedException();
         }
         return object.toString();
-    }
-
-    public static String bigIntegerToString(BigInteger value) {
-        if(!IoLanguage.getState().getStateOptions().numberLegacyFormat) {
-            return value.toString();
-        }
-        throw new NotImplementedException();
     }
 
     public static String doubleToString(Double value) {

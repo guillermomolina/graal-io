@@ -63,7 +63,6 @@ public abstract class MulNode extends BinaryNode {
     }
 
     @Specialization
-    @TruffleBoundary
     protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
         return new IoBigInteger(left.getValue().multiply(right.getValue()));
     }

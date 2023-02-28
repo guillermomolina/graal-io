@@ -51,6 +51,10 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
+import org.iolanguage.IoLanguage;
+import org.iolanguage.NotImplementedException;
+import org.iolanguage.runtime.Symbols;
+
 @ExportLibrary(InteropLibrary.class)
 public final class IoBigInteger extends IoObject implements Comparable<IoBigInteger> {
 
@@ -88,7 +92,16 @@ public final class IoBigInteger extends IoObject implements Comparable<IoBigInte
 
     @Override
     public String toStringInner() {
+        if (IoLanguage.getState().getStateOptions().numberLegacyFormat) {
+            throw new NotImplementedException();
+        }
         return value.toString();
+    }
+
+    @ExportMessage
+    @TruffleBoundary
+    Object toDisplayString(boolean allowSideEffects) {
+        return Symbols.fromJavaString(toStringInner());
     }
 
     @Override
@@ -206,4 +219,3 @@ public final class IoBigInteger extends IoObject implements Comparable<IoBigInte
         }
     }
 }
-

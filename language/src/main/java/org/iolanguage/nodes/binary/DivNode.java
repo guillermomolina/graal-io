@@ -43,8 +43,12 @@
  */
 package org.iolanguage.nodes.binary;
 
+import java.math.BigInteger;
+
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
+
+import org.iolanguage.runtime.objects.IoBigInteger;
 
 /**
  * This class is similar to the extensively documented {@link AddNode}. Divisions by 0 throw the
@@ -57,7 +61,7 @@ public abstract class DivNode extends BinaryNode {
   protected static boolean isCornercase(long a, long b) {
     return a != 0 && !(b == -1 && a == Long.MIN_VALUE);
   }
-  
+
   // when b is positive, the result will fit long (if without remainder)
   @Specialization(rewriteOn = ArithmeticException.class, guards = "b > 0")
   protected long doLong1(long a, long b) {
@@ -66,7 +70,7 @@ public abstract class DivNode extends BinaryNode {
     }
     throw new ArithmeticException();
   }
-  
+
   // otherwise, ensure a > 0 (this also excludes two cornercases):
   // when a == 0, result would be NegativeZero
   // when a == Long.MIN_VALUE && b == -1, result does not fit into long
@@ -74,21 +78,28 @@ public abstract class DivNode extends BinaryNode {
   protected long doLong2(long a, long b) {
     return doLong1(a, b);
   }
-  
+
   @Specialization(rewriteOn = ArithmeticException.class, guards = "isCornercase(a, b)")
   protected long doLong3(long a, long b) {
     return doLong1(a, b);
   }
-/*  
-  @Specialization
-  @TruffleBoundary
-  protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
-      return new IoBigInteger(left.getValue().divide(right.getValue()));
-  }
-*/ 
+
   @Specialization(replaces = { "doLong1", "doLong2", "doLong3" })
   protected double doDouble(double a, double b) {
     return a / b;
+  }
+
+  @Specialization(rewriteOn = ArithmeticException.class)
+  protected IoBigInteger doBigInteger(IoBigInteger left, IoBigInteger right) {
+    if (left.getValue().remainder(right.getValue()) == BigInteger.ZERO) {
+      return new IoBigInteger(left.getValue().divide(right.getValue()));
+    }
+    throw new ArithmeticException();
+  }
+
+  @Specialization
+  protected double doDouble(IoBigInteger left, IoBigInteger right) {
+    return left.getValue().doubleValue() / right.getValue().doubleValue();
   }
 
 }

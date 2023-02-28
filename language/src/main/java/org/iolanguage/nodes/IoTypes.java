@@ -114,12 +114,12 @@ public abstract class IoTypes {
     public static double castSmallIntToFloat(int value) {
         return value;
     }
-
+*/
     @ImplicitCast
     public static double castIntToFloat(long value) {
         return value;
     }
-
+ /* 
     @ImplicitCast
     @TruffleBoundary
     public static double castBigIntToFloat(IoBigInteger value) {
